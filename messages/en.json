@@ -1,0 +1,530 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "search": "Search",
+    "filter": "Filter",
+    "submit": "Submit",
+    "close": "Close",
+    "yes": "Yes",
+    "no": "No",
+    "actions": "Actions",
+    "status": "Status",
+    "date": "Date",
+    "amount": "Amount",
+    "currency": "Currency",
+    "country": "Country",
+    "error": "An error occurred. Please try again.",
+    "noResults": "No results found."
+  },
+  "auth": {
+    "login": {
+      "title": "Sign in to TIMELESS",
+      "subtitle": "Welcome back",
+      "email": "Email address",
+      "password": "Password",
+      "submit": "Sign in",
+      "forgotPassword": "Forgot your password?",
+      "noAccount": "Don't have an account?",
+      "register": "Create an account",
+      "mfa": "Two-factor authentication",
+      "mfaCode": "Authentication code",
+      "mfaDescription": "Enter the 6-digit code from your authenticator app.",
+      "error": {
+        "invalidCredentials": "Invalid email or password.",
+        "emailNotVerified": "Please verify your email address before signing in."
+      }
+    },
+    "register": {
+      "title": "Create your account",
+      "subtitle": "Start using TIMELESS",
+      "name": "Full name",
+      "email": "Email address",
+      "password": "Password",
+      "passwordConfirm": "Confirm password",
+      "submit": "Create account",
+      "hasAccount": "Already have an account?",
+      "login": "Sign in",
+      "terms": "By creating an account, you agree to our {terms} and {privacy}.",
+      "termsLink": "Terms of Service",
+      "privacyLink": "Privacy Policy",
+      "emailSent": "We sent a verification email to {email}. Please check your inbox.",
+      "error": {
+        "emailTaken": "This email address is already in use.",
+        "passwordMismatch": "Passwords do not match.",
+        "weakPassword": "Password must be at least 8 characters."
+      }
+    },
+    "forgotPassword": {
+      "title": "Reset your password",
+      "subtitle": "Enter your email to receive a reset link.",
+      "email": "Email address",
+      "submit": "Send reset link",
+      "backToLogin": "Back to sign in",
+      "emailSent": "If an account exists for {email}, you will receive a reset link shortly."
+    },
+    "resetPassword": {
+      "title": "Set a new password",
+      "password": "New password",
+      "passwordConfirm": "Confirm new password",
+      "submit": "Reset password",
+      "success": "Your password has been reset. You can now sign in.",
+      "error": {
+        "invalidToken": "This reset link is invalid or has expired."
+      }
+    }
+  },
+  "navigation": {
+    "catalogue": "Catalogue",
+    "cart": "Cart",
+    "requests": "My requests",
+    "account": "Account",
+    "cinemas": "My cinemas",
+    "members": "Members",
+    "films": "My films",
+    "wallet": "Wallet",
+    "dashboard": "Dashboard",
+    "rightsHolders": "Rights holders",
+    "exhibitors": "Exhibitors",
+    "deliveries": "Deliveries",
+    "settings": "Settings",
+    "logs": "Audit logs",
+    "signOut": "Sign out"
+  },
+  "catalogue": {
+    "title": "Catalogue",
+    "searchPlaceholder": "Search by title, director, cast...",
+    "filters": {
+      "genre": "Genre",
+      "year": "Year",
+      "duration": "Duration",
+      "rightsHolder": "Rights holder",
+      "country": "Country",
+      "type": "Availability",
+      "typeAll": "All films",
+      "typeDirect": "Available now",
+      "typeValidation": "On request"
+    },
+    "sort": {
+      "relevance": "Relevance",
+      "titleAsc": "Title A–Z",
+      "year": "Year",
+      "price": "Price"
+    },
+    "film": {
+      "direct": "Available now",
+      "validation": "On request",
+      "addToCart": "Add to cart",
+      "makeRequest": "Make a request",
+      "noPrice": "Price on request",
+      "director": "Director",
+      "cast": "Cast",
+      "duration": "{duration} min",
+      "year": "{year}",
+      "genres": "Genres",
+      "rightsHolder": "Rights holder",
+      "synopsis": "Synopsis",
+      "tmdbRating": "TMDB rating"
+    }
+  },
+  "cart": {
+    "title": "Cart",
+    "empty": "Your cart is empty.",
+    "browseCatalogue": "Browse the catalogue",
+    "item": {
+      "cinema": "Cinema",
+      "room": "Room",
+      "screenings": "Number of screenings",
+      "startDate": "Start date",
+      "endDate": "End date",
+      "price": "Price",
+      "remove": "Remove"
+    },
+    "summary": {
+      "subtotal": "Subtotal",
+      "deliveryFees": "Delivery fees",
+      "tax": "VAT",
+      "total": "Total",
+      "checkout": "Proceed to payment",
+      "multiCurrency": "Prices in multiple currencies"
+    },
+    "modal": {
+      "title": "Screening details",
+      "cinema": "Select a cinema",
+      "room": "Select a room",
+      "screenings": "Number of screenings",
+      "startDate": "Start date",
+      "endDate": "End date",
+      "priceIndicative": "Indicative price ({currency})",
+      "confirm": "Confirm",
+      "typeLabel": {
+        "direct": "Add to cart",
+        "validation": "Submit a request"
+      }
+    }
+  },
+  "requests": {
+    "title": "My requests",
+    "tabs": {
+      "pending": "Pending",
+      "validated": "Validated",
+      "refused": "Refused",
+      "expired": "Expired",
+      "paid": "Paid"
+    },
+    "columns": {
+      "film": "Film",
+      "rightsHolder": "Rights holder",
+      "cinema": "Cinema",
+      "dates": "Dates",
+      "status": "Status",
+      "expires": "Expires on",
+      "actions": "Actions"
+    },
+    "status": {
+      "pending": "Awaiting validation",
+      "validated": "Validated — payment required",
+      "refused": "Refused",
+      "expired": "Expired",
+      "paid": "Paid"
+    },
+    "actions": {
+      "pay": "Pay now",
+      "cancel": "Cancel request",
+      "resubmit": "Resubmit"
+    },
+    "refusalReason": "Reason: {reason}"
+  },
+  "orders": {
+    "title": "Order history",
+    "columns": {
+      "film": "Film",
+      "cinema": "Cinema",
+      "date": "Order date",
+      "amount": "Amount",
+      "status": "Delivery status",
+      "invoice": "Invoice"
+    },
+    "deliveryStatus": {
+      "pending": "Awaiting processing",
+      "in_progress": "In progress",
+      "delivered": "Delivered"
+    },
+    "downloadInvoice": "Download invoice"
+  },
+  "account": {
+    "profile": {
+      "title": "Company profile",
+      "companyName": "Company name",
+      "country": "Country",
+      "address": "Address",
+      "city": "City",
+      "postalCode": "Postal code",
+      "vatNumber": "VAT number",
+      "vatValidated": "Validated",
+      "vatInvalid": "Invalid",
+      "preferredCurrency": "Preferred display currency",
+      "saved": "Profile saved."
+    },
+    "cinemas": {
+      "title": "My cinemas",
+      "add": "Add a cinema",
+      "edit": "Edit",
+      "delete": "Delete",
+      "name": "Cinema name",
+      "address": "Address",
+      "city": "City",
+      "country": "Country",
+      "rooms": "Rooms",
+      "addRoom": "Add a room",
+      "roomName": "Room name",
+      "capacity": "Capacity (seats)"
+    },
+    "members": {
+      "title": "Team members",
+      "invite": "Invite a member",
+      "email": "Email address",
+      "role": "Role",
+      "roles": {
+        "owner": "Owner",
+        "admin": "Admin",
+        "member": "Member"
+      },
+      "remove": "Remove",
+      "pending": "Invitation pending"
+    }
+  },
+  "films": {
+    "title": "My catalogue",
+    "add": "Add a film",
+    "import": "Import CSV / Excel",
+    "columns": {
+      "title": "Title",
+      "type": "Type",
+      "status": "Status",
+      "zones": "Price zones",
+      "orders": "Orders",
+      "actions": "Actions"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "retired": "Retired"
+    },
+    "type": {
+      "direct": "Direct sale",
+      "validation": "Requires approval"
+    },
+    "form": {
+      "title": "Title",
+      "searchTmdb": "Search on TMDB...",
+      "type": "Availability type",
+      "status": "Status",
+      "prices": "Prices by zone",
+      "addZone": "Add a zone",
+      "countries": "Countries (comma-separated ISO codes)",
+      "price": "Price",
+      "currency": "Currency",
+      "tmdbMatch": "TMDB match",
+      "tmdbMatched": "Matched: {title} ({year})",
+      "tmdbNoMatch": "No TMDB match found",
+      "tmdbManual": "Override manually"
+    },
+    "import": {
+      "title": "Import films from CSV / Excel",
+      "description": "Upload a file to update your catalogue in bulk.",
+      "templateDownload": "Download template",
+      "columns": {
+        "title": "title",
+        "type": "type (direct | validation)",
+        "countries": "countries (e.g. FR,BE,CH)",
+        "price": "price (in cents)",
+        "currency": "currency (EUR, USD…)",
+        "status": "status (active | inactive)"
+      },
+      "preview": "Preview ({count} rows)",
+      "errors": "{count} error(s) detected",
+      "warnings": "{count} warning(s)",
+      "confirm": "Import {count} film(s)",
+      "result": {
+        "created": "{count} film(s) created",
+        "updated": "{count} film(s) updated",
+        "errors": "{count} error(s)"
+      }
+    },
+    "validation": {
+      "title": "Validation requests",
+      "columns": {
+        "film": "Film",
+        "exhibitor": "Exhibitor",
+        "cinema": "Cinema",
+        "dates": "Dates",
+        "screenings": "Screenings",
+        "room": "Room ({capacity} seats)",
+        "price": "Price",
+        "expires": "Expires on",
+        "actions": "Actions"
+      },
+      "accept": "Accept",
+      "refuse": "Refuse",
+      "refusalReason": "Reason for refusal (optional)",
+      "confirmAccept": "Are you sure you want to accept this request?",
+      "confirmRefuse": "Are you sure you want to refuse this request?"
+    }
+  },
+  "wallet": {
+    "title": "Wallet",
+    "available": "Available balance",
+    "pending": "Pending",
+    "thisMonth": "This month",
+    "withdraw": "Withdraw",
+    "withdrawModal": {
+      "title": "Withdraw funds",
+      "amount": "Amount",
+      "available": "Available: {amount}",
+      "delay": "Funds will be transferred within 1–2 business days.",
+      "confirm": "Confirm withdrawal"
+    },
+    "autoPayoutTitle": "Automatic payouts",
+    "autoPayoutEnable": "Enable automatic payouts",
+    "autoPayoutFrequency": "Frequency",
+    "autoPayoutFrequencies": {
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "monthly": "Monthly"
+    },
+    "autoPayoutMinimum": "Minimum threshold",
+    "transactions": {
+      "title": "Transaction history",
+      "columns": {
+        "date": "Date",
+        "film": "Film",
+        "exhibitor": "Exhibitor",
+        "gross": "Gross amount",
+        "commission": "Commission",
+        "net": "Net amount",
+        "status": "Status"
+      },
+      "status": {
+        "pending": "Pending",
+        "available": "Available",
+        "paid_out": "Paid out"
+      }
+    },
+    "payouts": {
+      "title": "Payout history",
+      "download": "Download statement",
+      "status": {
+        "initiated": "Initiated",
+        "in_transit": "In transit",
+        "paid": "Paid",
+        "failed": "Failed"
+      }
+    }
+  },
+  "admin": {
+    "dashboard": {
+      "title": "Dashboard",
+      "metrics": {
+        "revenue": "Revenue (TIMELESS)",
+        "transactions": "Transactions",
+        "pendingDeliveries": "Pending deliveries",
+        "pendingRequests": "Pending requests"
+      }
+    },
+    "rightsHolders": {
+      "title": "Rights holders",
+      "add": "Add a rights holder",
+      "columns": {
+        "name": "Name",
+        "country": "Country",
+        "commission": "Commission",
+        "films": "Films",
+        "volume": "Volume",
+        "status": "Status",
+        "stripe": "Stripe Connect"
+      },
+      "stripeStatus": {
+        "complete": "Complete",
+        "incomplete": "Incomplete"
+      },
+      "form": {
+        "companyName": "Company name",
+        "country": "Country",
+        "contactEmail": "Contact email",
+        "commission": "Commission rate (%)"
+      }
+    },
+    "exhibitors": {
+      "title": "Exhibitors",
+      "columns": {
+        "name": "Name",
+        "country": "Country",
+        "cinemas": "Cinemas",
+        "volume": "Volume",
+        "status": "Status"
+      }
+    },
+    "deliveries": {
+      "title": "Deliveries",
+      "tabs": {
+        "pending": "To process",
+        "inProgress": "In progress",
+        "delivered": "Delivered"
+      },
+      "columns": {
+        "film": "Film",
+        "exhibitor": "Exhibitor",
+        "cinema": "Cinema",
+        "startDate": "Screening start",
+        "rightsHolder": "Rights holder",
+        "urgency": "Urgency",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "urgency": {
+        "critical": "{days}d — CRITICAL",
+        "high": "{days}d",
+        "normal": "{days}d"
+      },
+      "notes": "Internal notes",
+      "markDelivered": "Mark as delivered",
+      "updateStatus": "Update status"
+    },
+    "settings": {
+      "title": "Platform settings",
+      "pricing": {
+        "title": "Pricing",
+        "platformMargin": "Platform margin (%)",
+        "deliveryFees": "Delivery fees (EUR)",
+        "defaultCommission": "Default commission (%)",
+        "preview": "With these settings, a film priced at {catalogue} will be displayed at {displayed}.",
+        "save": "Save settings",
+        "history": "Change history"
+      },
+      "operations": {
+        "title": "Operations",
+        "opsEmail": "Operations email",
+        "requestExpiration": "Request expiration (days)",
+        "urgencyDays": "Urgency threshold (days before start)"
+      }
+    },
+    "logs": {
+      "title": "Audit logs",
+      "columns": {
+        "date": "Date",
+        "action": "Action",
+        "entity": "Entity",
+        "performedBy": "Performed by",
+        "details": "Details"
+      }
+    }
+  },
+  "emails": {
+    "validationRequest": {
+      "subject": "Screening request for {filmTitle}",
+      "greeting": "Hello,",
+      "intro": "{exhibitorName} has submitted a screening request for {filmTitle}.",
+      "exhibitorInfo": "Exhibitor information",
+      "requestDetails": "Request details",
+      "screenings": "Number of screenings",
+      "dates": "Dates",
+      "room": "Room",
+      "capacity": "Capacity",
+      "price": "Price",
+      "expires": "This request expires on {date}.",
+      "accept": "Accept",
+      "refuse": "Refuse"
+    },
+    "validationAccepted": {
+      "subject": "Your request for {filmTitle} has been accepted",
+      "body": "Your screening request has been accepted. You can now proceed to payment.",
+      "cta": "Pay now"
+    },
+    "validationRefused": {
+      "subject": "Your request for {filmTitle} has been refused",
+      "body": "Your screening request has been refused.",
+      "reason": "Reason: {reason}"
+    },
+    "requestExpired": {
+      "subject": "Request expired: {filmTitle}",
+      "bodyExhibitor": "Your request for {filmTitle} has expired. You can submit a new request.",
+      "bodyRightsHolder": "The request from {exhibitorName} for {filmTitle} has expired."
+    },
+    "paymentConfirmed": {
+      "subject": "Payment confirmed — {filmTitle}",
+      "body": "Your payment has been received. Your DCP will be delivered shortly.",
+      "amount": "Amount paid"
+    },
+    "deliveryConfirmed": {
+      "subject": "DCP delivered — {filmTitle}",
+      "body": "Your DCP for {filmTitle} has been delivered."
+    }
+  }
+}

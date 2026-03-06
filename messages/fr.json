@@ -1,0 +1,530 @@
+{
+  "common": {
+    "loading": "Chargement...",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "confirm": "Confirmer",
+    "back": "Retour",
+    "next": "Suivant",
+    "search": "Rechercher",
+    "filter": "Filtrer",
+    "submit": "Envoyer",
+    "close": "Fermer",
+    "yes": "Oui",
+    "no": "Non",
+    "actions": "Actions",
+    "status": "Statut",
+    "date": "Date",
+    "amount": "Montant",
+    "currency": "Devise",
+    "country": "Pays",
+    "error": "Une erreur est survenue. Veuillez réessayer.",
+    "noResults": "Aucun résultat trouvé."
+  },
+  "auth": {
+    "login": {
+      "title": "Connexion à TIMELESS",
+      "subtitle": "Bienvenue",
+      "email": "Adresse email",
+      "password": "Mot de passe",
+      "submit": "Se connecter",
+      "forgotPassword": "Mot de passe oublié ?",
+      "noAccount": "Pas encore de compte ?",
+      "register": "Créer un compte",
+      "mfa": "Authentification à deux facteurs",
+      "mfaCode": "Code d'authentification",
+      "mfaDescription": "Entrez le code à 6 chiffres de votre application d'authentification.",
+      "error": {
+        "invalidCredentials": "Email ou mot de passe incorrect.",
+        "emailNotVerified": "Veuillez vérifier votre adresse email avant de vous connecter."
+      }
+    },
+    "register": {
+      "title": "Créer votre compte",
+      "subtitle": "Rejoignez TIMELESS",
+      "name": "Nom complet",
+      "email": "Adresse email",
+      "password": "Mot de passe",
+      "passwordConfirm": "Confirmer le mot de passe",
+      "submit": "Créer le compte",
+      "hasAccount": "Déjà un compte ?",
+      "login": "Se connecter",
+      "terms": "En créant un compte, vous acceptez nos {terms} et notre {privacy}.",
+      "termsLink": "Conditions d'utilisation",
+      "privacyLink": "Politique de confidentialité",
+      "emailSent": "Un email de vérification a été envoyé à {email}. Veuillez vérifier votre boîte mail.",
+      "error": {
+        "emailTaken": "Cette adresse email est déjà utilisée.",
+        "passwordMismatch": "Les mots de passe ne correspondent pas.",
+        "weakPassword": "Le mot de passe doit contenir au moins 8 caractères."
+      }
+    },
+    "forgotPassword": {
+      "title": "Réinitialiser votre mot de passe",
+      "subtitle": "Entrez votre email pour recevoir un lien de réinitialisation.",
+      "email": "Adresse email",
+      "submit": "Envoyer le lien",
+      "backToLogin": "Retour à la connexion",
+      "emailSent": "Si un compte existe pour {email}, vous recevrez un lien de réinitialisation sous peu."
+    },
+    "resetPassword": {
+      "title": "Définir un nouveau mot de passe",
+      "password": "Nouveau mot de passe",
+      "passwordConfirm": "Confirmer le nouveau mot de passe",
+      "submit": "Réinitialiser le mot de passe",
+      "success": "Votre mot de passe a été réinitialisé. Vous pouvez maintenant vous connecter.",
+      "error": {
+        "invalidToken": "Ce lien de réinitialisation est invalide ou a expiré."
+      }
+    }
+  },
+  "navigation": {
+    "catalogue": "Catalogue",
+    "cart": "Panier",
+    "requests": "Mes demandes",
+    "account": "Compte",
+    "cinemas": "Mes cinémas",
+    "members": "Membres",
+    "films": "Mes films",
+    "wallet": "Portefeuille",
+    "dashboard": "Tableau de bord",
+    "rightsHolders": "Ayants droits",
+    "exhibitors": "Exploitants",
+    "deliveries": "Livraisons",
+    "settings": "Paramètres",
+    "logs": "Journal d'audit",
+    "signOut": "Se déconnecter"
+  },
+  "catalogue": {
+    "title": "Catalogue",
+    "searchPlaceholder": "Rechercher par titre, réalisateur, acteur...",
+    "filters": {
+      "genre": "Genre",
+      "year": "Année",
+      "duration": "Durée",
+      "rightsHolder": "Ayant droit",
+      "country": "Pays",
+      "type": "Disponibilité",
+      "typeAll": "Tous les films",
+      "typeDirect": "Disponibles immédiatement",
+      "typeValidation": "Sur demande"
+    },
+    "sort": {
+      "relevance": "Pertinence",
+      "titleAsc": "Titre A–Z",
+      "year": "Année",
+      "price": "Prix"
+    },
+    "film": {
+      "direct": "Disponible immédiatement",
+      "validation": "Sur demande",
+      "addToCart": "Ajouter au panier",
+      "makeRequest": "Faire une demande",
+      "noPrice": "Prix sur demande",
+      "director": "Réalisateur",
+      "cast": "Distribution",
+      "duration": "{duration} min",
+      "year": "{year}",
+      "genres": "Genres",
+      "rightsHolder": "Ayant droit",
+      "synopsis": "Synopsis",
+      "tmdbRating": "Note TMDB"
+    }
+  },
+  "cart": {
+    "title": "Panier",
+    "empty": "Votre panier est vide.",
+    "browseCatalogue": "Parcourir le catalogue",
+    "item": {
+      "cinema": "Cinéma",
+      "room": "Salle",
+      "screenings": "Nombre de visionnages",
+      "startDate": "Date de début",
+      "endDate": "Date de fin",
+      "price": "Prix",
+      "remove": "Supprimer"
+    },
+    "summary": {
+      "subtotal": "Sous-total",
+      "deliveryFees": "Frais de livraison",
+      "tax": "TVA",
+      "total": "Total",
+      "checkout": "Procéder au paiement",
+      "multiCurrency": "Prix en plusieurs devises"
+    },
+    "modal": {
+      "title": "Détails de la projection",
+      "cinema": "Sélectionner un cinéma",
+      "room": "Sélectionner une salle",
+      "screenings": "Nombre de visionnages",
+      "startDate": "Date de début",
+      "endDate": "Date de fin",
+      "priceIndicative": "Prix indicatif ({currency})",
+      "confirm": "Confirmer",
+      "typeLabel": {
+        "direct": "Ajouter au panier",
+        "validation": "Envoyer une demande"
+      }
+    }
+  },
+  "requests": {
+    "title": "Mes demandes",
+    "tabs": {
+      "pending": "En attente",
+      "validated": "Validées",
+      "refused": "Refusées",
+      "expired": "Expirées",
+      "paid": "Payées"
+    },
+    "columns": {
+      "film": "Film",
+      "rightsHolder": "Ayant droit",
+      "cinema": "Cinéma",
+      "dates": "Dates",
+      "status": "Statut",
+      "expires": "Expire le",
+      "actions": "Actions"
+    },
+    "status": {
+      "pending": "En attente de validation",
+      "validated": "Validée — paiement requis",
+      "refused": "Refusée",
+      "expired": "Expirée",
+      "paid": "Payée"
+    },
+    "actions": {
+      "pay": "Payer maintenant",
+      "cancel": "Annuler la demande",
+      "resubmit": "Soumettre à nouveau"
+    },
+    "refusalReason": "Motif : {reason}"
+  },
+  "orders": {
+    "title": "Historique des commandes",
+    "columns": {
+      "film": "Film",
+      "cinema": "Cinéma",
+      "date": "Date de commande",
+      "amount": "Montant",
+      "status": "Statut de livraison",
+      "invoice": "Facture"
+    },
+    "deliveryStatus": {
+      "pending": "En attente de traitement",
+      "in_progress": "En cours",
+      "delivered": "Livré"
+    },
+    "downloadInvoice": "Télécharger la facture"
+  },
+  "account": {
+    "profile": {
+      "title": "Profil de l'entreprise",
+      "companyName": "Raison sociale",
+      "country": "Pays",
+      "address": "Adresse",
+      "city": "Ville",
+      "postalCode": "Code postal",
+      "vatNumber": "Numéro de TVA",
+      "vatValidated": "Validé",
+      "vatInvalid": "Invalide",
+      "preferredCurrency": "Devise d'affichage préférée",
+      "saved": "Profil enregistré."
+    },
+    "cinemas": {
+      "title": "Mes cinémas",
+      "add": "Ajouter un cinéma",
+      "edit": "Modifier",
+      "delete": "Supprimer",
+      "name": "Nom du cinéma",
+      "address": "Adresse",
+      "city": "Ville",
+      "country": "Pays",
+      "rooms": "Salles",
+      "addRoom": "Ajouter une salle",
+      "roomName": "Nom de la salle",
+      "capacity": "Capacité (places)"
+    },
+    "members": {
+      "title": "Membres de l'équipe",
+      "invite": "Inviter un membre",
+      "email": "Adresse email",
+      "role": "Rôle",
+      "roles": {
+        "owner": "Propriétaire",
+        "admin": "Administrateur",
+        "member": "Membre"
+      },
+      "remove": "Retirer",
+      "pending": "Invitation en attente"
+    }
+  },
+  "films": {
+    "title": "Mon catalogue",
+    "add": "Ajouter un film",
+    "import": "Importer CSV / Excel",
+    "columns": {
+      "title": "Titre",
+      "type": "Type",
+      "status": "Statut",
+      "zones": "Zones tarifaires",
+      "orders": "Commandes",
+      "actions": "Actions"
+    },
+    "status": {
+      "active": "Actif",
+      "inactive": "Inactif",
+      "retired": "Retiré"
+    },
+    "type": {
+      "direct": "Vente directe",
+      "validation": "Validation requise"
+    },
+    "form": {
+      "title": "Titre",
+      "searchTmdb": "Rechercher sur TMDB...",
+      "type": "Type de disponibilité",
+      "status": "Statut",
+      "prices": "Prix par zone",
+      "addZone": "Ajouter une zone",
+      "countries": "Pays (codes ISO séparés par virgule)",
+      "price": "Prix",
+      "currency": "Devise",
+      "tmdbMatch": "Correspondance TMDB",
+      "tmdbMatched": "Trouvé : {title} ({year})",
+      "tmdbNoMatch": "Aucune correspondance TMDB trouvée",
+      "tmdbManual": "Saisir manuellement"
+    },
+    "import": {
+      "title": "Importer des films depuis CSV / Excel",
+      "description": "Uploadez un fichier pour mettre à jour votre catalogue en masse.",
+      "templateDownload": "Télécharger le modèle",
+      "columns": {
+        "title": "titre",
+        "type": "type (direct | validation)",
+        "countries": "pays (ex : FR,BE,CH)",
+        "price": "prix (en centimes)",
+        "currency": "devise (EUR, USD…)",
+        "status": "statut (active | inactive)"
+      },
+      "preview": "Aperçu ({count} lignes)",
+      "errors": "{count} erreur(s) détectée(s)",
+      "warnings": "{count} avertissement(s)",
+      "confirm": "Importer {count} film(s)",
+      "result": {
+        "created": "{count} film(s) créé(s)",
+        "updated": "{count} film(s) mis à jour",
+        "errors": "{count} erreur(s)"
+      }
+    },
+    "validation": {
+      "title": "Demandes de validation",
+      "columns": {
+        "film": "Film",
+        "exhibitor": "Exploitant",
+        "cinema": "Cinéma",
+        "dates": "Dates",
+        "screenings": "Visionnages",
+        "room": "Salle ({capacity} places)",
+        "price": "Prix",
+        "expires": "Expire le",
+        "actions": "Actions"
+      },
+      "accept": "Accepter",
+      "refuse": "Refuser",
+      "refusalReason": "Motif du refus (optionnel)",
+      "confirmAccept": "Voulez-vous vraiment accepter cette demande ?",
+      "confirmRefuse": "Voulez-vous vraiment refuser cette demande ?"
+    }
+  },
+  "wallet": {
+    "title": "Portefeuille",
+    "available": "Solde disponible",
+    "pending": "En attente",
+    "thisMonth": "Ce mois-ci",
+    "withdraw": "Retirer",
+    "withdrawModal": {
+      "title": "Retirer des fonds",
+      "amount": "Montant",
+      "available": "Disponible : {amount}",
+      "delay": "Les fonds seront virés sous 1 à 2 jours ouvrés.",
+      "confirm": "Confirmer le retrait"
+    },
+    "autoPayoutTitle": "Virements automatiques",
+    "autoPayoutEnable": "Activer les virements automatiques",
+    "autoPayoutFrequency": "Fréquence",
+    "autoPayoutFrequencies": {
+      "daily": "Quotidien",
+      "weekly": "Hebdomadaire",
+      "monthly": "Mensuel"
+    },
+    "autoPayoutMinimum": "Seuil minimum",
+    "transactions": {
+      "title": "Historique des transactions",
+      "columns": {
+        "date": "Date",
+        "film": "Film",
+        "exhibitor": "Exploitant",
+        "gross": "Montant brut",
+        "commission": "Commission",
+        "net": "Montant net",
+        "status": "Statut"
+      },
+      "status": {
+        "pending": "En attente",
+        "available": "Disponible",
+        "paid_out": "Versé"
+      }
+    },
+    "payouts": {
+      "title": "Historique des virements",
+      "download": "Télécharger le relevé",
+      "status": {
+        "initiated": "Initié",
+        "in_transit": "En transit",
+        "paid": "Versé",
+        "failed": "Échoué"
+      }
+    }
+  },
+  "admin": {
+    "dashboard": {
+      "title": "Tableau de bord",
+      "metrics": {
+        "revenue": "Revenus (TIMELESS)",
+        "transactions": "Transactions",
+        "pendingDeliveries": "Livraisons en attente",
+        "pendingRequests": "Demandes en attente"
+      }
+    },
+    "rightsHolders": {
+      "title": "Ayants droits",
+      "add": "Ajouter un ayant droit",
+      "columns": {
+        "name": "Nom",
+        "country": "Pays",
+        "commission": "Commission",
+        "films": "Films",
+        "volume": "Volume",
+        "status": "Statut",
+        "stripe": "Stripe Connect"
+      },
+      "stripeStatus": {
+        "complete": "Complet",
+        "incomplete": "Incomplet"
+      },
+      "form": {
+        "companyName": "Raison sociale",
+        "country": "Pays",
+        "contactEmail": "Email de contact",
+        "commission": "Taux de commission (%)"
+      }
+    },
+    "exhibitors": {
+      "title": "Exploitants",
+      "columns": {
+        "name": "Nom",
+        "country": "Pays",
+        "cinemas": "Cinémas",
+        "volume": "Volume",
+        "status": "Statut"
+      }
+    },
+    "deliveries": {
+      "title": "Livraisons",
+      "tabs": {
+        "pending": "À traiter",
+        "inProgress": "En cours",
+        "delivered": "Livrées"
+      },
+      "columns": {
+        "film": "Film",
+        "exhibitor": "Exploitant",
+        "cinema": "Cinéma",
+        "startDate": "Début de diffusion",
+        "rightsHolder": "Ayant droit",
+        "urgency": "Urgence",
+        "status": "Statut",
+        "actions": "Actions"
+      },
+      "urgency": {
+        "critical": "{days}j — CRITIQUE",
+        "high": "{days}j",
+        "normal": "{days}j"
+      },
+      "notes": "Notes internes",
+      "markDelivered": "Marquer comme livré",
+      "updateStatus": "Mettre à jour le statut"
+    },
+    "settings": {
+      "title": "Paramètres de la plateforme",
+      "pricing": {
+        "title": "Tarification",
+        "platformMargin": "Marge plateforme (%)",
+        "deliveryFees": "Frais de livraison (EUR)",
+        "defaultCommission": "Commission par défaut (%)",
+        "preview": "Avec ces paramètres, un film à {catalogue} sera affiché à {displayed}.",
+        "save": "Enregistrer les paramètres",
+        "history": "Historique des modifications"
+      },
+      "operations": {
+        "title": "Opérations",
+        "opsEmail": "Email opérations",
+        "requestExpiration": "Expiration des demandes (jours)",
+        "urgencyDays": "Seuil d'urgence (jours avant début)"
+      }
+    },
+    "logs": {
+      "title": "Journal d'audit",
+      "columns": {
+        "date": "Date",
+        "action": "Action",
+        "entity": "Entité",
+        "performedBy": "Effectué par",
+        "details": "Détails"
+      }
+    }
+  },
+  "emails": {
+    "validationRequest": {
+      "subject": "Demande de projection pour {filmTitle}",
+      "greeting": "Bonjour,",
+      "intro": "{exhibitorName} a soumis une demande de projection pour {filmTitle}.",
+      "exhibitorInfo": "Informations sur l'exploitant",
+      "requestDetails": "Détails de la demande",
+      "screenings": "Nombre de visionnages",
+      "dates": "Dates",
+      "room": "Salle",
+      "capacity": "Capacité",
+      "price": "Prix",
+      "expires": "Cette demande expire le {date}.",
+      "accept": "Accepter",
+      "refuse": "Refuser"
+    },
+    "validationAccepted": {
+      "subject": "Votre demande pour {filmTitle} a été acceptée",
+      "body": "Votre demande de projection a été acceptée. Vous pouvez maintenant procéder au paiement.",
+      "cta": "Payer maintenant"
+    },
+    "validationRefused": {
+      "subject": "Votre demande pour {filmTitle} a été refusée",
+      "body": "Votre demande de projection a été refusée.",
+      "reason": "Motif : {reason}"
+    },
+    "requestExpired": {
+      "subject": "Demande expirée : {filmTitle}",
+      "bodyExhibitor": "Votre demande pour {filmTitle} a expiré. Vous pouvez en soumettre une nouvelle.",
+      "bodyRightsHolder": "La demande de {exhibitorName} pour {filmTitle} a expiré."
+    },
+    "paymentConfirmed": {
+      "subject": "Paiement confirmé — {filmTitle}",
+      "body": "Votre paiement a bien été reçu. Votre DCP sera livré prochainement.",
+      "amount": "Montant payé"
+    },
+    "deliveryConfirmed": {
+      "subject": "DCP livré — {filmTitle}",
+      "body": "Votre DCP pour {filmTitle} a été livré."
+    }
+  }
+}
