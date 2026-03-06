@@ -1,8 +1,9 @@
-import { pgTable, text, timestamp, uuid, integer } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
+import { pgTable, text, timestamp, uuid, integer } from "drizzle-orm/pg-core";
+
 import { accounts } from "./accounts";
 
-// ─── Cinémas ─────────────────────────────────────────────────────────────────
+// ─── Cinemas ──────────────────────────────────────────────────────────────────
 export const cinemas = pgTable("cinemas", {
   id: uuid("id").primaryKey().defaultRandom(),
   accountId: uuid("account_id")
@@ -17,14 +18,14 @@ export const cinemas = pgTable("cinemas", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// ─── Salles ───────────────────────────────────────────────────────────────────
+// ─── Rooms ────────────────────────────────────────────────────────────────────
 export const rooms = pgTable("rooms", {
   id: uuid("id").primaryKey().defaultRandom(),
   cinemaId: uuid("cinema_id")
     .notNull()
     .references(() => cinemas.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
-  capacity: integer("capacity").notNull(), // Nombre de places
+  capacity: integer("capacity").notNull(), // Seating capacity
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

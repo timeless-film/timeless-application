@@ -1,33 +1,27 @@
-import {
-  pgTable,
-  text,
-  timestamp,
-  uuid,
-  integer,
-} from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, uuid, integer } from "drizzle-orm/pg-core";
 
-// ─── Paramètres globaux de la plateforme ──────────────────────────────────────
-// Une seule ligne (id fixe "global"), modifiable uniquement par les admins
+// ─── Global platform settings ─────────────────────────────────────────────────
+// Single row (fixed id "global"), editable by admins only
 export const platformSettings = pgTable("platform_settings", {
   id: text("id").primaryKey().default("global"),
 
-  // Tarification
+  // Pricing
   platformMarginRate: text("platform_margin_rate").notNull().default("0.20"), // 20%
-  deliveryFees: integer("delivery_fees").notNull().default(5000),              // 50.00 EUR en centimes
+  deliveryFees: integer("delivery_fees").notNull().default(5000), // 50.00 EUR in cents
   defaultCommissionRate: text("default_commission_rate").notNull().default("0.10"), // 10%
 
-  // Emails opérationnels
+  // Operational emails
   opsEmail: text("ops_email").notNull().default("ops@timeless.film"),
 
-  // Délais
+  // Delays
   requestExpirationDays: integer("request_expiration_days").notNull().default(30),
   requestUrgencyDaysBeforeStart: integer("request_urgency_days_before_start").notNull().default(7),
 
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-  updatedById: uuid("updated_by_id"), // Référence vers users.id (pas de FK pour éviter les circulaires)
+  updatedById: uuid("updated_by_id"), // References users.id (no FK to avoid circular dependencies)
 });
 
-// ─── Historique des modifications de paramètres ───────────────────────────────
+// ─── Platform settings history ────────────────────────────────────────────────
 export const platformSettingsHistory = pgTable("platform_settings_history", {
   id: uuid("id").primaryKey().defaultRandom(),
   field: text("field").notNull(),
@@ -40,10 +34,10 @@ export const platformSettingsHistory = pgTable("platform_settings_history", {
 // ─── Audit trail ──────────────────────────────────────────────────────────────
 export const auditLogs = pgTable("audit_logs", {
   id: uuid("id").primaryKey().defaultRandom(),
-  action: text("action").notNull(),       // Ex: "account.suspended", "commission.updated"
-  entityType: text("entity_type"),         // Ex: "account", "film", "order"
+  action: text("action").notNull(), // e.g. "account.suspended", "commission.updated"
+  entityType: text("entity_type"), // e.g. "account", "film", "order"
   entityId: uuid("entity_id"),
-  performedById: uuid("performed_by_id"), // Admin qui a fait l'action
-  metadata: text("metadata"),              // JSON stringifié avec les détails
+  performedById: uuid("performed_by_id"), // Admin who performed the action
+  metadata: text("metadata"), // Stringified JSON with action details
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

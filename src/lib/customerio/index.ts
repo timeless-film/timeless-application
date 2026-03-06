@@ -1,18 +1,16 @@
 import { TrackClient, RegionUS } from "customerio-node";
 
-const cio = new TrackClient(
-  process.env.CUSTOMERIO_SITE_ID!,
-  process.env.CUSTOMERIO_API_KEY!,
-  { region: RegionUS }
-);
+const cio = new TrackClient(process.env.CUSTOMERIO_SITE_ID!, process.env.CUSTOMERIO_API_KEY!, {
+  region: RegionUS,
+});
 
-// ─── Sync utilisateur ─────────────────────────────────────────────────────────
+// ─── User sync ────────────────────────────────────────────────────────────────
 
 export async function identifyUser(params: {
   userId: string;
   email: string;
   name: string;
-  accountType: "exploitant" | "ayant_droit" | "admin";
+  accountType: "exhibitor" | "rights_holder" | "admin";
   accountId: string;
   country?: string;
 }) {
@@ -36,7 +34,7 @@ export async function trackEvent(
   await cio.track(userId, { name: eventName, data });
 }
 
-// ─── Events métier ────────────────────────────────────────────────────────────
+// ─── Business events ──────────────────────────────────────────────────────────
 
 export const CioEvents = {
   // Auth
@@ -47,19 +45,19 @@ export const CioEvents = {
   FILM_ADDED: "film_added",
   FILM_IMPORTED: "film_imported",
 
-  // Réservation
+  // Booking
   CART_ITEM_ADDED: "cart_item_added",
   REQUEST_SUBMITTED: "request_submitted",
   REQUEST_VALIDATED: "request_validated",
   REQUEST_REFUSED: "request_refused",
   REQUEST_EXPIRED: "request_expired",
 
-  // Paiement
+  // Payment
   CHECKOUT_COMPLETED: "checkout_completed",
   PAYMENT_SUCCEEDED: "payment_succeeded",
   PAYMENT_FAILED: "payment_failed",
 
-  // Livraison
+  // Delivery
   DELIVERY_CONFIRMED: "delivery_confirmed",
 
   // Finance

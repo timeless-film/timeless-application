@@ -56,12 +56,9 @@ async function tmdbFetch<T>(path: string, params?: Record<string, string>): Prom
 }
 
 /**
- * Recherche des films sur TMDB par titre (et année optionnelle).
+ * Searches TMDB for films by title (and optional year).
  */
-export async function searchFilms(
-  query: string,
-  year?: number
-): Promise<TmdbSearchResult[]> {
+export async function searchFilms(query: string, year?: number): Promise<TmdbSearchResult[]> {
   const params: Record<string, string> = {
     query,
     language: "fr-FR",
@@ -74,7 +71,7 @@ export async function searchFilms(
 }
 
 /**
- * Récupère les détails complets d'un film par son ID TMDB.
+ * Fetches full film details by TMDB ID.
  */
 export async function getFilmDetails(tmdbId: number): Promise<TmdbMovie> {
   return tmdbFetch<TmdbMovie>(`/movie/${tmdbId}`, {
@@ -84,21 +81,19 @@ export async function getFilmDetails(tmdbId: number): Promise<TmdbMovie> {
 }
 
 /**
- * Transforme les données TMDB en format utilisable pour notre DB.
+ * Normalizes TMDB data into a format suitable for our DB.
  */
 export function normalizeTmdbData(movie: TmdbMovie) {
-  const directors = movie.credits?.crew
-    .filter((c) => c.job === "Director")
-    .map((c) => c.name) ?? [];
+  const directors =
+    movie.credits?.crew.filter((c) => c.job === "Director").map((c) => c.name) ?? [];
 
-  const cast = movie.credits?.cast
-    .sort((a, b) => a.order - b.order)
-    .slice(0, 10)
-    .map((c) => c.name) ?? [];
+  const cast =
+    movie.credits?.cast
+      .sort((a, b) => a.order - b.order)
+      .slice(0, 10)
+      .map((c) => c.name) ?? [];
 
-  const enTranslation = movie.translations?.translations.find(
-    (t) => t.iso_639_1 === "en"
-  );
+  const enTranslation = movie.translations?.translations.find((t) => t.iso_639_1 === "en");
 
   return {
     tmdbId: movie.id,
@@ -106,27 +101,21 @@ export function normalizeTmdbData(movie: TmdbMovie) {
     synopsis: movie.overview,
     synopsisEn: enTranslation?.data.overview ?? null,
     duration: movie.runtime ?? null,
-    releaseYear: movie.release_date
-      ? parseInt(movie.release_date.split("-")[0])
-      : null,
+    releaseYear: movie.release_date ? parseInt(movie.release_date.split("-")[0]) : null,
     genres: movie.genres.map((g) => g.name),
     directors,
     cast,
     countries: movie.production_countries.map((c) => c.iso_3166_1),
-    posterUrl: movie.poster_path
-      ? `${TMDB_IMAGE_BASE}/w500${movie.poster_path}`
-      : null,
-    backdropUrl: movie.backdrop_path
-      ? `${TMDB_IMAGE_BASE}/w1280${movie.backdrop_path}`
-      : null,
+    posterUrl: movie.poster_path ? `${TMDB_IMAGE_BASE}/w500${movie.poster_path}` : null,
+    backdropUrl: movie.backdrop_path ? `${TMDB_IMAGE_BASE}/w1280${movie.backdrop_path}` : null,
     tmdbRating: movie.vote_average.toFixed(1),
     tmdbMatchStatus: "matched" as const,
   };
 }
 
 /**
- * Enrichit automatiquement un film depuis TMDB.
- * Retourne null si aucun match trouvé avec une confiance suffisante.
+ * Automatically enriches a film from TMDB.
+ * Returns null if no match found with sufficient confidence.
  */
 export async function enrichFilmFromTmdb(
   title: string,
@@ -135,7 +124,7 @@ export async function enrichFilmFromTmdb(
   const results = await searchFilms(title, year);
   if (results.length === 0) return null;
 
-  // Heuristique simple : premier résultat si le titre correspond bien
+  // Simple heuristic: first result if the title matches well
   const best = results[0];
   const titleMatch =
     best.title.toLowerCase().includes(title.toLowerCase()) ||

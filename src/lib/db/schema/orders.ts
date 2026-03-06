@@ -1,47 +1,40 @@
-import {
-  pgTable,
-  text,
-  timestamp,
-  uuid,
-  integer,
-  pgEnum,
-  date,
-} from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
+import { pgTable, text, timestamp, uuid, integer, pgEnum, date } from "drizzle-orm/pg-core";
+
 import { accounts } from "./accounts";
-import { films } from "./films";
 import { cinemas, rooms } from "./cinemas";
+import { films } from "./films";
 
 export const requestStatusEnum = pgEnum("request_status", [
-  "pending",    // En attente de validation par l'ayant droit
-  "validated",  // Acceptée, en attente de paiement
-  "refused",    // Refusée
-  "expired",    // Expirée (30j ou 7j avant date de début)
-  "paid",       // Payée
+  "pending", // Awaiting validation by rights holder
+  "validated", // Accepted, awaiting payment
+  "refused", // Refused
+  "expired", // Expired (30 days or 7 days before start date)
+  "paid", // Paid
 ]);
 
 export const orderStatusEnum = pgEnum("order_status", [
-  "paid",         // Paiement reçu
-  "processing",   // Ops en train de traiter la livraison
-  "delivered",    // DCP/KDM livré
-  "refunded",     // Remboursé
+  "paid", // Payment received
+  "processing", // Ops team handling delivery
+  "delivered", // DCP/KDM delivered
+  "refunded", // Refunded
 ]);
 
 export const deliveryStatusEnum = pgEnum("delivery_status", [
-  "pending",      // À traiter par l'équipe ops
-  "in_progress",  // En cours (labo contacté)
-  "delivered",    // Livré
+  "pending", // To be handled by ops team
+  "in_progress", // In progress (lab contacted)
+  "delivered", // Delivered
 ]);
 
-// ─── Demandes (validation requise) ────────────────────────────────────────────
+// ─── Requests (validation required) ──────────────────────────────────────────
 export const requests = pgTable("requests", {
   id: uuid("id").primaryKey().defaultRandom(),
 
-  // Parties
-  exploitantAccountId: uuid("exploitant_account_id")
+  // Stakeholders
+  exhibitorAccountId: uuid("exhibitor_account_id")
     .notNull()
     .references(() => accounts.id),
-  ayantDroitAccountId: uuid("ayant_droit_account_id")
+  rightsHolderAccountId: uuid("rights_holder_account_id")
     .notNull()
     .references(() => accounts.id),
   filmId: uuid("film_id")
@@ -54,30 +47,30 @@ export const requests = pgTable("requests", {
     .notNull()
     .references(() => rooms.id),
 
-  // Infos de la demande
+  // Request details
   screeningCount: integer("screening_count").notNull(),
   startDate: date("start_date").notNull(),
   endDate: date("end_date").notNull(),
 
-  // Prix snapshoté au moment de la demande
-  cataloguePrice: integer("catalogue_price").notNull(), // En centimes
+  // Price snapshotted at request time
+  cataloguePrice: integer("catalogue_price").notNull(), // In cents
   currency: text("currency").notNull(),
-  platformMarginRate: text("platform_margin_rate").notNull(),  // Ex: "0.20"
-  deliveryFees: integer("delivery_fees").notNull(),             // En centimes
-  commissionRate: text("commission_rate").notNull(),            // Ex: "0.10"
-  displayedPrice: integer("displayed_price").notNull(),         // Prix affiché à l'exploitant
-  ayantDroitAmount: integer("ayant_droit_amount").notNull(),    // Ce que reçoit l'ayant droit
-  timelessAmount: integer("timeless_amount").notNull(),          // Ce que garde TIMELESS
+  platformMarginRate: text("platform_margin_rate").notNull(), // e.g. "0.20"
+  deliveryFees: integer("delivery_fees").notNull(), // In cents
+  commissionRate: text("commission_rate").notNull(), // e.g. "0.10"
+  displayedPrice: integer("displayed_price").notNull(), // Price shown to exhibitor
+  rightsHolderAmount: integer("rights_holder_amount").notNull(), // Amount received by rights holder
+  timelessAmount: integer("timeless_amount").notNull(), // Amount retained by TIMELESS
 
   // Workflow
   status: requestStatusEnum("status").notNull().default("pending"),
-  validationToken: text("validation_token"),  // Token JWT pour accepter/refuser depuis email
+  validationToken: text("validation_token"), // JWT token for accept/refuse from email
   refusalReason: text("refusal_reason"),
   validatedAt: timestamp("validated_at"),
   refusedAt: timestamp("refused_at"),
   expiresAt: timestamp("expires_at").notNull(),
 
-  // Paiement (si validée → payée)
+  // Payment (if validated → paid)
   stripePaymentLinkId: text("stripe_payment_link_id"),
   stripePaymentIntentId: text("stripe_payment_intent_id"),
   paidAt: timestamp("paid_at"),
@@ -86,10 +79,10 @@ export const requests = pgTable("requests", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// ─── Commandes (panier payé ou demande payée) ─────────────────────────────────
+// ─── Orders (paid cart or paid request) ──────────────────────────────────────
 export const orders = pgTable("orders", {
   id: uuid("id").primaryKey().defaultRandom(),
-  exploitantAccountId: uuid("exploitant_account_id")
+  exhibitorAccountId: uuid("exhibitor_account_id")
     .notNull()
     .references(() => accounts.id),
 
@@ -99,23 +92,23 @@ export const orders = pgTable("orders", {
   stripePaymentIntentId: text("stripe_payment_intent_id").notNull(),
   stripeInvoiceId: text("stripe_invoice_id"),
 
-  // Totaux
-  subtotal: integer("subtotal").notNull(),  // En centimes, HT
+  // Totals
+  subtotal: integer("subtotal").notNull(), // In cents, excl. tax
   taxAmount: integer("tax_amount").notNull(),
   total: integer("total").notNull(),
   currency: text("currency").notNull(),
 
-  // TVA
+  // VAT
   taxRate: text("tax_rate"),
-  vatNumber: text("vat_number"),  // Snapshot du numéro TVA au moment du paiement
-  reverseCharge: text("reverse_charge"),  // "true" | "false"
+  vatNumber: text("vat_number"), // VAT number snapshot at payment time
+  reverseCharge: text("reverse_charge"), // "true" | "false"
 
   paidAt: timestamp("paid_at").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// ─── Lignes de commande ────────────────────────────────────────────────────────
+// ─── Order items ──────────────────────────────────────────────────────────────
 export const orderItems = pgTable("order_items", {
   id: uuid("id").primaryKey().defaultRandom(),
   orderId: uuid("order_id")
@@ -130,43 +123,43 @@ export const orderItems = pgTable("order_items", {
   roomId: uuid("room_id")
     .notNull()
     .references(() => rooms.id),
-  ayantDroitAccountId: uuid("ayant_droit_account_id")
+  rightsHolderAccountId: uuid("rights_holder_account_id")
     .notNull()
     .references(() => accounts.id),
 
-  // Infos de projection
+  // Screening details
   screeningCount: integer("screening_count").notNull(),
   startDate: date("start_date").notNull(),
   endDate: date("end_date").notNull(),
 
-  // Prix snapshotés
+  // Snapshotted prices
   cataloguePrice: integer("catalogue_price").notNull(),
   platformMarginRate: text("platform_margin_rate").notNull(),
   deliveryFees: integer("delivery_fees").notNull(),
   commissionRate: text("commission_rate").notNull(),
   displayedPrice: integer("displayed_price").notNull(),
-  ayantDroitAmount: integer("ayant_droit_amount").notNull(),
+  rightsHolderAmount: integer("rights_holder_amount").notNull(),
   timelessAmount: integer("timeless_amount").notNull(),
   currency: text("currency").notNull(),
 
   // Stripe Connect transfer
   stripeTransferId: text("stripe_transfer_id"),
 
-  // Livraison
+  // Delivery
   deliveryStatus: deliveryStatusEnum("delivery_status").notNull().default("pending"),
   deliveryNotes: text("delivery_notes"),
   deliveredAt: timestamp("delivered_at"),
 
-  // Lien avec une demande validée si applicable
+  // Link to validated request if applicable
   requestId: uuid("request_id").references(() => requests.id),
 
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-// ─── Panier (persistant) ───────────────────────────────────────────────────────
+// ─── Cart (persistent) ────────────────────────────────────────────────────────
 export const cartItems = pgTable("cart_items", {
   id: uuid("id").primaryKey().defaultRandom(),
-  exploitantAccountId: uuid("exploitant_account_id")
+  exhibitorAccountId: uuid("exhibitor_account_id")
     .notNull()
     .references(() => accounts.id, { onDelete: "cascade" }),
   filmId: uuid("film_id")
@@ -186,15 +179,15 @@ export const cartItems = pgTable("cart_items", {
 
 // ─── Relations ────────────────────────────────────────────────────────────────
 export const requestsRelations = relations(requests, ({ one }) => ({
-  exploitantAccount: one(accounts, {
-    fields: [requests.exploitantAccountId],
+  exhibitorAccount: one(accounts, {
+    fields: [requests.exhibitorAccountId],
     references: [accounts.id],
-    relationName: "exploitant_requests",
+    relationName: "exhibitor_requests",
   }),
-  ayantDroitAccount: one(accounts, {
-    fields: [requests.ayantDroitAccountId],
+  rightsHolderAccount: one(accounts, {
+    fields: [requests.rightsHolderAccountId],
     references: [accounts.id],
-    relationName: "ayant_droit_requests",
+    relationName: "rights_holder_requests",
   }),
   film: one(films, { fields: [requests.filmId], references: [films.id] }),
   cinema: one(cinemas, { fields: [requests.cinemaId], references: [cinemas.id] }),
@@ -202,8 +195,8 @@ export const requestsRelations = relations(requests, ({ one }) => ({
 }));
 
 export const ordersRelations = relations(orders, ({ one, many }) => ({
-  exploitantAccount: one(accounts, {
-    fields: [orders.exploitantAccountId],
+  exhibitorAccount: one(accounts, {
+    fields: [orders.exhibitorAccountId],
     references: [accounts.id],
   }),
   items: many(orderItems),
@@ -218,8 +211,8 @@ export const orderItemsRelations = relations(orderItems, ({ one }) => ({
 }));
 
 export const cartItemsRelations = relations(cartItems, ({ one }) => ({
-  exploitantAccount: one(accounts, {
-    fields: [cartItems.exploitantAccountId],
+  exhibitorAccount: one(accounts, {
+    fields: [cartItems.exhibitorAccountId],
     references: [accounts.id],
   }),
   film: one(films, { fields: [cartItems.filmId], references: [films.id] }),

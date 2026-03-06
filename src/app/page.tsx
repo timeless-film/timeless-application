@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-// Redirige vers le login — le middleware gère la redirection post-auth
+// Redirect to login — middleware handles post-auth redirection
 export default function RootPage() {
   redirect("/login");
 }

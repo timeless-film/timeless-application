@@ -6,27 +6,27 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 });
 
 /**
- * Crée un PaymentIntent pour le panier d'un exploitant.
- * Gère le split automatique vers les ayants droits (Stripe Connect).
+ * Creates a PaymentIntent for an exhibitor's cart.
+ * Handles automatic split to rights holders via Stripe Connect.
  */
 export async function createCartPaymentIntent(params: {
   items: {
-    displayedPrice: number;   // En centimes
-    ayantDroitAmount: number; // En centimes
+    displayedPrice: number; // In cents
+    rightsHolderAmount: number; // In cents
     stripeConnectAccountId: string;
     currency: string;
   }[];
-  exploitantStripeCustomerId: string;
+  exhibitorStripeCustomerId: string;
   totalAmount: number;
   currency: string;
   metadata: Record<string, string>;
 }) {
-  const { totalAmount, currency, exploitantStripeCustomerId, metadata } = params;
+  const { totalAmount, currency, exhibitorStripeCustomerId, metadata } = params;
 
   const paymentIntent = await stripe.paymentIntents.create({
     amount: totalAmount,
     currency: currency.toLowerCase(),
-    customer: exploitantStripeCustomerId,
+    customer: exhibitorStripeCustomerId,
     automatic_payment_methods: { enabled: true },
     metadata,
   });
@@ -35,7 +35,7 @@ export async function createCartPaymentIntent(params: {
 }
 
 /**
- * Transfère le montant de l'ayant droit après paiement réussi.
+ * Transfers the rights holder's amount after a successful payment.
  */
 export async function transferToRightsHolder(params: {
   amount: number;
@@ -56,7 +56,7 @@ export async function transferToRightsHolder(params: {
 }
 
 /**
- * Crée ou récupère un Customer Stripe pour un compte.
+ * Gets or creates a Stripe Customer for an account.
  */
 export async function getOrCreateStripeCustomer(params: {
   email: string;
@@ -79,18 +79,16 @@ export async function getOrCreateStripeCustomer(params: {
   return stripe.customers.create({
     email: params.email,
     name: params.name,
-    tax_id_data: params.vatNumber
-      ? [{ type: "eu_vat", value: params.vatNumber }]
-      : undefined,
+    tax_id_data: params.vatNumber ? [{ type: "eu_vat", value: params.vatNumber }] : undefined,
     address: params.address,
   });
 }
 
 /**
- * Crée un lien d'onboarding Stripe Connect pour un ayant droit.
+ * Creates a Stripe Connect onboarding link for a rights holder.
  */
 export async function createConnectOnboardingLink(params: {
-  accountId?: string; // Si déjà créé
+  accountId?: string; // If already created
   email: string;
   returnUrl: string;
   refreshUrl: string;

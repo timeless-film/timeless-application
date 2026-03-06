@@ -1,4 +1,4 @@
-// Schéma central — exporte tout pour Drizzle Kit et les requêtes
+// Central schema — exports everything for Drizzle Kit and queries
 
 export * from "./auth";
 export * from "./accounts";

@@ -5,7 +5,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-/** Délai en ms avant expiration d'une demande */
+/** Delay in ms before a request expires */
 export function calculateRequestExpiry(
   startDate: Date,
   expirationDays: number,
@@ -17,16 +17,16 @@ export function calculateRequestExpiry(
   const urgencyExpiry = new Date(startDate);
   urgencyExpiry.setDate(urgencyExpiry.getDate() - urgencyDaysBeforeStart);
 
-  // Retourne la date la plus proche
+  // Return the earliest date
   return urgencyExpiry < standardExpiry ? urgencyExpiry : standardExpiry;
 }
 
-/** Vérifie si une demande est expirée */
+/** Checks whether a request has expired */
 export function isRequestExpired(expiresAt: Date): boolean {
   return new Date() > expiresAt;
 }
 
-/** Retourne le prix d'un film pour un pays donné */
+/** Returns the price of a film for a given country */
 export function findPriceForCountry(
   prices: { countries: string[]; price: number; currency: string }[],
   country: string

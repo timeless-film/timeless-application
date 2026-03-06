@@ -1,11 +1,6 @@
-// Tables requises par Better Auth
+// Tables required by Better Auth
 // https://www.better-auth.com/docs/installation
-import {
-  pgTable,
-  text,
-  timestamp,
-  boolean,
-} from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, boolean } from "drizzle-orm/pg-core";
 
 export const betterAuthUsers = pgTable("better_auth_users", {
   id: text("id").primaryKey(),

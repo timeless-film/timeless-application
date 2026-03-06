@@ -1,5 +1,6 @@
-import type { Metadata } from "next";
 import { Geist } from "next/font/google";
+
+import type { Metadata } from "next";
 import "./globals.css";
 
 const geist = Geist({
@@ -12,7 +13,7 @@ export const metadata: Metadata = {
     default: "TIMELESS",
     template: "%s | TIMELESS",
   },
-  description: "La plateforme de distribution des films classiques et patrimoniaux",
+  description: "The distribution platform for classic and heritage films",
 };
 
 export default function RootLayout({
