@@ -1,30 +1,11 @@
-import {
-  pgTable,
-  text,
-  timestamp,
-  pgEnum,
-  uuid,
-  boolean,
-} from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
+import { pgTable, text, timestamp, pgEnum, uuid, boolean } from "drizzle-orm/pg-core";
 
+export const accountTypeEnum = pgEnum("account_type", ["exploitant", "ayant_droit", "admin"]);
 
-export const accountTypeEnum = pgEnum("account_type", [
-  "exploitant",
-  "ayant_droit",
-  "admin",
-]);
+export const accountStatusEnum = pgEnum("account_status", ["active", "suspended"]);
 
-export const accountStatusEnum = pgEnum("account_status", [
-  "active",
-  "suspended",
-]);
-
-export const memberRoleEnum = pgEnum("member_role", [
-  "owner",
-  "admin",
-  "member",
-]);
+export const memberRoleEnum = pgEnum("member_role", ["owner", "admin", "member"]);
 
 // ─── Comptes (entités juridiques) ───────────────────────────────────────────
 export const accounts = pgTable("accounts", {
@@ -44,9 +25,7 @@ export const accounts = pgTable("accounts", {
   // Stripe
   stripeCustomerId: text("stripe_customer_id"),
   stripeConnectAccountId: text("stripe_connect_account_id"), // Ayants droits uniquement
-  stripeConnectOnboardingComplete: boolean(
-    "stripe_connect_onboarding_complete"
-  ).default(false),
+  stripeConnectOnboardingComplete: boolean("stripe_connect_onboarding_complete").default(false),
 
   // Préférences (exploitants)
   preferredCurrency: text("preferred_currency").default("EUR"),
