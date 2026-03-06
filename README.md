@@ -1,36 +1,115 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TIMELESS
 
-## Getting Started
+B2B marketplace for classic and heritage films. Exhibitors (cinemas, festivals) book films from rights holders (distributors, archives) through a fully digitalized booking, payment, and delivery workflow.
 
-First, run the development server:
+## Tech stack
+
+| Layer        | Technology                              |
+|-------------|----------------------------------------|
+| Framework   | Next.js 16 (App Router, TypeScript)     |
+| Database    | PostgreSQL + Drizzle ORM                |
+| Auth        | Better Auth (email + MFA/TOTP)          |
+| Payments    | Stripe + Stripe Connect                 |
+| Emails      | Customer.io                             |
+| UI          | Tailwind CSS v4 + shadcn/ui             |
+| i18n        | next-intl (en, fr)                      |
+
+## Getting started
+
+### Prerequisites
+
+- Node.js 20+
+- pnpm 9+
+- PostgreSQL 15+
+
+### Setup
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+# Install dependencies
+pnpm install
+
+# Copy environment variables
+cp .env.example .env
+# → Fill in DATABASE_URL, STRIPE_SECRET_KEY, etc.
+
+# Push schema to database (dev only)
+pnpm db:push
+
+# Start development server
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Environment variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Variable                 | Description                          |
+|-------------------------|--------------------------------------|
+| `DATABASE_URL`           | PostgreSQL connection string          |
+| `BETTER_AUTH_SECRET`     | Session signing secret                |
+| `NEXT_PUBLIC_APP_URL`    | App URL (default: http://localhost:3000) |
+| `STRIPE_SECRET_KEY`      | Stripe API key                        |
+| `STRIPE_WEBHOOK_SECRET`  | Stripe webhook signing secret         |
+| `CUSTOMERIO_SITE_ID`     | Customer.io site ID                   |
+| `CUSTOMERIO_API_KEY`     | Customer.io API key                   |
+| `TMDB_API_KEY`           | TMDB read access token                |
 
-## Learn More
+## Commands
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+pnpm dev              # Start dev server
+pnpm build            # Production build
+pnpm lint             # ESLint (zero warnings)
+pnpm lint:fix         # ESLint auto-fix
+pnpm format           # Prettier format
+pnpm format:check     # Prettier check
+pnpm typecheck        # tsc --noEmit
+pnpm db:generate      # Generate Drizzle migrations
+pnpm db:migrate       # Run migrations
+pnpm db:push          # Push schema directly (dev only)
+pnpm db:studio        # Open Drizzle Studio
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Project structure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+src/
+├── app/[locale]/           # Locale-prefixed routes (next-intl)
+│   ├── (admin)/            # Admin dashboard
+│   ├── (app)/              # Exhibitor-facing (catalogue, cart, orders)
+│   ├── (auth)/             # Login, register, password reset
+│   └── (rights-holder)/    # Rights holder (films, wallet, requests)
+├── components/
+│   ├── ui/                 # shadcn/ui primitives
+│   └── ...                 # Feature components
+├── lib/
+│   ├── auth/               # Better Auth config
+│   ├── db/schema/          # Drizzle schema (accounts, films, orders…)
+│   ├── stripe/             # Stripe + Connect helpers
+│   ├── customerio/         # Email events + user sync
+│   ├── pricing/            # Pricing engine
+│   └── tmdb/               # TMDB API integration
+├── i18n/                   # next-intl setup
+└── middleware.ts            # Auth + locale middleware
+messages/
+├── en.json                 # English translations
+└── fr.json                 # French translations
+```
 
-## Deploy on Vercel
+## Coding conventions
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **All code in English** (variables, functions, comments, JSDoc)
+- User-facing strings use next-intl (`messages/*.json`)
+- TypeScript strict mode with type imports
+- ESLint zero-warnings policy — no `console.log`, no `any`
+- shadcn/ui + `cn()` for styling
+- React Server Components by default
+- DB amounts in cents (integers), rates as decimal strings
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Documentation
+
+Project specs and epics are in `docs/` (Obsidian vault).
+
+## License
+
+Private — All rights reserved.
