@@ -8,6 +8,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
+
 export const accountTypeEnum = pgEnum("account_type", [
   "exploitant",
   "ayant_droit",
