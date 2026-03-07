@@ -87,3 +87,10 @@ export const accountMembersRelations = relations(accountMembers, ({ one }) => ({
     references: [betterAuthUsers.id],
   }),
 }));
+
+export const invitationsRelations = relations(invitations, ({ one }) => ({
+  account: one(accounts, {
+    fields: [invitations.accountId],
+    references: [accounts.id],
+  }),
+}));

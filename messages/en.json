@@ -45,6 +45,12 @@
       "error": {
         "invalidCredentials": "Invalid email or password.",
         "emailNotVerified": "Please verify your email address before signing in."
+      },
+      "resendVerification": {
+        "link": "Resend confirmation email",
+        "sending": "Sending…",
+        "success": "Confirmation email sent! Please check your inbox.",
+        "error": "Failed to send confirmation email. Please try again."
       }
     },
     "register": {
@@ -649,6 +655,23 @@
     "typeAdmin": "Admin",
     "switched": "Switched to {name}.",
     "error": "Failed to switch account. Please try again."
+  },
+  "pendingInvitations": {
+    "title": "Pending invitations",
+    "description": "You have been invited to join the following accounts.",
+    "accept": "Accept",
+    "accepted": "You joined {name}!",
+    "type": {
+      "exhibitor": "Exhibitor",
+      "rights_holder": "Rights holder",
+      "admin": "Admin"
+    },
+    "error": {
+      "UNAUTHORIZED": "You must be signed in.",
+      "NOT_FOUND": "This invitation is no longer valid.",
+      "EMAIL_MISMATCH": "This invitation was sent to a different email address.",
+      "ALREADY_MEMBER": "You are already a member of this account."
+    }
   },
   "noAccount": {
     "title": "No active account",

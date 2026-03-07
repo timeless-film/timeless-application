@@ -45,6 +45,12 @@
       "error": {
         "invalidCredentials": "Email ou mot de passe incorrect.",
         "emailNotVerified": "Veuillez vérifier votre adresse email avant de vous connecter."
+      },
+      "resendVerification": {
+        "link": "Me renvoyer le lien de confirmation",
+        "sending": "Envoi en cours…",
+        "success": "Email de confirmation envoyé ! Vérifiez votre boîte de réception.",
+        "error": "Impossible d'envoyer l'email de confirmation. Veuillez réessayer."
       }
     },
     "register": {
@@ -649,6 +655,23 @@
     "typeAdmin": "Administrateur",
     "switched": "Vous êtes maintenant sur {name}.",
     "error": "Impossible de changer de compte. Veuillez réessayer."
+  },
+  "pendingInvitations": {
+    "title": "Invitations en attente",
+    "description": "Vous avez été invité(e) à rejoindre les comptes suivants.",
+    "accept": "Accepter",
+    "accepted": "Vous avez rejoint {name} !",
+    "type": {
+      "exhibitor": "Exploitant",
+      "rights_holder": "Ayant droit",
+      "admin": "Admin"
+    },
+    "error": {
+      "UNAUTHORIZED": "Vous devez être connecté.",
+      "NOT_FOUND": "Cette invitation n'est plus valide.",
+      "EMAIL_MISMATCH": "Cette invitation a été envoyée à une autre adresse email.",
+      "ALREADY_MEMBER": "Vous êtes déjà membre de ce compte."
+    }
   },
   "noAccount": {
     "title": "Aucun compte actif",

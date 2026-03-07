@@ -297,3 +297,89 @@ export async function acceptInvitation(token: string) {
 
   return { success: true, accountId: invitation.accountId };
 }
+
+// ─── Pending Invitations (for current user's email) ───────────────────────────
+
+export async function getMyPendingInvitations() {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session) {
+    return { error: "UNAUTHORIZED" as const, invitations: [] };
+  }
+
+  const pending = await db.query.invitations.findMany({
+    where: (inv, { eq: eq2, and, isNull, gt }) =>
+      and(
+        eq2(inv.email, session.user.email),
+        isNull(inv.acceptedAt),
+        gt(inv.expiresAt, new Date())
+      ),
+    with: {
+      account: true,
+    },
+    orderBy: (inv, { desc }) => desc(inv.createdAt),
+  });
+
+  return {
+    invitations: pending.map((inv) => ({
+      id: inv.id,
+      role: inv.role,
+      accountName: inv.account.companyName,
+      accountType: inv.account.type,
+      expiresAt: inv.expiresAt,
+    })),
+  };
+}
+
+export async function acceptInvitationById(invitationId: string) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session) {
+    return { error: "UNAUTHORIZED" as const };
+  }
+
+  const invitation = await db.query.invitations.findFirst({
+    where: (inv, { eq: eq2, and, isNull, gt }) =>
+      and(eq2(inv.id, invitationId), isNull(inv.acceptedAt), gt(inv.expiresAt, new Date())),
+    with: { account: true },
+  });
+
+  if (!invitation) {
+    return { error: "NOT_FOUND" as const };
+  }
+
+  if (invitation.email !== session.user.email) {
+    return { error: "EMAIL_MISMATCH" as const };
+  }
+
+  const existingMembership = await db.query.accountMembers.findFirst({
+    where: (am, { eq: eq2, and }) =>
+      and(eq2(am.accountId, invitation.accountId), eq2(am.userId, session.user.id)),
+  });
+
+  if (existingMembership) {
+    return { error: "ALREADY_MEMBER" as const };
+  }
+
+  await db.insert(accountMembers).values({
+    accountId: invitation.accountId,
+    userId: session.user.id,
+    role: invitation.role,
+  });
+
+  await db
+    .update(invitations)
+    .set({ acceptedAt: new Date() })
+    .where(eq(invitations.id, invitation.id));
+
+  return {
+    success: true,
+    accountId: invitation.accountId,
+    accountName: invitation.account.companyName,
+    accountType: invitation.account.type,
+  };
+}

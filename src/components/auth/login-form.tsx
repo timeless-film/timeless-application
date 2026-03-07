@@ -28,6 +28,8 @@ export function LoginForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showResendVerification, setShowResendVerification] = useState(false);
+  const [resending, setResending] = useState(false);
   const [showMfa, setShowMfa] = useState(false);
   const [mfaCode, setMfaCode] = useState("");
 
@@ -55,6 +57,7 @@ export function LoginForm() {
         if (code.toLowerCase().includes("email") && code.toLowerCase().includes("verif")) {
           setError(t("error.emailNotVerified"));
           toast.error(t("error.emailNotVerified"));
+          setShowResendVerification(true);
         } else {
           setError(t("error.invalidCredentials"));
           toast.error(t("error.invalidCredentials"));
@@ -76,6 +79,20 @@ export function LoginForm() {
       setError(t("error.invalidCredentials"));
       toast.error(t("error.invalidCredentials"));
       setLoading(false);
+    }
+  }
+
+  async function handleResendVerification() {
+    if (!email || resending) return;
+    setResending(true);
+
+    try {
+      await authClient.sendVerificationEmail({ email });
+      toast.success(t("resendVerification.success"));
+    } catch {
+      toast.error(t("resendVerification.error"));
+    } finally {
+      setResending(false);
     }
   }
 
@@ -150,7 +167,21 @@ export function LoginForm() {
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
-          {error && <p className="text-sm text-destructive">{error}</p>}
+          {error && (
+            <div className="space-y-2">
+              <p className="text-sm text-destructive">{error}</p>
+              {showResendVerification && (
+                <button
+                  type="button"
+                  className="text-sm text-muted-foreground underline-offset-4 hover:underline"
+                  disabled={resending}
+                  onClick={handleResendVerification}
+                >
+                  {resending ? t("resendVerification.sending") : t("resendVerification.link")}
+                </button>
+              )}
+            </div>
+          )}
           <div className="space-y-2">
             <Label htmlFor="email">
               {t("email")} <span className="text-destructive">*</span>
