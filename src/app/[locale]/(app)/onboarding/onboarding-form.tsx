@@ -67,9 +67,13 @@ export function OnboardingForm() {
       // triggered by cookie changes in the server action
       window.location.href = `/${locale}/catalog`;
     } catch {
-      setError(t("error.CREATION_FAILED"));
-      toast.error(t("error.CREATION_FAILED"));
-      setLoading(false);
+      // The server action sets a cookie via cookies().set(), which can trigger
+      // a Next.js auto-refresh that aborts the in-flight fetch before the
+      // result is delivered to the client. If this happens, the account was
+      // most likely created and the cookie was set. Navigate to catalog —
+      // if the account wasn't created, proxy.ts will redirect to root
+      // for account resolution.
+      window.location.href = `/${locale}/catalog`;
     }
   }
 

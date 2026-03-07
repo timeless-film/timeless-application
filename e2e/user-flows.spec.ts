@@ -92,8 +92,10 @@ async function completeOnboarding(page: Page, companyName: string) {
 
   await page.getByRole("button", { name: /continue/i }).click();
 
-  // Should redirect to catalog after onboarding
-  await expect(page).toHaveURL(/\/en\/catalog/, { timeout: 15000 });
+  // Should redirect to catalog after onboarding.
+  // Longer timeout: on slow CI, the server action cookie change can trigger
+  // a Next.js auto-refresh that adds latency to the navigation chain.
+  await expect(page).toHaveURL(/\/en\/catalog/, { timeout: 30000 });
 }
 
 // ---------------------------------------------------------------------------
@@ -109,8 +111,8 @@ test.describe("Onboarding flow", () => {
     await registerAndLogin(page, request, user);
     await completeOnboarding(page, companyName);
 
-    // Company name should appear in the header
-    await expect(page.getByText(companyName)).toBeVisible({ timeout: 5000 });
+    // Company name should appear in the header (longer timeout for CI full-page reload)
+    await expect(page.getByText(companyName)).toBeVisible({ timeout: 15000 });
   });
 });
 
