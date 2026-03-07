@@ -7,11 +7,29 @@ TIMELESS is a **B2B marketplace for classic and heritage films**. It connects ex
 **Status**: Prototype phase — started 2026-03-06
 **Domain**: `timeless.film`
 
+---
+
+## Quality philosophy
+
+This application is built for **long-term maintainability**. Every decision — naming, structure, patterns — must optimize for readability and change-tolerance over cleverness.
+
+### Guiding principles
+
+1. **Explicit over implicit** — No magic. Name things for what they do. Avoid abbreviations. A developer reading the code 6 months from now must understand intent without context.
+2. **Single responsibility** — Each file, function, and component does one thing well. If a function needs a comment to explain _what_ it does, it should be split or renamed.
+3. **Fail loudly** — Errors must be caught, typed, logged, and surfaced to the user. Never swallow errors silently. Use `console.error` + user-facing feedback (toast or inline).
+4. **Tests are documentation** — Tests describe what the system does. Write them as specifications, not afterthoughts. If it's hard to test, the design is wrong — refactor.
+5. **No dead code** — Delete unused functions, components, imports, and files. Git has history.
+6. **DRY, but not at the cost of clarity** — Extract shared logic only when the duplication is real (same intent, same evolution path). Don't abstract prematurely.
+7. **Consistent patterns** — Once a pattern is established (e.g., server action shape, error handling, form layout), follow it everywhere. Consistency enables predictability.
+
+---
+
 ## Tech stack
 
 | Layer           | Technology                              |
 |-----------------|----------------------------------------|
-| Framework       | Next.js 16 (App Router, TypeScript)     |
+| Framework       | Next.js 16 (App Router, TypeScript, React 19) |
 | Database        | PostgreSQL (Scaleway Managed)           |
 | ORM             | Drizzle ORM                             |
 | Auth            | Better Auth (self-hosted, email+MFA)    |
@@ -21,146 +39,284 @@ TIMELESS is a **B2B marketplace for classic and heritage films**. It connects ex
 | i18n            | next-intl (en, fr — default: en)        |
 | Validation      | Zod                                     |
 | State           | TanStack React Query                    |
+| Unit tests      | Vitest + Testing Library                |
+| E2E tests       | Playwright (Chromium)                   |
+| CI              | GitHub Actions                          |
+
+---
 
 ## Project structure
 
 ```
 src/
-├── app/                    # Next.js App Router
-│   ├── [locale]/           # Locale-prefixed routes (next-intl)
-│   │   ├── (admin)/        # Admin dashboard routes
-│   │   ├── (app)/          # Exhibitor-facing routes
-│   │   ├── (auth)/         # Login, register, forgot/reset password
-│   │   └── (rights-holder)/ # Rights holder routes
-│   └── api/                # API routes (auth, webhooks)
+├── app/                       # Next.js App Router
+│   ├── [locale]/              # Locale-prefixed routes (next-intl)
+│   │   ├── (admin)/           # Admin dashboard routes
+│   │   ├── (app)/             # Exhibitor-facing routes (catalog, cart, orders…)
+│   │   ├── (auth)/            # Login, register, forgot/reset password
+│   │   ├── (account)/         # Shared account management (profile, info, members)
+│   │   └── (rights-holder)/   # Rights holder routes (films, wallet…)
+│   └── api/                   # API routes (auth, webhooks)
 ├── components/
-│   ├── ui/                 # shadcn/ui primitives
-│   ├── shared/             # Shared components
-│   ├── layout/             # Layout components
-│   ├── auth/               # Auth-specific components
-│   └── catalogue/          # Catalogue-specific components
-├── hooks/                  # Custom React hooks
-├── i18n/                   # next-intl config (routing, request, navigation)
+│   ├── ui/                    # shadcn/ui primitives (do not edit manually)
+│   ├── shared/                # Cross-feature reusable components
+│   ├── layout/                # Layout shells, sidebars
+│   ├── auth/                  # Auth-specific components
+│   ├── account/               # Account management components
+│   ├── profile/               # Profile components
+│   └── catalog/               # Catalog-specific components
+├── hooks/                     # Custom React hooks
+├── i18n/                      # next-intl config (routing, request, navigation)
 ├── lib/
-│   ├── auth/               # Better Auth server config + client
-│   ├── customerio/         # Customer.io user sync + event tracking
-│   ├── db/                 # Drizzle client + schema
-│   │   └── schema/         # All DB tables (accounts, films, orders, etc.)
-│   ├── pricing/            # Pricing calculation + platform settings
-│   ├── stripe/             # Stripe + Connect helpers
-│   ├── tmdb/               # TMDB API integration
-│   └── utils.ts            # Shared utilities (cn, expiry calc, etc.)
-├── types/                  # Shared TypeScript types
-└── middleware.ts            # Auth guard + next-intl locale detection
+│   ├── auth/                  # Better Auth server config + client + helpers
+│   ├── customerio/            # Customer.io user sync + event tracking
+│   ├── db/                    # Drizzle client + schema
+│   │   └── schema/            # DB tables (accounts, films, orders, cinemas, settings, auth)
+│   ├── pricing/               # Pricing calculation engine
+│   ├── stripe/                # Stripe + Connect helpers
+│   ├── tmdb/                  # TMDB API integration
+│   └── utils.ts               # Shared utilities (cn, formatters, etc.)
+├── types/                     # Shared TypeScript types
+└── middleware.ts              # next-intl locale detection only — auth is in proxy.ts
 messages/
-├── en.json                 # English translations
-└── fr.json                 # French translations
-docs/                       # Project documentation (Obsidian)
+├── en.json                    # English translations
+└── fr.json                    # French translations
+e2e/                           # Playwright E2E tests
+docs/                          # Project documentation (epics, roadmap)
 ```
 
-## Key architecture decisions
+### Key architecture decisions
 
-- **Route groups**: `(admin)`, `(app)`, `(auth)`, `(rights-holder)` use Next.js route groups for layout separation — they don't affect URLs.
-- **Locale prefix**: All user-facing routes are prefixed with `/en` or `/fr` (localePrefix: "always").
-- **DB schema**: Split across multiple files in `src/lib/db/schema/`, re-exported from `index.ts`. The schema is passed to the Drizzle client for relational queries.
-- **Pricing**: All monetary amounts are stored in **cents** (integers). Commission rates are stored as decimal strings (e.g., `"0.10"` = 10%).
-- **Auth**: Better Auth handles sessions, email verification, password reset, and MFA/TOTP. The middleware checks session cookies for protected routes.
+- **Route groups** (`(admin)`, `(app)`, `(auth)`, `(rights-holder)`, `(account)`) provide layout separation — they don't appear in URLs.
+- **Locale prefix**: All user-facing routes are prefixed with `/en` or `/fr` (`localePrefix: "always"`).
+- **Auth routing**: `proxy.ts` (not `middleware.ts`) handles auth guards, account type checks, and redirects. Middleware only does locale detection.
+- **DB schema**: Split across files in `src/lib/db/schema/`, re-exported from `index.ts`.
+- **Pricing**: All monetary amounts in **cents** (integers). Commission rates as decimal strings (`"0.10"` = 10%).
+
+---
 
 ## Domain model
 
-Three account types:
-- **exhibitor** — cinemas / festivals that browse the catalogue and book films
-- **rights_holder** — distributors / archives that publish films and validate bookings
-- **admin** — platform operators
+Three account types: **exhibitor**, **rights_holder**, **admin**.
 
-Core flow: Catalogue → Cart → Request (if validation required) → Payment → Delivery (DCP/KDM)
+Core flow: **Catalog → Cart → Request (if validation needed) → Payment (Stripe) → Delivery (DCP/KDM)**
 
-## Coding conventions
+---
+
+## Coding standards
 
 ### Language
-- **All code in English**: variable names, function names, type names, enum values, comments, JSDoc.
-- Translation strings go in `messages/en.json` and `messages/fr.json` — never hardcoded in components.
+
+- **All code in English**: variables, functions, types, enum values, comments, JSDoc, git messages.
+- **All UI strings via next-intl**: `useTranslations()` (client) / `getTranslations()` (server). Never hardcode user-facing text.
+- **Translation key names in English**: namespace and key names must be English (e.g., `catalog.title`, not `catalogue.titre`).
 
 ### TypeScript
-- Strict mode enabled (`strict: true`, `noUncheckedIndexedAccess: true`).
-- Use `type` imports: `import type { Foo } from "..."` — enforced by ESLint.
-- Path alias: `@/*` maps to `./src/*`.
 
-### Style & formatting
-- **Prettier** for formatting (runs on pre-commit via husky + lint-staged).
-- **ESLint** with zero warnings policy (`--max-warnings 0`).
-- Key ESLint rules:
-  - `no-console`: only `console.error` and `console.warn` allowed.
-  - `@typescript-eslint/no-explicit-any`: error.
-  - `@typescript-eslint/no-unused-vars`: error (prefix unused args with `_`).
-  - `import/order`: enforced grouping + alphabetical.
-  - `eqeqeq`: always use `===`.
+- **Strict mode**: `strict: true`, `noUncheckedIndexedAccess: true`, `noImplicitOverride: true`.
+- **Type imports**: Always use `import type { Foo } from "..."` — enforced by ESLint.
+- **No `any`**: Use `unknown` + type narrowing. ESLint enforces this.
+- **No type assertions (`as`)** unless absolutely necessary — add a `// SAFETY:` comment explaining why.
+- **No non-null assertions (`!`)** — handle `undefined`/`null` explicitly.
+- **Path alias**: `@/*` maps to `./src/*`.
 
-### Components
-- shadcn/ui for primitives (installed in `src/components/ui/`).
-- Use `cn()` from `@/lib/utils` for conditional class merging (clsx + tailwind-merge).
-- React Server Components by default; add `"use client"` only when needed.
+### Naming conventions
 
-### shadcn/ui gotchas
-- **CardTitle renders a `<div>`, not an `<h1-h6>`** — do not use `getByRole("heading")` in tests. Use `getByText` with an exact regex (`/^Title$/i`) or a specific class selector.
-- **Select (shadcn)** uses Radix Popover — it's not a native `<select>`. Use `page.getByRole("combobox")` or `page.locator("button[role='combobox']")` in Playwright, not `page.selectOption()`.
-- When text appears in both CardTitle and CardDescription (e.g. "Active sessions" + "Manage your active sessions…"), using `getByText(/active sessions/i)` will match multiple elements → strict mode violation. Use exact match: `getByText(/^Active sessions$/i)`.
+| Element            | Convention         | Example                      |
+|--------------------|--------------------|------------------------------|
+| Files              | kebab-case         | `account-info-form.tsx`      |
+| Components         | PascalCase         | `AccountInfoForm`            |
+| Variables / funcs  | camelCase          | `calculatePricing`           |
+| Types / interfaces | PascalCase         | `PricingResult`              |
+| DB columns (SQL)   | snake_case         | `catalog_price`              |
+| DB columns (TS)    | camelCase (mapped) | `catalogPrice`               |
+| Enum values        | snake_case strings | `"rights_holder"`            |
+| Translation keys   | camelCase dot path | `"catalog.film.addToCart"`   |
+
+### ESLint & formatting
+
+- **Zero warnings policy** (`--max-warnings 0`).
+- **Prettier** for formatting (pre-commit via husky + lint-staged).
+- Key rules: `no-console` (error/warn only), `no-explicit-any`, `no-unused-vars` (prefix `_`), `consistent-type-imports`, `import/order` (grouped + alphabetical), `import/no-duplicates`, `eqeqeq`, `prefer-const`, `react/self-closing-comp`, `react/jsx-curly-brace-presence`.
+
+---
+
+## Architecture patterns
+
+### Server actions
+
+Server actions are the primary way to mutate data. They follow a strict pattern:
+
+```typescript
+"use server";
+
+export async function doSomething(input: SomeInput) {
+  // 1. Auth check
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) return { error: "UNAUTHORIZED" as const };
+
+  // 2. Input validation (Zod)
+  const parsed = someSchema.safeParse(input);
+  if (!parsed.success) return { error: "INVALID_INPUT" as const };
+
+  // 3. Authorization (does user have access?)
+  // 4. Business logic
+  // 5. Return typed result
+  return { success: true, data: result };
+}
+```
+
+Rules:
+- Always return `{ error: string }` or `{ success: true }` — **never throw** from server actions.
+- Error codes are `UPPER_SNAKE_CASE` strings mapped to translations in `messages/*.json`.
+- Validate all input with Zod. Never trust client data.
+- Check auth + authorization before any mutation.
+
+### Error handling
+
+- **Server-side**: Use `console.error()` with context. Return typed error objects.
+- **Client-side**: Always show `toast.error()` AND inline feedback.
+- **Unexpected errors** (try/catch): show generic error toast, log with `console.error`.
+- **Never silently catch** — an empty catch block is a bug.
+
+### Data fetching
+
+- **Server Components (default)**: fetch data directly with `db.query.*` or service functions.
+- **Client Components**: TanStack React Query when interactivity demands it.
+- **Server actions**: mutations only. Never use `fetch()` from client to internal API routes.
+- **API routes** (`src/app/api/`): only for external consumers (webhooks, Better Auth).
+
+### Loading & error states
+
+- Route-level: `loading.tsx` and `error.tsx`.
+- Component-level: React Suspense boundaries.
+- Forms: disable submit button + show spinner during async operations.
+
+---
+
+## UI components
+
+### shadcn/ui
+
+- Primitives in `src/components/ui/` — managed by shadcn CLI, don't edit manually.
+- Use `cn()` from `@/lib/utils` for conditional class merging.
+- **React Server Components by default**. Add `"use client"` only for hooks/interactivity.
+
+### shadcn/ui testing gotchas
+
+- **CardTitle** renders `<div>`, not `<h1-h6>` — don't use `getByRole("heading")`.
+- **Select** is Radix-based — use `getByRole("combobox")`, not `selectOption()`.
+- **Text collisions**: when text appears in both CardTitle and CardDescription, use exact regex: `/^Active sessions$/i`.
 
 ### Forms & feedback
-- Use **sonner** (`toast` from `"sonner"`) for success and error toasts. The `<Toaster />` is in the root layout.
-- Display **inline errors** in forms (below the field or in a summary) **and** fire a `toast.error()` for every user-facing error.
-- Mark required fields with a red asterisk: `<span className="text-destructive">*</span>` after the label text.
-- Show password rules as a hint (`text-xs text-muted-foreground`) below the password field.
-- Show real-time password mismatch below the confirm field when the user starts typing.
-- On auth pages, check the session (`useSession`). If the user is already signed in, render the `<AlreadyConnected />` component instead of the form.
 
-### Database
-- Drizzle ORM with PostgreSQL.
-- Schema in `src/lib/db/schema/` — each file exports tables + relations.
-- Use `uuid` for all primary keys (`.defaultRandom()`).
-- All tables include `createdAt` / `updatedAt` timestamps.
-- Enums use `pgEnum` with snake_case values.
-- Run `pnpm db:generate` then `pnpm db:migrate` for schema changes.
+- **sonner** toasts for success/error. `<Toaster />` is in root layout.
+- **Inline errors** below fields AND `toast.error()` for all user-facing errors.
+- Required fields: red asterisk `<span className="text-destructive">*</span>`.
+- Password fields: hint below (`text-xs text-muted-foreground`).
+- Confirm password: real-time mismatch feedback.
+- Auth pages: if already signed in, render `<AlreadyConnected />`.
+
+---
+
+## Database
+
+- **Drizzle ORM** with PostgreSQL.
+- Schema in `src/lib/db/schema/*.ts`, re-exported from `index.ts`.
+- **Primary keys**: `uuid` with `.defaultRandom()`.
+- **Timestamps**: all tables must have `createdAt` / `updatedAt`.
+- **Enums**: `pgEnum` with snake_case values.
+- **Money**: integers in cents. Rates as decimal strings (`"0.10"`).
+- **New tables**: always export from `src/lib/db/schema/index.ts`.
+- **Schema changes**: `pnpm db:generate` → `pnpm db:migrate`. Use `pnpm db:push` for dev quick sync only.
+
+---
+
+## Security
+
+- **Validate server-side**: Zod in every server action and API route.
+- **Auth first**: every server action / protected route verifies session before anything.
+- **Authorization**: after auth, verify user has permission (correct account, correct role).
+- **No secrets in client code**: only `NEXT_PUBLIC_*` vars reach the browser.
+- **Stripe webhooks**: always verify signatures.
+- **SQL injection**: Drizzle parameterizes by default. Never raw string interpolation.
+
+---
+
+## Accessibility
+
+- **Semantic HTML**: `<nav>`, `<main>`, `<section>`, `<button>` (not `<div onClick>`).
+- **Keyboard accessible**: all interactive elements.
+- **`alt` text**: all images (empty `alt=""` for decorative).
+- **Labels**: form fields must have `<Label htmlFor>`.
+- **Color not sole indicator**: pair with icon or text.
+- **Visible focus states**: Tailwind's `focus-visible:ring-*`.
+
+---
+
+## Performance
+
+- **Server Components** by default — minimize client JS.
+- **Dynamic imports** (`next/dynamic`) for heavy client components.
+- **`next/image`** for all images with explicit dimensions.
+- **Efficient queries**: select only needed fields, use indexes, avoid N+1.
+- **Drizzle `with`** for relational data. Batch DB calls when possible.
+
+---
 
 ## Testing
 
-### Stack
-- **Vitest** — unit tests (fast, Vite-powered, with `@testing-library/react` for components)
-- **Playwright** — end-to-end tests (Chromium headless)
-- **GitHub Actions** — CI pipeline (`.github/workflows/ci.yml`) runs on every push and PR
+### Principles
 
-### Conventions
-- Unit tests collocated next to source: `src/lib/auth/__tests__/active-account-cookie.test.ts`
-- E2E tests in `e2e/` directory: `e2e/auth.spec.ts`, `e2e/account.spec.ts`
-- Test file naming: `*.test.ts` (unit), `*.spec.ts` (E2E)
-- Use `describe` / `it` blocks with clear, behavior-driven names
-- Pure helper functions must have unit tests — extract them from modules that mix pure logic + side effects (e.g. `proxy-helpers.ts` extracted from `proxy.ts`)
+- **Every pure function must have unit tests** — no exceptions.
+- **New user flows must have E2E tests**.
+- **Extract pure logic** from side-effectful modules for testability (e.g., `proxy-helpers.ts` from `proxy.ts`).
+- **Tests are specs**: `it("returns /catalog for exhibitor accounts")`.
+- File naming: `*.test.ts` (unit), `*.spec.ts` (E2E).
+- Unit tests are collocated: `src/lib/auth/__tests__/proxy-helpers.test.ts`.
 
-### E2E port strategy
-- Playwright uses a **dedicated port (3099)** to avoid conflicts with any dev server already running on 3000.
-- The port is configured in `playwright.config.ts` via `PLAYWRIGHT_PORT` env var (default: 3099).
-- The webServer config passes `PORT` and `NEXT_PUBLIC_APP_URL` to the dev server so Better Auth client connects to the correct instance.
-- **Never run E2E tests on port 3000** — always let Playwright manage its own server on 3099.
+### E2E configuration
 
-### E2E best practices (lessons learned)
-- **DB operations**: Use the `postgres` npm package (already a project dependency) — never `psql` CLI which may not be installed. Example: `const sql = postgres(DB_URL); await sql\`UPDATE ...\`; await sql.end();`.
-- **Playwright fixtures**: Use relative URLs with the `request` fixture (`request.post("/api/...")`) — it already has `baseURL` from `playwright.config.ts`. Never manually construct base URLs from `page.url()` (returns `about:blank` before navigation).
-- **Verify actual app flows first**: Before writing E2E tests, trace the actual redirect chain in `proxy.ts` / middleware. Example: login doesn't go to `/onboarding` directly — it goes to `/no-account` first, then the user clicks to `/onboarding`.
-- **Clean up between runs**: Always kill stale processes on port 3099 and remove `.next/dev/lock` before running E2E tests. Pattern: `lsof -ti:3099 | xargs kill -9 2>/dev/null; rm -rf .next/dev/lock`.
-- **Better Auth session cache**: `cookieCache` has a 5-minute TTL. After `updateUser`, a page reload may still show stale data from the cached session. Don't assert on persistence via reload in E2E tests — assert on the toast + local state instead.
+- Playwright uses **port 3099** (not 3000). Configured in `playwright.config.ts`.
+- Never run E2E on port 3000. Never manually set `PLAYWRIGHT_BASE_URL`.
 
-### Development workflow (MANDATORY)
-1. **After developing any feature**: run `pnpm typecheck && pnpm lint` to verify no regressions
-2. **Write tests for new logic**: every new pure function or helper must have unit tests. New pages/flows should have E2E coverage.
-3. **Run tests before completing a ticket**: `pnpm test` (unit) and `pnpm test:e2e` (E2E) must pass
-4. **Always update documentation**: update the relevant epic file, CLAUDE.md, and copilot-instructions.md when architecture changes
-5. **Smoke-test manually**: curl or browse key pages after changes to catch runtime errors
+### E2E best practices
+
+- **DB access**: use `postgres` npm package, never `psql` CLI.
+- **Fixtures**: relative URLs with `request` fixture (has `baseURL`).
+- **Redirect chains**: trace actual flow in `proxy.ts` before writing assertions.
+- **Cleanup**: `lsof -ti:3099 | xargs kill -9 2>/dev/null; rm -rf .next/dev/lock`.
+- **Session cache**: Better Auth's `cookieCache` (5-min TTL) → assert on toast + local state, not reload.
 
 ### CI pipeline
-- **Trigger**: every push to `main`/`develop` and every PR targeting those branches.
-- **Quality job**: typecheck → lint → unit tests (no DB required).
-- **E2E job**: PostgreSQL service container → schema push → Playwright tests.
-- Failing tests upload `playwright-report/` and `test-results/` as artifacts for debugging.
+
+- **Quality job**: typecheck → lint → unit tests (no DB needed).
+- **E2E job**: PostgreSQL service container → schema push → Playwright.
+- Failing tests upload `playwright-report/` and `test-results/` as artifacts.
+
+---
+
+## Development workflow
+
+### Before every commit
+
+```bash
+pnpm typecheck && pnpm lint && pnpm test
+```
+
+### After every feature
+
+1. Run typecheck + lint + unit tests.
+2. Smoke-test affected pages (curl or browser).
+3. If feature involves a user flow, ensure E2E coverage.
+4. Update relevant epic doc + roadmap.
+
+### When modifying architecture
+
+- Update this file (`CLAUDE.md`) and `.github/copilot-instructions.md`.
+- If new tables are added, export from `src/lib/db/schema/index.ts`.
+
+---
 
 ## Commands
 
@@ -171,43 +327,38 @@ pnpm lint             # ESLint (zero warnings)
 pnpm lint:fix         # ESLint auto-fix
 pnpm format           # Prettier format
 pnpm format:check     # Prettier check
-pnpm typecheck        # TypeScript type check (tsc --noEmit)
-pnpm test             # Run unit tests (Vitest)
-pnpm test:watch       # Run unit tests in watch mode
-pnpm test:coverage    # Run unit tests with coverage
-pnpm test:e2e         # Run E2E tests (Playwright)
-pnpm test:e2e:ui      # Run E2E tests with UI
+pnpm typecheck        # tsc --noEmit
+pnpm test             # Unit tests (Vitest)
+pnpm test:watch       # Unit tests watch mode
+pnpm test:coverage    # Unit tests + coverage
+pnpm test:e2e         # E2E tests (Playwright)
+pnpm test:e2e:ui      # E2E tests with UI
 pnpm db:generate      # Generate Drizzle migrations
-pnpm db:migrate       # Run migrations
-pnpm db:push          # Push schema directly (dev only)
+pnpm db:migrate       # Run Drizzle migrations
+pnpm db:push          # Push schema to DB (dev only)
 pnpm db:studio        # Open Drizzle Studio
 ```
 
 ## Environment variables
 
-Required in `.env`:
-- `DATABASE_URL` — PostgreSQL connection string
-- `STRIPE_SECRET_KEY` — Stripe API key
-- `STRIPE_WEBHOOK_SECRET` — Stripe webhook signing secret
-- `CUSTOMERIO_SITE_ID` — Customer.io site ID
-- `CUSTOMERIO_API_KEY` — Customer.io API key
-- `TMDB_API_KEY` — TMDB API key (read access token)
-- `NEXT_PUBLIC_APP_URL` — App URL (defaults to `http://localhost:3000`)
-- `BETTER_AUTH_SECRET` — Secret for Better Auth session signing
+Required in `.env.local`:
 
-## Important notes
+| Variable                 | Purpose                                       |
+|--------------------------|-----------------------------------------------|
+| `DATABASE_URL`           | PostgreSQL connection string                   |
+| `BETTER_AUTH_SECRET`     | Session signing secret                         |
+| `STRIPE_SECRET_KEY`      | Stripe API key                                 |
+| `STRIPE_WEBHOOK_SECRET`  | Stripe webhook signing secret                  |
+| `CUSTOMERIO_SITE_ID`     | Customer.io site ID                            |
+| `CUSTOMERIO_API_KEY`     | Customer.io Track API key                      |
+| `CUSTOMERIO_APP_API_KEY` | Customer.io App API key (transactional emails) |
+| `TMDB_API_KEY`           | TMDB read access token                         |
+| `NEXT_PUBLIC_APP_URL`    | App URL (default: `http://localhost:3000`)      |
 
-- Do NOT use `console.log` — use `console.warn` or `console.error` instead.
-- Always run `pnpm lint` before committing — pre-commit hooks enforce this.
-- When adding new DB tables, export them from `src/lib/db/schema/index.ts`.
-- Use `next-intl` for all user-facing strings — import `useTranslations` in client components, `getTranslations` in server components.
-- **Always write tests** for new pure functions and helpers. Run `pnpm test` after changes.
-- **Always smoke-test** new pages/features (curl or browser) before marking a ticket done.
-- **Always update docs** (epic files, CLAUDE.md) when architecture or file structure changes.
+---
 
 ## Progress tracking
 
-- Epics and tickets are documented in `docs/Epics/E*.md`. The roadmap is in `docs/01 - Roadmap.md`.
-- **Always update the relevant epic file when a ticket is completed or progresses** — add a status (`✅ Done`, `🔄 En cours`, `⬜ A faire`) next to each ticket title so we always know where we stand.
-- When a full epic is completed, update its status in `docs/01 - Roadmap.md` as well.
-- Move completed standalone files to the `done/` folder if applicable.
+- Epics and tickets: `docs/Epics/E*.md`. Roadmap: `docs/01 - Roadmap.md`.
+- **Always update** the relevant epic file when a ticket completes — use `✅ Done`, `🔄 En cours`, `⬜ A faire`.
+- When a full epic is completed, update its status in `docs/01 - Roadmap.md`.

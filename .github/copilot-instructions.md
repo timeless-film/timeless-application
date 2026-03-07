@@ -2,125 +2,189 @@
 
 ## Project context
 
-TIMELESS is a B2B marketplace for classic and heritage films. Exhibitors (cinemas, festivals) book films from rights holders (distributors, archives) through an integrated booking, payment (Stripe Connect), and delivery workflow.
+TIMELESS is a B2B marketplace for classic and heritage films. Exhibitors (cinemas, festivals) book films from rights holders (distributors, archives) through a digitalized booking, payment (Stripe Connect), and delivery workflow.
 
-**Status**: Prototype phase.
+**Status**: Prototype phase — started 2026-03-06.
+
+---
+
+## Quality philosophy
+
+Every decision must optimize for **long-term readability and maintainability**, not cleverness.
+
+1. **Explicit over implicit** — name things for what they do. No abbreviations. Code must be understood without prior context.
+2. **Single responsibility** — one function = one job. If it needs a comment to explain _what_ it does, rename or split it.
+3. **Fail loudly** — catch, type, log (`console.error`), and surface errors to users. Never swallow silently.
+4. **Tests are specs** — write tests as documentation. If it's hard to test, the design is wrong.
+5. **No dead code** — delete unused code. Git has history.
+6. **DRY, not premature** — extract only when duplication is real (same intent, same evolution path).
+7. **Consistent patterns** — follow established patterns everywhere. Consistency enables predictability.
+
+---
 
 ## Tech stack
 
 - **Next.js 16** (App Router, TypeScript, React 19)
-- **Drizzle ORM** with PostgreSQL
-- **Better Auth** (self-hosted auth — email + password + MFA/TOTP)
-- **Stripe + Stripe Connect** (payments, marketplace splits, KYC)
-- **Customer.io** (transactional emails, CRM events)
-- **Tailwind CSS v4 + shadcn/ui** (UI components)
+- **Drizzle ORM** + PostgreSQL
+- **Better Auth** (self-hosted — email + password + MFA/TOTP)
+- **Stripe + Stripe Connect** (marketplace payments)
+- **Customer.io** (transactional emails, CRM)
+- **Tailwind CSS v4 + shadcn/ui**
 - **next-intl** (i18n — en/fr, default: en)
 - **Zod** (validation)
-- **TanStack React Query** (client-side data fetching)
+- **TanStack React Query** (client-side state)
+- **Vitest** (unit tests) + **Playwright** (E2E)
+
+---
 
 ## Project structure
 
-- `src/app/[locale]/` — locale-prefixed routes with route groups: `(admin)`, `(app)`, `(auth)`, `(rights-holder)`
-- `src/components/ui/` — shadcn/ui primitives
-- `src/lib/db/schema/` — Drizzle schema files (accounts, films, orders, cinemas, settings, auth)
-- `src/lib/auth/` — Better Auth config (server) + client
-- `src/lib/stripe/` — Stripe helpers (payments, Connect transfers)
-- `src/lib/customerio/` — Customer.io user sync + event tracking
-- `src/lib/pricing/` — Pricing calculation engine
-- `src/lib/tmdb/` — TMDB API integration for film metadata
-- `src/i18n/` — next-intl routing, request config, navigation helpers
-- `src/middleware.ts` — Auth guard + next-intl locale handling
-- `messages/en.json`, `messages/fr.json` — Translation files
+- `src/app/[locale]/` — locale-prefixed routes. Route groups: `(admin)`, `(app)`, `(auth)`, `(account)`, `(rights-holder)`.
+- `src/components/ui/` — shadcn/ui primitives (don't edit manually).
+- `src/components/{feature}/` — feature-scoped components (auth, account, catalog, profile…).
+- `src/lib/db/schema/` — Drizzle schema files, re-exported from `index.ts`.
+- `src/lib/auth/` — Better Auth config + helpers. `proxy.ts` handles auth routing.
+- `src/lib/pricing/` — pricing engine. All money in **cents** (integers).
+- `src/lib/customerio/` — Customer.io integration with `safeCio` wrapper.
+- `src/i18n/` — next-intl routing, request, navigation.
+- `messages/en.json`, `messages/fr.json` — translations (keys must be English).
+- `middleware.ts` — next-intl locale detection only. Auth guards are in `proxy.ts`.
+
+---
 
 ## Coding rules
 
 ### Language
-- **All code must be in English**: variable names, function names, types, enums, comments, JSDoc.
-- User-facing strings go in `messages/en.json` and `messages/fr.json` via next-intl — never hardcode them.
+
+- **All code in English**: variables, functions, types, enums, comments, JSDoc, git messages.
+- **All UI strings via next-intl** — `useTranslations()` / `getTranslations()`. Never hardcode user-facing text.
+- **Translation keys in English** — `catalog.title`, not `catalogue.titre`.
 
 ### TypeScript
-- Strict mode (`strict: true`, `noUncheckedIndexedAccess: true`).
-- Always use **type imports**: `import type { Foo } from "..."`.
+
+- Strict mode: `strict: true`, `noUncheckedIndexedAccess: true`, `noImplicitOverride: true`.
+- Always `import type { Foo }` — enforced by ESLint.
+- No `any` (use `unknown` + narrowing). No `as` (unless `// SAFETY:` comment). No `!` (handle null explicitly).
 - Path alias: `@/*` → `./src/*`.
 
-### ESLint (zero warnings policy)
-- `no-console`: only `console.error` and `console.warn` are allowed. Never use `console.log`.
-- `@typescript-eslint/no-explicit-any`: error — avoid `any`.
-- `@typescript-eslint/no-unused-vars`: error — prefix unused args with `_`.
-- `import/order`: enforced grouping (builtin → external → internal → parent/sibling → index → type) + alphabetical.
-- `eqeqeq`: always use `===`.
-- `react/self-closing-comp`: self-close components without children.
+### Naming
 
-### Components
-- Use shadcn/ui components from `@/components/ui/`.
-- Use `cn()` from `@/lib/utils` for conditional class names (clsx + tailwind-merge).
-- Default to React Server Components. Only add `"use client"` when required (hooks, interactivity).
+| Element          | Convention    | Example                    |
+|------------------|---------------|----------------------------|
+| Files            | kebab-case    | `account-info-form.tsx`    |
+| Components       | PascalCase    | `AccountInfoForm`          |
+| Variables/funcs  | camelCase     | `calculatePricing`         |
+| Types            | PascalCase    | `PricingResult`            |
+| DB columns (SQL) | snake_case    | `catalog_price`            |
+| DB columns (TS)  | camelCase     | `catalogPrice`             |
+| Enum values      | snake_case    | `"rights_holder"`          |
+| Translation keys | camelCase dot | `"catalog.film.addToCart"` |
 
-### shadcn/ui gotchas
-- **CardTitle** renders a `<div>`, not `<h1-h6>` — don't use `getByRole("heading")` in tests.
-- **Select (shadcn)** is Radix-based, not a native `<select>`. Use `getByRole("combobox")` in Playwright, not `selectOption()`.
-- When text appears in both **CardTitle** and **CardDescription**, `getByText()` with a loose regex matches multiple elements → strict mode violation. Use exact match: `/^Title$/i`.
+### ESLint (zero warnings)
 
-### Forms & feedback
-- Use **sonner** (`toast` from `"sonner"`) for success and error toasts. The `<Toaster />` is in the root layout.
-- Display **inline errors** in forms (below the field or in a summary) **and** fire a `toast.error()` for every user-facing error.
-- Mark required fields with a red asterisk: `<span className="text-destructive">*</span>` after the label text.
-- Show password rules as a hint (`text-xs text-muted-foreground`) below the password field.
-- Show real-time password mismatch below the confirm field when the user starts typing.
-- On auth pages, check the session (`useSession`). If the user is already signed in, render the `<AlreadyConnected />` component instead of the form.
+`no-console` (error/warn only) · `no-explicit-any` · `no-unused-vars` (prefix `_`) · `consistent-type-imports` · `import/order` + `import/no-duplicates` · `eqeqeq` · `prefer-const` · `react/self-closing-comp` · `react/jsx-curly-brace-presence`.
 
-### Database
-- Drizzle ORM with PostgreSQL.
-- Schema split across `src/lib/db/schema/*.ts`, re-exported from `index.ts`.
-- Use `uuid` primary keys with `.defaultRandom()`.
-- All tables must have `createdAt` / `updatedAt` timestamp columns.
-- Enums: `pgEnum` with snake_case values.
-- Monetary amounts in **cents** (integers). Rates as decimal strings (e.g., `"0.10"`).
+---
 
-### Naming conventions
-- **Files**: kebab-case (`my-component.tsx`, `my-util.ts`)
-- **Components**: PascalCase (`MyComponent`)
-- **Variables / functions**: camelCase
-- **DB columns**: snake_case (Drizzle maps to camelCase in TS)
-- **Enum values**: snake_case strings
+## Architecture patterns
 
-## Domain model
+### Server actions (mutations)
 
-Three account types: `exhibitor`, `rights_holder`, `admin`.
+```typescript
+"use server";
+export async function doSomething(input: Input) {
+  // 1. Auth — verify session
+  // 2. Validation — Zod parse
+  // 3. Authorization — check permissions
+  // 4. Business logic
+  // 5. Return { success: true } or { error: "CODE" }
+}
+```
 
-Core flow: **Catalogue → Cart → Request (if validation needed) → Payment (Stripe) → Delivery (DCP/KDM)**
+- **Never throw** from server actions — return typed `{ error }` or `{ success }`.
+- Error codes are `UPPER_SNAKE_CASE` mapped to `messages/*.json`.
+- Always validate with Zod. Always check auth + authorization first.
+
+### Error handling
+
+- Server: `console.error()` + return `{ error }`.
+- Client: `toast.error()` + inline error below field.
+- Never silently catch — empty catch blocks are bugs.
+
+### Data fetching
+
+- **Server Components** (default): `db.query.*` directly in component.
+- **Client Components**: TanStack React Query.
+- **API routes**: only for external consumers (webhooks, Better Auth).
+
+---
+
+## UI & components
+
+- **shadcn/ui** in `src/components/ui/` — don't edit manually. Use `cn()` for class merging.
+- **Server Components by default**. `"use client"` only for hooks/interactivity.
+- **sonner** toasts for success/error. Inline errors below form fields.
+- Required fields: `<span className="text-destructive">*</span>`.
+- Auth pages: render `<AlreadyConnected />` if user is signed in.
+
+### shadcn/ui testing gotchas
+
+- **CardTitle** = `<div>` not heading — use `getByText`, not `getByRole("heading")`.
+- **Select** = Radix — use `getByRole("combobox")`, not `selectOption()`.
+- **Text collisions**: use exact regex `/^Title$/i` when text appears in multiple elements.
+
+---
+
+## Database
+
+- Drizzle ORM + PostgreSQL. Schema in `src/lib/db/schema/`, re-exported from `index.ts`.
+- `uuid` primary keys. `createdAt`/`updatedAt` on all tables. `pgEnum` with snake_case values.
+- Money in **cents** (integers). Rates as decimal strings (`"0.10"`).
+- New tables → export from `index.ts`. Changes → `pnpm db:generate` + `pnpm db:migrate`.
+
+---
+
+## Security
+
+- Validate all input server-side (Zod). Never trust client data.
+- Auth check first in every server action / protected route.
+- No secrets in client code — only `NEXT_PUBLIC_*` vars.
+- Stripe webhooks: verify signatures.
+
+## Accessibility
+
+- Semantic HTML (`<nav>`, `<main>`, `<button>`, not `<div onClick>`).
+- Keyboard accessible. Visible focus states (`focus-visible:ring-*`).
+- `alt` text on images. `<Label htmlFor>` on form fields.
+- Color never sole indicator — pair with icon or text.
+
+## Performance
+
+- Server Components by default. Dynamic imports for heavy client code.
+- `next/image` with explicit dimensions. Efficient DB queries (no N+1).
+
+---
 
 ## Testing
 
-### Stack
-- **Vitest** — unit tests (`src/lib/**/__tests__/*.test.ts`)
-- **Playwright** — E2E tests (`e2e/*.spec.ts`)
-- **GitHub Actions** — CI pipeline (`.github/workflows/ci.yml`)
+- **Every pure function** → unit tests. **Every user flow** → E2E test.
+- Extract pure logic from side-effectful modules for testability.
+- Unit: `*.test.ts` collocated in `__tests__/`. E2E: `e2e/*.spec.ts`.
+- After any change: `pnpm typecheck && pnpm lint && pnpm test`.
 
-### Rules
-- Every new pure function / helper **must** have unit tests.
-- New pages and user flows **must** have E2E coverage.
-- Extract pure logic from side-effectful modules to make it testable (e.g. `proxy-helpers.ts` from `proxy.ts`).
-- After developing any feature, **always** run: `pnpm typecheck && pnpm lint && pnpm test`.
-- After changing pages or layouts, **smoke-test** them (curl or browser) to verify no 500s.
-- After completing work, **always update** the relevant epic doc and instruction files.
+### E2E
 
-### E2E port strategy
-- Playwright uses **port 3099** (not 3000) to avoid conflicts with a running dev server.
-- Configured in `playwright.config.ts` — the webServer starts `pnpm dev --port 3099` with matching `NEXT_PUBLIC_APP_URL`.
-- **Never manually set `PLAYWRIGHT_BASE_URL`** — let the config handle it.
+- Port **3099** (never 3000). Configured in `playwright.config.ts`.
+- DB operations: `postgres` npm package, not `psql` CLI.
+- Relative URLs with `request` fixture. Trace `proxy.ts` redirect chains before asserting.
+- Better Auth `cookieCache` (5-min TTL) → assert toast + state, not reload.
 
-### E2E best practices
-- **DB operations in tests**: Use the `postgres` npm package (project dependency) — never shell out to `psql` CLI. Example: `const sql = postgres(DB_URL); await sql\`UPDATE ...\`; await sql.end();`.
-- **Use Playwright fixtures**: Use relative URLs with `request` fixture (`request.post("/api/...")`) — it has `baseURL` from config. Never construct URLs from `page.url()` (returns `about:blank` before navigation).
-- **Verify redirect chains**: Before writing E2E tests, trace the actual flow in `proxy.ts`. Example: unauthenticated user lands on `/no-account` (not `/onboarding` directly).
-- **Clean up stale processes**: Before each E2E run: `lsof -ti:3099 | xargs kill -9 2>/dev/null; rm -rf .next/dev/lock`.
-- **Better Auth session cache**: `cookieCache` (5-min TTL) means `getSession` returns stale data after `updateUser`. Don't reload-and-assert in E2E — verify toast + local state instead.
+### CI (GitHub Actions)
 
-### CI
-- GitHub Actions runs on every push/PR to `main`/`develop`.
-- Quality job: typecheck + lint + unit tests.
-- E2E job: PostgreSQL service container + Playwright.
+- Quality job: typecheck → lint → unit tests.
+- E2E job: PostgreSQL service → schema push → Playwright.
+
+---
 
 ## Commands
 
@@ -128,14 +192,9 @@ Core flow: **Catalogue → Cart → Request (if validation needed) → Payment (
 pnpm dev              # Dev server
 pnpm build            # Production build
 pnpm lint             # ESLint (--max-warnings 0)
-pnpm lint:fix         # ESLint auto-fix
-pnpm format           # Prettier
 pnpm typecheck        # tsc --noEmit
 pnpm test             # Unit tests (Vitest)
-pnpm test:watch       # Unit tests in watch mode
-pnpm test:coverage    # Unit tests + coverage
 pnpm test:e2e         # E2E tests (Playwright)
-pnpm test:e2e:ui      # E2E tests with UI
 pnpm db:generate      # Generate Drizzle migrations
 pnpm db:migrate       # Run migrations
 pnpm db:push          # Push schema (dev only)
@@ -144,11 +203,10 @@ pnpm db:studio        # Drizzle Studio
 
 ## Environment variables
 
-Required: `DATABASE_URL`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `CUSTOMERIO_SITE_ID`, `CUSTOMERIO_API_KEY`, `TMDB_API_KEY`, `NEXT_PUBLIC_APP_URL`, `BETTER_AUTH_SECRET`.
+`DATABASE_URL` · `BETTER_AUTH_SECRET` · `STRIPE_SECRET_KEY` · `STRIPE_WEBHOOK_SECRET` · `CUSTOMERIO_SITE_ID` · `CUSTOMERIO_API_KEY` · `CUSTOMERIO_APP_API_KEY` · `TMDB_API_KEY` · `NEXT_PUBLIC_APP_URL`
 
 ## Progress tracking
 
-- Epics and tickets are documented in `docs/Epics/E*.md`. The roadmap is in `docs/01 - Roadmap.md`.
-- **Always update the relevant epic file when a ticket is completed or progresses** — add a status (`✅ Done`, `🔄 En cours`, `⬜ A faire`) next to each ticket title so we always know where we stand.
-- When a full epic is completed, update its status in `docs/01 - Roadmap.md` as well.
-- Move completed standalone files to the `done/` folder if applicable.
+- Epics: `docs/Epics/E*.md`. Roadmap: `docs/01 - Roadmap.md`.
+- Update epic files on ticket completion (`✅ Done`, `🔄 En cours`, `⬜ A faire`).
+- Update roadmap when a full epic is completed.

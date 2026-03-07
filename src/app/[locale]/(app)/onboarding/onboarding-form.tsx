@@ -1,7 +1,7 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -16,7 +16,6 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useRouter } from "@/i18n/navigation";
 
 import { createExhibitorAccount } from "./actions";
 
@@ -37,7 +36,7 @@ const COUNTRIES = [
 
 export function OnboardingForm() {
   const t = useTranslations("onboarding");
-  const router = useRouter();
+  const locale = useLocale();
 
   const [companyName, setCompanyName] = useState("");
   const [country, setCountry] = useState("FR");
@@ -64,7 +63,9 @@ export function OnboardingForm() {
       }
 
       toast.success(t("success"));
-      router.push("/catalog");
+      // Hard navigation to avoid race condition with Next.js auto-refresh
+      // triggered by cookie changes in the server action
+      window.location.href = `/${locale}/catalog`;
     } catch {
       setError(t("error.CREATION_FAILED"));
       toast.error(t("error.CREATION_FAILED"));
