@@ -7,7 +7,6 @@ import {
   SettingsIcon,
   UserCircleIcon,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -51,11 +50,15 @@ interface NavUserProps {
 export function NavUser({ user, profileHref, accountHref, canManageAccount }: NavUserProps) {
   const { isMobile } = useSidebar();
   const t = useTranslations("navigation");
-  const router = useRouter();
 
-  async function handleSignOut() {
-    await signOut();
-    router.push("/login");
+  function handleSignOut() {
+    signOut({
+      fetchOptions: {
+        onSuccess: () => {
+          window.location.href = "/";
+        },
+      },
+    });
   }
 
   return (

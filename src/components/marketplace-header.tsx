@@ -108,9 +108,14 @@ export function MarketplaceHeader({ user, memberships, activeAccountId }: Market
     { title: t("myAccounts"), href: "/accounts", icon: LayersIcon },
   ];
 
-  async function handleSignOut() {
-    await signOut();
-    router.push("/login");
+  function handleSignOut() {
+    signOut({
+      fetchOptions: {
+        onSuccess: () => {
+          window.location.href = "/";
+        },
+      },
+    });
   }
 
   async function handleSwitch(accountId: string) {
