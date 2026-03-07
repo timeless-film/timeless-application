@@ -1,6 +1,8 @@
 import { expect, test } from "@playwright/test";
 import postgres from "postgres";
 
+import type { APIRequestContext, Page } from "@playwright/test";
+
 /**
  * Unique test ID to avoid collisions between runs.
  * Each test file execution gets its own ID.
@@ -15,8 +17,8 @@ const DB_URL =
  * directly in the DB, then log them in through the UI.
  */
 async function registerAndLogin(
-  page: Awaited<Parameters<Parameters<typeof test>[1]>[0]>["page"],
-  request: Awaited<Parameters<Parameters<typeof test>[1]>[0]>["request"],
+  page: Page,
+  request: APIRequestContext,
   user: { name: string; email: string; password: string },
 ) {
   // 1. Register via API (request fixture uses baseURL from playwright config)
@@ -75,10 +77,7 @@ test.describe("Registration flow", () => {
 // ---------------------------------------------------------------------------
 // Helper: complete the onboarding flow (no-account → onboarding → catalogue)
 // ---------------------------------------------------------------------------
-async function completeOnboarding(
-  page: Awaited<Parameters<Parameters<typeof test>[1]>[0]>["page"],
-  companyName: string,
-) {
+async function completeOnboarding(page: Page, companyName: string) {
   // After login, user with no account lands on /no-account
   await expect(page).toHaveURL(/\/en\/no-account/, { timeout: 15000 });
 

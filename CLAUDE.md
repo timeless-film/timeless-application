@@ -101,6 +101,11 @@ Core flow: Catalogue → Cart → Request (if validation required) → Payment �
 - Use `cn()` from `@/lib/utils` for conditional class merging (clsx + tailwind-merge).
 - React Server Components by default; add `"use client"` only when needed.
 
+### shadcn/ui gotchas
+- **CardTitle renders a `<div>`, not an `<h1-h6>`** — do not use `getByRole("heading")` in tests. Use `getByText` with an exact regex (`/^Title$/i`) or a specific class selector.
+- **Select (shadcn)** uses Radix Popover — it's not a native `<select>`. Use `page.getByRole("combobox")` or `page.locator("button[role='combobox']")` in Playwright, not `page.selectOption()`.
+- When text appears in both CardTitle and CardDescription (e.g. "Active sessions" + "Manage your active sessions…"), using `getByText(/active sessions/i)` will match multiple elements → strict mode violation. Use exact match: `getByText(/^Active sessions$/i)`.
+
 ### Forms & feedback
 - Use **sonner** (`toast` from `"sonner"`) for success and error toasts. The `<Toaster />` is in the root layout.
 - Display **inline errors** in forms (below the field or in a summary) **and** fire a `toast.error()` for every user-facing error.
@@ -136,6 +141,13 @@ Core flow: Catalogue → Cart → Request (if validation required) → Payment �
 - The port is configured in `playwright.config.ts` via `PLAYWRIGHT_PORT` env var (default: 3099).
 - The webServer config passes `PORT` and `NEXT_PUBLIC_APP_URL` to the dev server so Better Auth client connects to the correct instance.
 - **Never run E2E tests on port 3000** — always let Playwright manage its own server on 3099.
+
+### E2E best practices (lessons learned)
+- **DB operations**: Use the `postgres` npm package (already a project dependency) — never `psql` CLI which may not be installed. Example: `const sql = postgres(DB_URL); await sql\`UPDATE ...\`; await sql.end();`.
+- **Playwright fixtures**: Use relative URLs with the `request` fixture (`request.post("/api/...")`) — it already has `baseURL` from `playwright.config.ts`. Never manually construct base URLs from `page.url()` (returns `about:blank` before navigation).
+- **Verify actual app flows first**: Before writing E2E tests, trace the actual redirect chain in `proxy.ts` / middleware. Example: login doesn't go to `/onboarding` directly — it goes to `/no-account` first, then the user clicks to `/onboarding`.
+- **Clean up between runs**: Always kill stale processes on port 3099 and remove `.next/dev/lock` before running E2E tests. Pattern: `lsof -ti:3099 | xargs kill -9 2>/dev/null; rm -rf .next/dev/lock`.
+- **Better Auth session cache**: `cookieCache` has a 5-minute TTL. After `updateUser`, a page reload may still show stale data from the cached session. Don't assert on persistence via reload in E2E tests — assert on the toast + local state instead.
 
 ### Development workflow (MANDATORY)
 1. **After developing any feature**: run `pnpm typecheck && pnpm lint` to verify no regressions

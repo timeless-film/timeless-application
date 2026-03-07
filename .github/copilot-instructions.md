@@ -56,6 +56,11 @@ TIMELESS is a B2B marketplace for classic and heritage films. Exhibitors (cinema
 - Use `cn()` from `@/lib/utils` for conditional class names (clsx + tailwind-merge).
 - Default to React Server Components. Only add `"use client"` when required (hooks, interactivity).
 
+### shadcn/ui gotchas
+- **CardTitle** renders a `<div>`, not `<h1-h6>` — don't use `getByRole("heading")` in tests.
+- **Select (shadcn)** is Radix-based, not a native `<select>`. Use `getByRole("combobox")` in Playwright, not `selectOption()`.
+- When text appears in both **CardTitle** and **CardDescription**, `getByText()` with a loose regex matches multiple elements → strict mode violation. Use exact match: `/^Title$/i`.
+
 ### Forms & feedback
 - Use **sonner** (`toast` from `"sonner"`) for success and error toasts. The `<Toaster />` is in the root layout.
 - Display **inline errors** in forms (below the field or in a summary) **and** fire a `toast.error()` for every user-facing error.
@@ -104,6 +109,13 @@ Core flow: **Catalogue → Cart → Request (if validation needed) → Payment (
 - Playwright uses **port 3099** (not 3000) to avoid conflicts with a running dev server.
 - Configured in `playwright.config.ts` — the webServer starts `pnpm dev --port 3099` with matching `NEXT_PUBLIC_APP_URL`.
 - **Never manually set `PLAYWRIGHT_BASE_URL`** — let the config handle it.
+
+### E2E best practices
+- **DB operations in tests**: Use the `postgres` npm package (project dependency) — never shell out to `psql` CLI. Example: `const sql = postgres(DB_URL); await sql\`UPDATE ...\`; await sql.end();`.
+- **Use Playwright fixtures**: Use relative URLs with `request` fixture (`request.post("/api/...")`) — it has `baseURL` from config. Never construct URLs from `page.url()` (returns `about:blank` before navigation).
+- **Verify redirect chains**: Before writing E2E tests, trace the actual flow in `proxy.ts`. Example: unauthenticated user lands on `/no-account` (not `/onboarding` directly).
+- **Clean up stale processes**: Before each E2E run: `lsof -ti:3099 | xargs kill -9 2>/dev/null; rm -rf .next/dev/lock`.
+- **Better Auth session cache**: `cookieCache` (5-min TTL) means `getSession` returns stale data after `updateUser`. Don't reload-and-assert in E2E — verify toast + local state instead.
 
 ### CI
 - GitHub Actions runs on every push/PR to `main`/`develop`.
