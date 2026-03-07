@@ -92,9 +92,8 @@ async function completeOnboarding(page: Page, companyName: string) {
 
   await page.getByRole("button", { name: /continue/i }).click();
 
-  // Should redirect to catalog after onboarding.
-  // Longer timeout: on slow CI, the server action cookie change can trigger
-  // a Next.js auto-refresh that adds latency to the navigation chain.
+  // Server action calls redirect() — Next.js handles navigation server-side.
+  // Wait for the catalog page to load.
   await expect(page).toHaveURL(/\/en\/catalog/, { timeout: 30000 });
 }
 
@@ -111,7 +110,7 @@ test.describe("Onboarding flow", () => {
     await registerAndLogin(page, request, user);
     await completeOnboarding(page, companyName);
 
-    // After hard navigation (window.location.href), wait for page to fully load
+    // Wait for network idle after the server-side redirect
     await page.waitForLoadState("networkidle");
 
     // Company name should appear in the marketplace header

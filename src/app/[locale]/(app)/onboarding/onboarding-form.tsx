@@ -2,7 +2,7 @@
 
 import { Loader2 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
-import { useState, useSyncExternalStore } from "react";
+import { useActionState, useEffect } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -17,17 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-import { createExhibitorAccount } from "./actions";
-
-// SSR: false → button disabled in server HTML. Client: true → button enabled after hydration.
-const noopSubscribe = () => () => {};
-function useIsHydrated(): boolean {
-  return useSyncExternalStore(
-    noopSubscribe,
-    () => true,
-    () => false
-  );
-}
+import { createExhibitorAccountAction } from "./actions";
 
 const COUNTRIES = [
   { code: "FR", label: "France" },
@@ -48,50 +38,16 @@ export function OnboardingForm() {
   const t = useTranslations("onboarding");
   const locale = useLocale();
 
-  const [companyName, setCompanyName] = useState("");
-  const [country, setCountry] = useState("FR");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  // React 19 useActionState: the server action handles redirect() on success.
+  // On error, it returns { error: "CODE" } which we render inline.
+  // No try/catch, no client-side navigation — no race conditions.
+  const [state, formAction, isPending] = useActionState(createExhibitorAccountAction, null);
 
-  // Prevent form submission before React hydration.
-  // Without this, a fast click on the submit button (e.g. on slow CI) could
-  // trigger a native GET form submit because the React onSubmit handler
-  // (which calls e.preventDefault()) is not yet attached.
-  const isHydrated = useIsHydrated();
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
-
-    try {
-      const result = await createExhibitorAccount({
-        companyName,
-        country,
-      });
-
-      if (result.error) {
-        const msg = t(`error.${result.error}`);
-        setError(msg);
-        toast.error(msg);
-        setLoading(false);
-        return;
-      }
-
-      toast.success(t("success"));
-      // Hard navigation to avoid race condition with Next.js auto-refresh
-      // triggered by cookie changes in the server action
-      window.location.href = `/${locale}/catalog`;
-    } catch {
-      // The server action sets a cookie via cookies().set(), which can trigger
-      // a Next.js auto-refresh that aborts the in-flight fetch before the
-      // result is delivered to the client. If this happens, the account was
-      // most likely created and the cookie was set. Navigate to catalog —
-      // if the account wasn't created, proxy.ts will redirect to root
-      // for account resolution.
-      window.location.href = `/${locale}/catalog`;
+  useEffect(() => {
+    if (state?.error) {
+      toast.error(t(`error.${state.error}`));
     }
-  }
+  }, [state, t]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/40 px-4 py-12">
@@ -101,20 +57,17 @@ export function OnboardingForm() {
             <CardTitle className="text-2xl">{t("title")}</CardTitle>
             <CardDescription>{t("subtitle")}</CardDescription>
           </CardHeader>
-          <form onSubmit={handleSubmit}>
+          <form action={formAction}>
+            <input type="hidden" name="locale" value={locale} />
             <CardContent className="space-y-4">
-              {error && <p className="text-sm text-destructive">{error}</p>}
+              {state?.error && (
+                <p className="text-sm text-destructive">{t(`error.${state.error}`)}</p>
+              )}
               <div className="space-y-2">
                 <Label htmlFor="companyName">
                   {t("companyName")} <span className="text-destructive">*</span>
                 </Label>
-                <Input
-                  id="companyName"
-                  type="text"
-                  value={companyName}
-                  onChange={(e) => setCompanyName(e.target.value)}
-                  required
-                />
+                <Input id="companyName" name="companyName" type="text" required />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="country">
@@ -122,8 +75,8 @@ export function OnboardingForm() {
                 </Label>
                 <select
                   id="country"
-                  value={country}
-                  onChange={(e) => setCountry(e.target.value)}
+                  name="country"
+                  defaultValue="FR"
                   className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs transition-colors focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] focus-visible:outline-none"
                   required
                 >
@@ -136,8 +89,8 @@ export function OnboardingForm() {
               </div>
             </CardContent>
             <CardFooter>
-              <Button type="submit" className="w-full" disabled={!isHydrated || loading}>
-                {loading && <Loader2 className="animate-spin" />}
+              <Button type="submit" className="w-full" disabled={isPending}>
+                {isPending && <Loader2 className="animate-spin" />}
                 {t("submit")}
               </Button>
             </CardFooter>

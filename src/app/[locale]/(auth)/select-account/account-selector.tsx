@@ -12,17 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { switchAccount } from "@/lib/auth/membership-actions";
 
 import type { AccountType } from "@/lib/auth/active-account-cookie";
-
-interface MembershipInfo {
-  id: string;
-  accountId: string;
-  role: string;
-  account: {
-    id: string;
-    companyName: string;
-    type: AccountType;
-  };
-}
+import type { MembershipInfo } from "@/types/account";
 
 interface AccountSelectorProps {
   memberships: MembershipInfo[];

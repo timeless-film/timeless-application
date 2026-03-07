@@ -5,9 +5,9 @@ import { headers } from "next/headers";
 
 import { auth } from "@/lib/auth";
 import { getCurrentMembership } from "@/lib/auth/membership";
-import { sendInvitationEmail } from "@/lib/customerio";
 import { db } from "@/lib/db";
 import { accountMembers, accounts, invitations } from "@/lib/db/schema";
+import { sendInvitationEmail } from "@/lib/email";
 
 // ─── Account Info ─────────────────────────────────────────────────────────────
 

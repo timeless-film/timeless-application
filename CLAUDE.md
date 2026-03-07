@@ -34,7 +34,7 @@ This application is built for **long-term maintainability**. Every decision — 
 | ORM             | Drizzle ORM                             |
 | Auth            | Better Auth (self-hosted, email+MFA)    |
 | Payments        | Stripe + Stripe Connect (marketplace)   |
-| Emails / CRM    | Customer.io                             |
+| Emails          | Scaleway Transactional Email (nodemailer/SMTP) |
 | UI              | Tailwind CSS v4 + shadcn/ui             |
 | i18n            | next-intl (en, fr — default: en)        |
 | Validation      | Zod                                     |
@@ -69,7 +69,7 @@ src/
 ├── i18n/                      # next-intl config (routing, request, navigation)
 ├── lib/
 │   ├── auth/                  # Better Auth server config + client + helpers
-│   ├── customerio/            # Customer.io user sync + event tracking
+│   ├── email/                 # Transactional email (nodemailer + Scaleway TEM SMTP)
 │   ├── db/                    # Drizzle client + schema
 │   │   └── schema/            # DB tables (accounts, films, orders, cinemas, settings, auth)
 │   ├── pricing/               # Pricing calculation engine
@@ -343,17 +343,20 @@ pnpm db:studio        # Open Drizzle Studio
 
 Required in `.env.local`:
 
-| Variable                 | Purpose                                       |
-|--------------------------|-----------------------------------------------|
-| `DATABASE_URL`           | PostgreSQL connection string                   |
-| `BETTER_AUTH_SECRET`     | Session signing secret                         |
-| `STRIPE_SECRET_KEY`      | Stripe API key                                 |
-| `STRIPE_WEBHOOK_SECRET`  | Stripe webhook signing secret                  |
-| `CUSTOMERIO_SITE_ID`     | Customer.io site ID                            |
-| `CUSTOMERIO_API_KEY`     | Customer.io Track API key                      |
-| `CUSTOMERIO_APP_API_KEY` | Customer.io App API key (transactional emails) |
-| `TMDB_API_KEY`           | TMDB read access token                         |
-| `NEXT_PUBLIC_APP_URL`    | App URL (default: `http://localhost:3000`)      |
+| Variable                        | Purpose                                             |
+|---------------------------------|-----------------------------------------------------|
+| `DATABASE_URL`                  | PostgreSQL connection string                        |
+| `BETTER_AUTH_SECRET`            | Session signing secret                              |
+| `STRIPE_SECRET_KEY`             | Stripe API key                                      |
+| `STRIPE_WEBHOOK_SECRET`         | Stripe webhook signing secret                       |
+| `SMTP_HOST`                     | SMTP host (`smtp.tem.scaleway.com`)                 |
+| `SMTP_PORT`                     | SMTP port (`465` for TLS, `587` for STARTTLS)       |
+| `SMTP_USER`                     | Scaleway Project ID                                 |
+| `SMTP_PASSWORD`                 | Scaleway API secret key (with TEM permissions)      |
+| `EMAIL_FROM`                    | Sender address (default: `hello@timeless.film`)     |
+| `TMDB_API_KEY`                  | TMDB read access token                              |
+| `NEXT_PUBLIC_APP_URL`           | App URL (default: `http://localhost:3000`)          |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe publishable key (baked at build time)  |
 
 ---
 

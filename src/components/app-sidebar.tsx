@@ -28,7 +28,6 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
-import type { AccountType } from "@/lib/auth/active-account-cookie";
 import type { LucideIcon } from "lucide-react";
 import type * as React from "react";
 
@@ -72,17 +71,6 @@ export interface NavSection {
   }[];
 }
 
-interface MembershipInfo {
-  id: string;
-  accountId: string;
-  role: string;
-  account: {
-    id: string;
-    companyName: string;
-    type: AccountType;
-  };
-}
-
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   user: {
     name: string;
@@ -92,8 +80,6 @@ interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   profileHref: string;
   accountHref?: string;
   canManageAccount?: boolean;
-  memberships: MembershipInfo[];
-  activeAccountId: string;
 }
 
 export function AppSidebar({
@@ -102,8 +88,6 @@ export function AppSidebar({
   profileHref,
   accountHref,
   canManageAccount,
-  memberships,
-  activeAccountId,
   ...props
 }: AppSidebarProps) {
   return (
@@ -111,7 +95,7 @@ export function AppSidebar({
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <AccountSwitcherSidebar memberships={memberships} activeAccountId={activeAccountId} />
+            <AccountSwitcherSidebar />
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>

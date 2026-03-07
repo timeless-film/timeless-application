@@ -8,7 +8,6 @@ import {
   encodeActiveAccountCookie,
   getHomePathForType,
 } from "@/lib/auth/active-account-cookie";
-import { identifyUser } from "@/lib/customerio";
 import { db } from "@/lib/db";
 import { accountMembers, accounts } from "@/lib/db/schema";
 
@@ -63,16 +62,6 @@ export async function createAccount(input: CreateAccountInput) {
     sameSite: "lax",
     path: "/",
     maxAge: 60 * 60 * 24 * 365,
-  });
-
-  // Identify user in Customer.io
-  await identifyUser({
-    userId: session.user.id,
-    email: session.user.email,
-    name: session.user.name,
-    accountType: input.type,
-    accountId: account.id,
-    country: input.country,
   });
 
   return {

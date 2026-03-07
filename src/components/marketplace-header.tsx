@@ -21,6 +21,7 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { useAccountContext } from "@/components/providers/account-provider";
 import { LanguageSwitcher } from "@/components/shared/language-switcher";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -57,24 +58,11 @@ function getInitials(name: string): string {
     .toUpperCase();
 }
 
-interface MembershipInfo {
-  id: string;
-  accountId: string;
-  role: string;
-  account: {
-    id: string;
-    companyName: string;
-    type: AccountType;
-  };
-}
-
 interface MarketplaceHeaderProps {
   user: {
     name: string;
     email: string;
   };
-  memberships: MembershipInfo[];
-  activeAccountId: string;
 }
 
 const TYPE_ICONS: Record<AccountType, LucideIcon> = {
@@ -83,16 +71,21 @@ const TYPE_ICONS: Record<AccountType, LucideIcon> = {
   admin: ShieldCheckIcon,
 };
 
-export function MarketplaceHeader({ user, memberships, activeAccountId }: MarketplaceHeaderProps) {
+export function MarketplaceHeader({ user }: MarketplaceHeaderProps) {
   const t = useTranslations("navigation");
   const tSwitcher = useTranslations("accountSwitcher");
   const pathname = usePathname();
   const router = useRouter();
   const [switching, setSwitching] = useState(false);
 
-  const activeAccount = memberships.find((m) => m.accountId === activeAccountId);
-  const hasMultipleAccounts = memberships.length > 1;
-  const canManageAccount = activeAccount?.role === "owner" || activeAccount?.role === "admin";
+  const {
+    memberships,
+    activeAccountId,
+    activeMembership,
+    hasMultipleAccounts,
+    setActiveAccountId,
+  } = useAccountContext();
+  const canManageAccount = activeMembership?.role === "owner" || activeMembership?.role === "admin";
 
   const mainNav: NavLink[] = [
     { title: t("catalog"), href: "/catalog", icon: BookOpenIcon },
@@ -129,6 +122,7 @@ export function MarketplaceHeader({ user, memberships, activeAccountId }: Market
       return;
     }
 
+    setActiveAccountId(accountId);
     toast.success(tSwitcher("switched", { name: result.accountName }));
     router.push(result.redirectUrl);
     router.refresh();
@@ -167,17 +161,17 @@ export function MarketplaceHeader({ user, memberships, activeAccountId }: Market
         {/* Right side */}
         <div className="flex items-center gap-2">
           {/* Active account indicator / switcher */}
-          {activeAccount &&
+          {activeMembership &&
             (hasMultipleAccounts ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm" className="hidden gap-1.5 md:flex">
                     {(() => {
-                      const Icon = TYPE_ICONS[activeAccount.account.type];
+                      const Icon = TYPE_ICONS[activeMembership.account.type];
                       return <Icon className="h-4 w-4" />;
                     })()}
                     <span className="max-w-[120px] truncate text-sm">
-                      {activeAccount.account.companyName}
+                      {activeMembership.account.companyName}
                     </span>
                     <ChevronsUpDownIcon className="h-3.5 w-3.5 text-muted-foreground" />
                   </Button>
@@ -207,10 +201,12 @@ export function MarketplaceHeader({ user, memberships, activeAccountId }: Market
             ) : (
               <div className="hidden items-center gap-1.5 rounded-md px-3 py-1.5 text-sm text-muted-foreground md:flex">
                 {(() => {
-                  const Icon = TYPE_ICONS[activeAccount.account.type];
+                  const Icon = TYPE_ICONS[activeMembership.account.type];
                   return <Icon className="h-4 w-4" />;
                 })()}
-                <span className="max-w-[120px] truncate">{activeAccount.account.companyName}</span>
+                <span className="max-w-[120px] truncate">
+                  {activeMembership.account.companyName}
+                </span>
               </div>
             ))}
 

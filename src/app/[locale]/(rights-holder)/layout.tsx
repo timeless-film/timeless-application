@@ -2,6 +2,7 @@ import { headers } from "next/headers";
 import { getTranslations } from "next-intl/server";
 
 import { AppSidebar } from "@/components/app-sidebar";
+import { AccountProvider } from "@/components/providers/account-provider";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { auth } from "@/lib/auth";
@@ -54,30 +55,34 @@ export default async function RightsHolderLayout({ children }: { children: React
   ];
 
   return (
-    <SidebarProvider
-      style={
-        {
-          "--sidebar-width": "calc(var(--spacing) * 72)",
-          "--header-height": "calc(var(--spacing) * 12)",
-        } as React.CSSProperties
-      }
+    <AccountProvider
+      key={activeCookie?.accountId ?? "no-account"}
+      initialMemberships={memberships}
+      initialActiveAccountId={activeCookie?.accountId ?? ""}
     >
-      <AppSidebar
-        variant="inset"
-        user={user}
-        sections={sections}
-        profileHref="/account/profile"
-        accountHref="/account/information"
-        canManageAccount={canManageAccount}
-        memberships={memberships}
-        activeAccountId={activeCookie?.accountId ?? ""}
-      />
-      <SidebarInset>
-        <SiteHeader />
-        <div className="flex flex-1 flex-col">
-          <div className="flex flex-1 flex-col gap-4 p-4 lg:p-6">{children}</div>
-        </div>
-      </SidebarInset>
-    </SidebarProvider>
+      <SidebarProvider
+        style={
+          {
+            "--sidebar-width": "calc(var(--spacing) * 72)",
+            "--header-height": "calc(var(--spacing) * 12)",
+          } as React.CSSProperties
+        }
+      >
+        <AppSidebar
+          variant="inset"
+          user={user}
+          sections={sections}
+          profileHref="/account/profile"
+          accountHref="/account/information"
+          canManageAccount={canManageAccount}
+        />
+        <SidebarInset>
+          <SiteHeader />
+          <div className="flex flex-1 flex-col">
+            <div className="flex flex-1 flex-col gap-4 p-4 lg:p-6">{children}</div>
+          </div>
+        </SidebarInset>
+      </SidebarProvider>
+    </AccountProvider>
   );
 }

@@ -1,26 +1,44 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { auth } from "@/lib/auth";
 import { ACTIVE_ACCOUNT_COOKIE, encodeActiveAccountCookie } from "@/lib/auth/active-account-cookie";
-import { identifyUser } from "@/lib/customerio";
 import { db } from "@/lib/db";
 import { accountMembers, accounts } from "@/lib/db/schema";
 
-interface OnboardingInput {
-  companyName: string;
-  country: string;
+export interface OnboardingFormState {
+  error?: string;
 }
 
-export async function createExhibitorAccount(input: OnboardingInput) {
+/**
+ * Server action for the onboarding form.
+ *
+ * Uses the React 19 form action pattern (FormData + useActionState):
+ * - On success: sets the active account cookie and calls redirect() —
+ *   handled by Next.js action framework, no client-side JS needed.
+ * - On error: returns { error: "CODE" } which the client renders inline.
+ */
+export async function createExhibitorAccountAction(
+  _prevState: OnboardingFormState | null,
+  formData: FormData
+): Promise<OnboardingFormState> {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
 
   if (!session) {
     return { error: "UNAUTHORIZED" };
+  }
+
+  const companyName = (formData.get("companyName") as string | null)?.trim();
+  const country = formData.get("country") as string | null;
+  const locale = (formData.get("locale") as string | null) ?? "en";
+
+  if (!companyName || !country) {
+    return { error: "INVALID_INPUT" };
   }
 
   // Check if user already has an account
@@ -37,8 +55,8 @@ export async function createExhibitorAccount(input: OnboardingInput) {
     .insert(accounts)
     .values({
       type: "exhibitor",
-      companyName: input.companyName,
-      country: input.country,
+      companyName,
+      country,
     })
     .returning();
 
@@ -63,20 +81,10 @@ export async function createExhibitorAccount(input: OnboardingInput) {
     maxAge: 60 * 60 * 24 * 365,
   });
 
-  // Identify user in Customer.io
-  await identifyUser({
-    userId: session.user.id,
-    email: session.user.email,
-    name: session.user.name,
-    accountType: "exhibitor",
-    accountId: account.id,
-    country: input.country,
-  });
-
-  return { success: true, accountId: account.id };
-}
-
-// Redirect kept for potential server-side usage (e.g. from page.tsx)
-export async function redirectAfterOnboarding(locale: string) {
+  // redirect() is handled by the Next.js action framework — it throws
+  // NEXT_REDIRECT which React 19's useActionState processes correctly.
+  // No client-side navigation needed.
+  // Force layout re-render so AccountProvider gets fresh memberships
+  revalidatePath("/", "layout");
   redirect(`/${locale}/catalog`);
 }

@@ -12,6 +12,7 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { useAccountContext } from "@/components/providers/account-provider";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,51 +27,38 @@ import { switchAccount } from "@/lib/auth/membership-actions";
 import type { AccountType } from "@/lib/auth/active-account-cookie";
 import type { LucideIcon } from "lucide-react";
 
-interface MembershipInfo {
-  id: string;
-  accountId: string;
-  role: string;
-  account: {
-    id: string;
-    companyName: string;
-    type: AccountType;
-  };
-}
-
-interface AccountSwitcherSidebarProps {
-  memberships: MembershipInfo[];
-  activeAccountId: string;
-}
-
 const TYPE_ICONS: Record<AccountType, LucideIcon> = {
   exhibitor: BuildingIcon,
   rights_holder: FilmIcon,
   admin: ShieldCheckIcon,
 };
 
-export function AccountSwitcherSidebar({
-  memberships,
-  activeAccountId,
-}: AccountSwitcherSidebarProps) {
+export function AccountSwitcherSidebar() {
   const t = useTranslations("accountSwitcher");
   const router = useRouter();
   const [switching, setSwitching] = useState(false);
 
-  const active = memberships.find((m) => m.accountId === activeAccountId);
+  const {
+    memberships,
+    activeAccountId,
+    activeMembership,
+    hasMultipleAccounts,
+    setActiveAccountId,
+  } = useAccountContext();
 
   // Only one account — no need for a switcher
-  if (memberships.length <= 1) {
-    if (!active) return null;
-    const Icon = TYPE_ICONS[active.account.type];
+  if (!hasMultipleAccounts) {
+    if (!activeMembership) return null;
+    const Icon = TYPE_ICONS[activeMembership.account.type];
     return (
       <SidebarMenuButton size="lg" className="data-[slot=sidebar-menu-button]:!p-1.5">
         <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
           <Icon className="size-4" />
         </div>
         <div className="grid flex-1 text-left text-sm leading-tight">
-          <span className="truncate font-medium">{active.account.companyName}</span>
+          <span className="truncate font-medium">{activeMembership.account.companyName}</span>
           <span className="truncate text-xs text-muted-foreground">
-            {t(`type.${active.account.type}`)}
+            {t(`type.${activeMembership.account.type}`)}
           </span>
         </div>
       </SidebarMenuButton>
@@ -88,12 +76,13 @@ export function AccountSwitcherSidebar({
       return;
     }
 
+    setActiveAccountId(accountId);
     toast.success(t("switched", { name: result.accountName }));
     router.push(result.redirectUrl);
   }
 
-  if (!active) return null;
-  const ActiveIcon = TYPE_ICONS[active.account.type];
+  if (!activeMembership) return null;
+  const ActiveIcon = TYPE_ICONS[activeMembership.account.type];
 
   return (
     <DropdownMenu>
@@ -106,9 +95,9 @@ export function AccountSwitcherSidebar({
             <ActiveIcon className="size-4" />
           </div>
           <div className="grid flex-1 text-left text-sm leading-tight">
-            <span className="truncate font-medium">{active.account.companyName}</span>
+            <span className="truncate font-medium">{activeMembership.account.companyName}</span>
             <span className="truncate text-xs text-muted-foreground">
-              {t(`type.${active.account.type}`)}
+              {t(`type.${activeMembership.account.type}`)}
             </span>
           </div>
           <ChevronsUpDownIcon className="ml-auto" />

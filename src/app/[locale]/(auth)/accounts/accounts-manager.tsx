@@ -31,17 +31,7 @@ import { switchAccount } from "@/lib/auth/membership-actions";
 import { createAccount } from "./actions";
 
 import type { AccountType } from "@/lib/auth/active-account-cookie";
-
-interface MembershipInfo {
-  id: string;
-  accountId: string;
-  role: string;
-  account: {
-    id: string;
-    companyName: string;
-    type: AccountType;
-  };
-}
+import type { MembershipInfo } from "@/types/account";
 
 interface AccountsManagerProps {
   memberships: MembershipInfo[];
