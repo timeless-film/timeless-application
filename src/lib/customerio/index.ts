@@ -2,13 +2,34 @@ import { APIClient, RegionUS, SendEmailRequest, TrackClient } from "customerio-n
 
 // ─── Clients ──────────────────────────────────────────────────────────────────
 
-const cio = new TrackClient(process.env.CUSTOMERIO_SITE_ID!, process.env.CUSTOMERIO_API_KEY!, {
-  region: RegionUS,
-});
+const CIO_ENABLED =
+  !!process.env.CUSTOMERIO_SITE_ID &&
+  !!process.env.CUSTOMERIO_API_KEY &&
+  !!process.env.CUSTOMERIO_APP_API_KEY;
 
-const cioApi = new APIClient(process.env.CUSTOMERIO_APP_API_KEY!, {
-  region: RegionUS,
-});
+const cio = CIO_ENABLED
+  ? new TrackClient(process.env.CUSTOMERIO_SITE_ID!, process.env.CUSTOMERIO_API_KEY!, {
+      region: RegionUS,
+    })
+  : null;
+
+const cioApi = CIO_ENABLED
+  ? new APIClient(process.env.CUSTOMERIO_APP_API_KEY!, { region: RegionUS })
+  : null;
+
+/**
+ * Safely execute a CIO operation — logs errors but never throws.
+ * CIO calls are best-effort and must never break the main application flow.
+ */
+async function safeCio<T>(label: string, fn: () => Promise<T>): Promise<T | undefined> {
+  if (!CIO_ENABLED) return undefined;
+  try {
+    return await fn();
+  } catch (err) {
+    console.error(`[CIO] ${label} failed:`, err);
+    return undefined;
+  }
+}
 
 // ─── Transactional message IDs ───────────────────────────────────────────────
 // Create these in Customer.io → Transactional → New Message, then set the IDs
@@ -30,14 +51,16 @@ export async function identifyUser(params: {
   accountId: string;
   country?: string;
 }) {
-  await cio.identify(params.userId, {
-    email: params.email,
-    name: params.name,
-    account_type: params.accountType,
-    account_id: params.accountId,
-    country: params.country,
-    created_at: Math.floor(Date.now() / 1000),
-  });
+  await safeCio("identifyUser", () =>
+    cio!.identify(params.userId, {
+      email: params.email,
+      name: params.name,
+      account_type: params.accountType,
+      account_id: params.accountId,
+      country: params.country,
+      created_at: Math.floor(Date.now() / 1000),
+    })
+  );
 }
 
 // ─── Track events ─────────────────────────────────────────────────────────────
@@ -47,7 +70,7 @@ export async function trackEvent(
   eventName: string,
   data?: Record<string, unknown>
 ) {
-  await cio.track(userId, { name: eventName, data });
+  await safeCio("trackEvent", () => cio!.track(userId, { name: eventName, data }));
 }
 
 export async function trackAnonymousEvent(
@@ -55,7 +78,9 @@ export async function trackAnonymousEvent(
   eventName: string,
   data?: Record<string, unknown>
 ) {
-  await cio.trackAnonymous(anonymousId, { name: eventName, data });
+  await safeCio("trackAnonymousEvent", () =>
+    cio!.trackAnonymous(anonymousId, { name: eventName, data })
+  );
 }
 
 // ─── Transactional emails ────────────────────────────────────────────────────
@@ -69,60 +94,64 @@ export async function sendVerificationEmail(
   name: string,
   url: string
 ) {
-  // Identify the user first so CIO knows them
-  await cio.identify(userId, { email, name, created_at: Math.floor(Date.now() / 1000) });
+  await safeCio("sendVerificationEmail", async () => {
+    // Identify the user first so CIO knows them
+    await cio!.identify(userId, { email, name, created_at: Math.floor(Date.now() / 1000) });
 
-  const templateId = TRANSACTIONAL_IDS.emailVerification;
+    const templateId = TRANSACTIONAL_IDS.emailVerification;
 
-  if (templateId) {
-    const req = new SendEmailRequest({
-      transactional_message_id: templateId,
-      to: email,
-      identifiers: { id: userId },
-      message_data: { verification_url: url, name },
-    });
-    await cioApi.sendEmail(req);
-  } else {
-    // Inline fallback (dev / no template configured)
-    const req = new SendEmailRequest({
-      to: email,
-      identifiers: { id: userId },
-      from: process.env.EMAIL_FROM ?? "hello@timeless.film",
-      subject: "Verify your email — TIMELESS",
-      body: `<p>Hi ${name},</p><p>Please verify your email by clicking the link below:</p><p><a href="${url}">Verify my email</a></p><p>— TIMELESS</p>`,
-      message_data: { verification_url: url, name },
-    });
-    await cioApi.sendEmail(req);
-  }
+    if (templateId) {
+      const req = new SendEmailRequest({
+        transactional_message_id: templateId,
+        to: email,
+        identifiers: { id: userId },
+        message_data: { verification_url: url, name },
+      });
+      await cioApi!.sendEmail(req);
+    } else {
+      // Inline fallback (dev / no template configured)
+      const req = new SendEmailRequest({
+        to: email,
+        identifiers: { id: userId },
+        from: process.env.EMAIL_FROM ?? "hello@timeless.film",
+        subject: "Verify your email — TIMELESS",
+        body: `<p>Hi ${name},</p><p>Please verify your email by clicking the link below:</p><p><a href="${url}">Verify my email</a></p><p>— TIMELESS</p>`,
+        message_data: { verification_url: url, name },
+      });
+      await cioApi!.sendEmail(req);
+    }
+  });
 }
 
 /**
  * Send the password reset link to a user.
  */
 export async function sendResetPasswordEmail(userId: string, email: string, url: string) {
-  await cio.identify(userId, { email });
+  await safeCio("sendResetPasswordEmail", async () => {
+    await cio!.identify(userId, { email });
 
-  const templateId = TRANSACTIONAL_IDS.passwordReset;
+    const templateId = TRANSACTIONAL_IDS.passwordReset;
 
-  if (templateId) {
-    const req = new SendEmailRequest({
-      transactional_message_id: templateId,
-      to: email,
-      identifiers: { id: userId },
-      message_data: { reset_url: url },
-    });
-    await cioApi.sendEmail(req);
-  } else {
-    const req = new SendEmailRequest({
-      to: email,
-      identifiers: { id: userId },
-      from: process.env.EMAIL_FROM ?? "hello@timeless.film",
-      subject: "Reset your password — TIMELESS",
-      body: `<p>You requested a password reset.</p><p><a href="${url}">Reset my password</a></p><p>If you didn't request this, you can ignore this email.</p><p>— TIMELESS</p>`,
-      message_data: { reset_url: url },
-    });
-    await cioApi.sendEmail(req);
-  }
+    if (templateId) {
+      const req = new SendEmailRequest({
+        transactional_message_id: templateId,
+        to: email,
+        identifiers: { id: userId },
+        message_data: { reset_url: url },
+      });
+      await cioApi!.sendEmail(req);
+    } else {
+      const req = new SendEmailRequest({
+        to: email,
+        identifiers: { id: userId },
+        from: process.env.EMAIL_FROM ?? "hello@timeless.film",
+        subject: "Reset your password — TIMELESS",
+        body: `<p>You requested a password reset.</p><p><a href="${url}">Reset my password</a></p><p>If you didn't request this, you can ignore this email.</p><p>— TIMELESS</p>`,
+        message_data: { reset_url: url },
+      });
+      await cioApi!.sendEmail(req);
+    }
+  });
 }
 
 /**
@@ -135,37 +164,39 @@ export async function sendInvitationEmail(params: {
   accountName: string;
   role: string;
 }) {
-  const templateId = TRANSACTIONAL_IDS.memberInvitation;
+  await safeCio("sendInvitationEmail", async () => {
+    const templateId = TRANSACTIONAL_IDS.memberInvitation;
 
-  if (templateId) {
-    const req = new SendEmailRequest({
-      transactional_message_id: templateId,
-      to: params.email,
-      identifiers: { email: params.email },
-      message_data: {
-        invite_url: params.inviteUrl,
-        inviter_name: params.inviterName,
-        account_name: params.accountName,
-        role: params.role,
-      },
-    });
-    await cioApi.sendEmail(req);
-  } else {
-    const req = new SendEmailRequest({
-      to: params.email,
-      identifiers: { email: params.email },
-      from: process.env.EMAIL_FROM ?? "hello@timeless.film",
-      subject: `${params.inviterName} invited you to join ${params.accountName} — TIMELESS`,
-      body: `<p>${params.inviterName} invited you to join <strong>${params.accountName}</strong> as <strong>${params.role}</strong>.</p><p><a href="${params.inviteUrl}">Accept the invitation</a></p><p>This invitation expires in 7 days.</p><p>— TIMELESS</p>`,
-      message_data: {
-        invite_url: params.inviteUrl,
-        inviter_name: params.inviterName,
-        account_name: params.accountName,
-        role: params.role,
-      },
-    });
-    await cioApi.sendEmail(req);
-  }
+    if (templateId) {
+      const req = new SendEmailRequest({
+        transactional_message_id: templateId,
+        to: params.email,
+        identifiers: { email: params.email },
+        message_data: {
+          invite_url: params.inviteUrl,
+          inviter_name: params.inviterName,
+          account_name: params.accountName,
+          role: params.role,
+        },
+      });
+      await cioApi!.sendEmail(req);
+    } else {
+      const req = new SendEmailRequest({
+        to: params.email,
+        identifiers: { email: params.email },
+        from: process.env.EMAIL_FROM ?? "hello@timeless.film",
+        subject: `${params.inviterName} invited you to join ${params.accountName} — TIMELESS`,
+        body: `<p>${params.inviterName} invited you to join <strong>${params.accountName}</strong> as <strong>${params.role}</strong>.</p><p><a href="${params.inviteUrl}">Accept the invitation</a></p><p>This invitation expires in 7 days.</p><p>— TIMELESS</p>`,
+        message_data: {
+          invite_url: params.inviteUrl,
+          inviter_name: params.inviterName,
+          account_name: params.accountName,
+          role: params.role,
+        },
+      });
+      await cioApi!.sendEmail(req);
+    }
+  });
 }
 
 // ─── Business events ──────────────────────────────────────────────────────────
