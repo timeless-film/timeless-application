@@ -76,10 +76,14 @@ jobs:
 
       - name: Run database migrations
         # Run drizzle-kit directly (without the dotenv wrapper used locally)
-        # DATABASE_URL is injected from GitHub secrets
+        # DATABASE_URL is injected from GitHub secrets.
+        # NODE_TLS_REJECT_UNAUTHORIZED=0 is required because Scaleway Managed
+        # PostgreSQL uses a self-signed certificate that drizzle-kit's pg driver
+        # would otherwise reject (DEPTH_ZERO_SELF_SIGNED_CERT).
         run: npx drizzle-kit migrate
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NODE_TLS_REJECT_UNAUTHORIZED: "0"
 
       # ── Deploy to Scaleway Serverless Containers (via API) ───────────────
       - name: Update container image and deploy

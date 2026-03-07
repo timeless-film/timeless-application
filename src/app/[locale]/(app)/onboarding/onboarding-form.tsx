@@ -1,7 +1,7 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -16,8 +16,9 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useRouter } from "@/i18n/navigation";
 
-import { createExhibitorAccount, redirectAfterOnboarding } from "./actions";
+import { createExhibitorAccount } from "./actions";
 
 const COUNTRIES = [
   { code: "FR", label: "France" },
@@ -36,7 +37,7 @@ const COUNTRIES = [
 
 export function OnboardingForm() {
   const t = useTranslations("onboarding");
-  const locale = useLocale();
+  const router = useRouter();
 
   const [companyName, setCompanyName] = useState("");
   const [country, setCountry] = useState("FR");
@@ -63,7 +64,7 @@ export function OnboardingForm() {
       }
 
       toast.success(t("success"));
-      await redirectAfterOnboarding(locale);
+      router.push("/catalog");
     } catch {
       setError(t("error.CREATION_FAILED"));
       toast.error(t("error.CREATION_FAILED"));

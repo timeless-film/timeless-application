@@ -76,6 +76,7 @@ export async function createExhibitorAccount(input: OnboardingInput) {
   return { success: true, accountId: account.id };
 }
 
+// Redirect kept for potential server-side usage (e.g. from page.tsx)
 export async function redirectAfterOnboarding(locale: string) {
   redirect(`/${locale}/catalog`);
 }
