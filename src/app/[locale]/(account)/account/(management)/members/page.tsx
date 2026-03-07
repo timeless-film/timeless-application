@@ -1,9 +1,8 @@
 import { getTranslations } from "next-intl/server";
 
-import { getMembers } from "./actions";
-import { getPendingInvitations } from "./invitation-actions";
-import { InviteSection } from "./invite-section";
-import { MembersList } from "./members-list";
+import { getMembers, getPendingInvitations } from "@/components/account/actions";
+import { InviteSection } from "@/components/account/invite-section";
+import { MembersList } from "@/components/account/members-list";
 
 import type { Metadata } from "next";
 
@@ -21,7 +20,7 @@ export default async function MembersPage() {
   ]);
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <div className="space-y-6">
       <MembersList
         initialMembers={membersResult.members ?? []}
         initialCurrentUserRole={membersResult.currentUserRole}

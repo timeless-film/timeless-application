@@ -109,7 +109,10 @@
     "logs": "Journal d'audit",
     "signOut": "Se déconnecter",
     "main": "Principal",
-    "management": "Gestion"
+    "management": "Gestion",
+    "myAccounts": "Mes comptes",
+    "manageAccount": "Gérer le compte",
+    "back": "Retour"
   },
   "catalogue": {
     "title": "Catalogue",
@@ -272,6 +275,35 @@
       },
       "remove": "Retirer",
       "pending": "Invitation en attente"
+    }
+  },
+  "accountSettings": {
+    "heading": "Paramètres du compte",
+    "headingDescription": "Gérez les informations, les membres et les paramètres de votre organisation.",
+    "title": "Informations du compte",
+    "description": "Mettez à jour les informations de votre organisation.",
+    "companyName": "Nom de l'entreprise",
+    "country": "Pays",
+    "address": "Adresse",
+    "addressPlaceholder": "Adresse postale",
+    "city": "Ville",
+    "postalCode": "Code postal",
+    "vatNumber": "Numéro de TVA",
+    "vatPlaceholder": "ex. FR12345678901",
+    "vatValidated": "Validé",
+    "save": "Enregistrer",
+    "saved": "Informations du compte enregistrées.",
+    "cinemasPlaceholder": "La gestion des cinémas sera bientôt disponible.",
+    "tabs": {
+      "informations": "Informations",
+      "members": "Membres",
+      "cinemas": "Cinémas"
+    },
+    "error": {
+      "UNAUTHORIZED": "Vous devez être connecté.",
+      "FORBIDDEN": "Vous n'avez pas la permission de modifier ce compte.",
+      "NOT_FOUND": "Compte introuvable.",
+      "INVALID_INPUT": "Veuillez remplir tous les champs obligatoires."
     }
   },
   "films": {
@@ -590,6 +622,7 @@
     "processing": "Traitement de votre invitation…",
     "success": "Invitation acceptée !",
     "successMessage": "Vous avez rejoint l'organisation. Vous pouvez maintenant accéder à la plateforme.",
+    "switchedToAccount": "Vous êtes maintenant sur {name}.",
     "continue": "Continuer",
     "goHome": "Retour à l'accueil",
     "error": {
@@ -598,6 +631,32 @@
       "EMAIL_MISMATCH": "Cette invitation a été envoyée à une autre adresse e-mail.",
       "ALREADY_MEMBER": "Vous êtes déjà membre de cette organisation.",
       "UNKNOWN": "Une erreur est survenue. Veuillez réessayer."
+    }
+  },
+  "selectAccount": {
+    "title": "Sélectionner un compte",
+    "description": "Choisissez le compte que vous souhaitez utiliser.",
+    "typeExhibitor": "Exploitant",
+    "typeRightsHolder": "Ayant droit",
+    "typeAdmin": "Administrateur",
+    "switched": "Vous êtes maintenant sur {name}.",
+    "error": "Impossible de changer de compte. Veuillez réessayer."
+  },
+  "noAccount": {
+    "title": "Aucun compte actif",
+    "description": "Vous n'avez aucun compte actif. Créez-en un ou contactez le support.",
+    "createAccount": "Créer un compte",
+    "contactSupport": "Contacter le support"
+  },
+  "accountSwitcher": {
+    "label": "Comptes",
+    "viewAll": "Voir tous les comptes",
+    "switched": "Vous êtes maintenant sur {name}.",
+    "error": "Impossible de changer de compte.",
+    "type": {
+      "exhibitor": "Exploitant",
+      "rights_holder": "Ayant droit",
+      "admin": "Administrateur"
     }
   },
   "emails": {
@@ -639,6 +698,34 @@
     "deliveryConfirmed": {
       "subject": "DCP livré — {filmTitle}",
       "body": "Votre DCP pour {filmTitle} a été livré."
+    }
+  },
+  "accounts": {
+    "title": "Mes comptes",
+    "description": "Gérez vos comptes et créez-en de nouveaux.",
+    "noAccounts": "Vous n'avez pas encore de compte.",
+    "switch": "Basculer",
+    "switchError": "Impossible de changer de compte.",
+    "switched": "Basculé vers {name}.",
+    "createNew": "Créer un nouveau compte",
+    "createTitle": "Nouveau compte exploitant",
+    "createDescription": "Créez un nouveau compte exploitant pour gérer vos cinémas.",
+    "companyName": "Nom de l'entreprise",
+    "companyNamePlaceholder": "ex. Ma Société Cinéma",
+    "country": "Pays",
+    "countryPlaceholder": "Sélectionnez un pays",
+    "cancel": "Annuler",
+    "create": "Créer le compte",
+    "created": "Compte {name} créé !",
+    "type": {
+      "exhibitor": "Exploitant",
+      "rights_holder": "Ayant droit",
+      "admin": "Admin"
+    },
+    "createError": {
+      "UNAUTHORIZED": "Vous devez être connecté.",
+      "FORBIDDEN": "Vous n'êtes pas autorisé à créer ce type de compte.",
+      "CREATION_FAILED": "Impossible de créer le compte. Veuillez réessayer."
     }
   }
 }

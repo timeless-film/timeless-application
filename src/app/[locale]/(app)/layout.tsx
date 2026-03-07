@@ -1,59 +1,37 @@
 import { headers } from "next/headers";
-import { getTranslations } from "next-intl/server";
 
-import { AppSidebar } from "@/components/app-sidebar";
-import { SiteHeader } from "@/components/site-header";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { MarketplaceHeader } from "@/components/marketplace-header";
 import { auth } from "@/lib/auth";
+import { getActiveAccountCookie, getAllMemberships } from "@/lib/auth/membership";
 
-import type { NavSection } from "@/components/app-sidebar";
 import type { ReactNode } from "react";
 
 export default async function AppLayout({ children }: { children: ReactNode }) {
-  const [session, t] = await Promise.all([
-    auth.api.getSession({ headers: await headers() }),
-    getTranslations("navigation"),
-  ]);
+  const session = await auth.api.getSession({ headers: await headers() });
 
   const user = {
     name: session?.user.name ?? "",
     email: session?.user.email ?? "",
   };
 
-  const sections: NavSection[] = [
-    {
-      items: [
-        { title: t("catalogue"), href: "/catalogue", icon: "book-open" },
-        { title: t("cart"), href: "/cart", icon: "shopping-cart" },
-        { title: t("orders"), href: "/orders", icon: "ticket" },
-        { title: t("requests"), href: "/requests", icon: "clipboard-list" },
-      ],
-    },
-    {
-      label: t("account"),
-      items: [
-        { title: t("cinemas"), href: "/account/cinemas", icon: "building" },
-        { title: t("members"), href: "/account/members", icon: "users" },
-      ],
-    },
-  ];
+  const [memberships, activeCookie] = await Promise.all([
+    session ? getAllMemberships(session.user.id) : [],
+    getActiveAccountCookie(),
+  ]);
 
   return (
-    <SidebarProvider
-      style={
-        {
-          "--sidebar-width": "calc(var(--spacing) * 72)",
-          "--header-height": "calc(var(--spacing) * 12)",
-        } as React.CSSProperties
-      }
-    >
-      <AppSidebar variant="inset" user={user} sections={sections} profileHref="/account/profile" />
-      <SidebarInset>
-        <SiteHeader />
-        <div className="flex flex-1 flex-col">
-          <div className="flex flex-1 flex-col gap-4 p-4 lg:p-6">{children}</div>
+    <div className="flex min-h-screen flex-col">
+      <MarketplaceHeader
+        user={user}
+        memberships={memberships}
+        activeAccountId={activeCookie?.accountId ?? ""}
+      />
+      <main className="flex-1">{children}</main>
+      <footer className="border-t bg-muted/40">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-6 text-sm text-muted-foreground lg:px-6">
+          <p>&copy; {new Date().getFullYear()} Timeless Cinema</p>
         </div>
-      </SidebarInset>
-    </SidebarProvider>
+      </footer>
+    </div>
   );
 }

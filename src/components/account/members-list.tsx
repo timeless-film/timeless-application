@@ -115,7 +115,7 @@ export function MembersList({ initialMembers, initialCurrentUserRole }: MembersL
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-medium text-muted-foreground capitalize">
+                  <span className="text-xs font-medium capitalize text-muted-foreground">
                     {t(`role.${member.role}`)}
                   </span>
                   {canManage && member.role !== "owner" && !member.isCurrentUser && (

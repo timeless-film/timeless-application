@@ -1,7 +1,8 @@
 import { getTranslations } from "next-intl/server";
 
+import { acceptInvitation } from "@/components/account/actions";
+
 import { AcceptInvitationResult } from "./accept-invitation-result";
-import { acceptInvitation } from "../account/members/invitation-actions";
 
 import type { Metadata } from "next";
 
@@ -29,5 +30,5 @@ export default async function AcceptInvitationPage({
     return <AcceptInvitationResult status="error" errorKey={result.error} />;
   }
 
-  return <AcceptInvitationResult status="success" />;
+  return <AcceptInvitationResult status="success" accountId={result.accountId} />;
 }

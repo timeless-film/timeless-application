@@ -1,6 +1,12 @@
 "use client";
 
-import { LogOutIcon, MoreVerticalIcon, UserCircleIcon } from "lucide-react";
+import {
+  LayersIcon,
+  LogOutIcon,
+  MoreVerticalIcon,
+  SettingsIcon,
+  UserCircleIcon,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 
@@ -38,9 +44,11 @@ interface NavUserProps {
     email: string;
   };
   profileHref: string;
+  accountHref?: string;
+  canManageAccount?: boolean;
 }
 
-export function NavUser({ user, profileHref }: NavUserProps) {
+export function NavUser({ user, profileHref, accountHref, canManageAccount }: NavUserProps) {
   const { isMobile } = useSidebar();
   const t = useTranslations("navigation");
   const router = useRouter();
@@ -95,6 +103,20 @@ export function NavUser({ user, profileHref }: NavUserProps) {
               <Link href={profileHref}>
                 <UserCircleIcon />
                 {t("profile")}
+              </Link>
+            </DropdownMenuItem>
+            {canManageAccount && accountHref && (
+              <DropdownMenuItem asChild>
+                <Link href={accountHref}>
+                  <SettingsIcon />
+                  {t("manageAccount")}
+                </Link>
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuItem asChild>
+              <Link href="/accounts">
+                <LayersIcon />
+                {t("myAccounts")}
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />

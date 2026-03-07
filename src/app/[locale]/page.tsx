@@ -2,7 +2,8 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
+import { getHomePathForType } from "@/lib/auth/active-account-cookie";
+import { getAllMemberships, getActiveAccountCookie } from "@/lib/auth/membership";
 
 export default async function LocaleRootPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
@@ -14,25 +15,20 @@ export default async function LocaleRootPage({ params }: { params: Promise<{ loc
     redirect(`/${locale}/login`);
   }
 
-  // Check if user has an account linked
-  const membership = await db.query.accountMembers.findFirst({
-    where: (am, { eq }) => eq(am.userId, session.user.id),
-    with: { account: true },
-  });
-
-  if (!membership) {
-    redirect(`/${locale}/onboarding`);
+  // If active account cookie exists → redirect to the correct interface
+  const activeAccount = await getActiveAccountCookie();
+  if (activeAccount) {
+    redirect(`/${locale}${getHomePathForType(activeAccount.type)}`);
   }
 
-  // Redirect based on account type
-  if (membership.account.type === "admin") {
-    redirect(`/${locale}/dashboard`);
+  // No cookie — check how many memberships the user has
+  const memberships = await getAllMemberships(session.user.id);
+
+  if (memberships.length === 0) {
+    redirect(`/${locale}/no-account`);
   }
 
-  if (membership.account.type === "rights_holder") {
-    redirect(`/${locale}/films`);
-  }
-
-  // Default: exhibitor
-  redirect(`/${locale}/catalogue`);
+  // One or more memberships → redirect to the account selector
+  // (the selector will auto-select if only one account)
+  redirect(`/${locale}/select-account`);
 }

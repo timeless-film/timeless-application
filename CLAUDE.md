@@ -117,6 +117,39 @@ Core flow: Catalogue → Cart → Request (if validation required) → Payment �
 - Enums use `pgEnum` with snake_case values.
 - Run `pnpm db:generate` then `pnpm db:migrate` for schema changes.
 
+## Testing
+
+### Stack
+- **Vitest** — unit tests (fast, Vite-powered, with `@testing-library/react` for components)
+- **Playwright** — end-to-end tests (Chromium headless)
+- **GitHub Actions** — CI pipeline (`.github/workflows/ci.yml`) runs on every push and PR
+
+### Conventions
+- Unit tests collocated next to source: `src/lib/auth/__tests__/active-account-cookie.test.ts`
+- E2E tests in `e2e/` directory: `e2e/auth.spec.ts`, `e2e/account.spec.ts`
+- Test file naming: `*.test.ts` (unit), `*.spec.ts` (E2E)
+- Use `describe` / `it` blocks with clear, behavior-driven names
+- Pure helper functions must have unit tests — extract them from modules that mix pure logic + side effects (e.g. `proxy-helpers.ts` extracted from `proxy.ts`)
+
+### E2E port strategy
+- Playwright uses a **dedicated port (3099)** to avoid conflicts with any dev server already running on 3000.
+- The port is configured in `playwright.config.ts` via `PLAYWRIGHT_PORT` env var (default: 3099).
+- The webServer config passes `PORT` and `NEXT_PUBLIC_APP_URL` to the dev server so Better Auth client connects to the correct instance.
+- **Never run E2E tests on port 3000** — always let Playwright manage its own server on 3099.
+
+### Development workflow (MANDATORY)
+1. **After developing any feature**: run `pnpm typecheck && pnpm lint` to verify no regressions
+2. **Write tests for new logic**: every new pure function or helper must have unit tests. New pages/flows should have E2E coverage.
+3. **Run tests before completing a ticket**: `pnpm test` (unit) and `pnpm test:e2e` (E2E) must pass
+4. **Always update documentation**: update the relevant epic file, CLAUDE.md, and copilot-instructions.md when architecture changes
+5. **Smoke-test manually**: curl or browse key pages after changes to catch runtime errors
+
+### CI pipeline
+- **Trigger**: every push to `main`/`develop` and every PR targeting those branches.
+- **Quality job**: typecheck → lint → unit tests (no DB required).
+- **E2E job**: PostgreSQL service container → schema push → Playwright tests.
+- Failing tests upload `playwright-report/` and `test-results/` as artifacts for debugging.
+
 ## Commands
 
 ```bash
@@ -127,6 +160,11 @@ pnpm lint:fix         # ESLint auto-fix
 pnpm format           # Prettier format
 pnpm format:check     # Prettier check
 pnpm typecheck        # TypeScript type check (tsc --noEmit)
+pnpm test             # Run unit tests (Vitest)
+pnpm test:watch       # Run unit tests in watch mode
+pnpm test:coverage    # Run unit tests with coverage
+pnpm test:e2e         # Run E2E tests (Playwright)
+pnpm test:e2e:ui      # Run E2E tests with UI
 pnpm db:generate      # Generate Drizzle migrations
 pnpm db:migrate       # Run migrations
 pnpm db:push          # Push schema directly (dev only)
@@ -151,6 +189,9 @@ Required in `.env`:
 - Always run `pnpm lint` before committing — pre-commit hooks enforce this.
 - When adding new DB tables, export them from `src/lib/db/schema/index.ts`.
 - Use `next-intl` for all user-facing strings — import `useTranslations` in client components, `getTranslations` in server components.
+- **Always write tests** for new pure functions and helpers. Run `pnpm test` after changes.
+- **Always smoke-test** new pages/features (curl or browser) before marking a ticket done.
+- **Always update docs** (epic files, CLAUDE.md) when architecture or file structure changes.
 
 ## Progress tracking
 

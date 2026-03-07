@@ -85,6 +85,31 @@ Three account types: `exhibitor`, `rights_holder`, `admin`.
 
 Core flow: **Catalogue → Cart → Request (if validation needed) → Payment (Stripe) → Delivery (DCP/KDM)**
 
+## Testing
+
+### Stack
+- **Vitest** — unit tests (`src/lib/**/__tests__/*.test.ts`)
+- **Playwright** — E2E tests (`e2e/*.spec.ts`)
+- **GitHub Actions** — CI pipeline (`.github/workflows/ci.yml`)
+
+### Rules
+- Every new pure function / helper **must** have unit tests.
+- New pages and user flows **must** have E2E coverage.
+- Extract pure logic from side-effectful modules to make it testable (e.g. `proxy-helpers.ts` from `proxy.ts`).
+- After developing any feature, **always** run: `pnpm typecheck && pnpm lint && pnpm test`.
+- After changing pages or layouts, **smoke-test** them (curl or browser) to verify no 500s.
+- After completing work, **always update** the relevant epic doc and instruction files.
+
+### E2E port strategy
+- Playwright uses **port 3099** (not 3000) to avoid conflicts with a running dev server.
+- Configured in `playwright.config.ts` — the webServer starts `pnpm dev --port 3099` with matching `NEXT_PUBLIC_APP_URL`.
+- **Never manually set `PLAYWRIGHT_BASE_URL`** — let the config handle it.
+
+### CI
+- GitHub Actions runs on every push/PR to `main`/`develop`.
+- Quality job: typecheck + lint + unit tests.
+- E2E job: PostgreSQL service container + Playwright.
+
 ## Commands
 
 ```bash
@@ -94,6 +119,11 @@ pnpm lint             # ESLint (--max-warnings 0)
 pnpm lint:fix         # ESLint auto-fix
 pnpm format           # Prettier
 pnpm typecheck        # tsc --noEmit
+pnpm test             # Unit tests (Vitest)
+pnpm test:watch       # Unit tests in watch mode
+pnpm test:coverage    # Unit tests + coverage
+pnpm test:e2e         # E2E tests (Playwright)
+pnpm test:e2e:ui      # E2E tests with UI
 pnpm db:generate      # Generate Drizzle migrations
 pnpm db:migrate       # Run migrations
 pnpm db:push          # Push schema (dev only)

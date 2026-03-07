@@ -13,8 +13,8 @@ export default async function RequestsPage() {
   const t = await getTranslations("requests");
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-bold">{t("title")}</h1>
+    <div className="mx-auto max-w-7xl space-y-6 px-4 py-8 lg:px-6">
+      <h1 className="font-heading text-3xl">{t("title")}</h1>
     </div>
   );
 }

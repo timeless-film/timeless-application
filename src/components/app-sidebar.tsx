@@ -16,6 +16,7 @@ import {
   WalletIcon,
 } from "lucide-react";
 
+import { AccountSwitcherSidebar } from "@/components/account-switcher";
 import { NavMain } from "@/components/nav-main";
 import { NavUser } from "@/components/nav-user";
 import {
@@ -24,11 +25,10 @@ import {
   SidebarFooter,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { Link } from "@/i18n/navigation";
 
+import type { AccountType } from "@/lib/auth/active-account-cookie";
 import type { LucideIcon } from "lucide-react";
 import type * as React from "react";
 
@@ -72,6 +72,17 @@ export interface NavSection {
   }[];
 }
 
+interface MembershipInfo {
+  id: string;
+  accountId: string;
+  role: string;
+  account: {
+    id: string;
+    companyName: string;
+    type: AccountType;
+  };
+}
+
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   user: {
     name: string;
@@ -79,20 +90,28 @@ interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   };
   sections: NavSection[];
   profileHref: string;
+  accountHref?: string;
+  canManageAccount?: boolean;
+  memberships: MembershipInfo[];
+  activeAccountId: string;
 }
 
-export function AppSidebar({ user, sections, profileHref, ...props }: AppSidebarProps) {
+export function AppSidebar({
+  user,
+  sections,
+  profileHref,
+  accountHref,
+  canManageAccount,
+  memberships,
+  activeAccountId,
+  ...props
+}: AppSidebarProps) {
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:!p-1.5">
-              <Link href="/">
-                <FilmIcon className="h-5 w-5" />
-                <span className="text-base font-semibold">TIMELESS</span>
-              </Link>
-            </SidebarMenuButton>
+            <AccountSwitcherSidebar memberships={memberships} activeAccountId={activeAccountId} />
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
@@ -109,7 +128,12 @@ export function AppSidebar({ user, sections, profileHref, ...props }: AppSidebar
         ))}
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={user} profileHref={profileHref} />
+        <NavUser
+          user={user}
+          profileHref={profileHref}
+          accountHref={accountHref}
+          canManageAccount={canManageAccount}
+        />
       </SidebarFooter>
     </Sidebar>
   );

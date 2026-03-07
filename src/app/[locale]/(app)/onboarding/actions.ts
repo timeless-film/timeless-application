@@ -1,9 +1,10 @@
 "use server";
 
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { auth } from "@/lib/auth";
+import { ACTIVE_ACCOUNT_COOKIE, encodeActiveAccountCookie } from "@/lib/auth/active-account-cookie";
 import { db } from "@/lib/db";
 import { accountMembers, accounts } from "@/lib/db/schema";
 
@@ -49,6 +50,16 @@ export async function createExhibitorAccount(input: OnboardingInput) {
     accountId: account.id,
     userId: session.user.id,
     role: "owner",
+  });
+
+  // Set the active account cookie immediately
+  const cookieStore = await cookies();
+  cookieStore.set(ACTIVE_ACCOUNT_COOKIE, encodeActiveAccountCookie(account.id, "exhibitor"), {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 365,
   });
 
   return { success: true, accountId: account.id };

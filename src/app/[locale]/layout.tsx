@@ -1,4 +1,4 @@
-import { Geist } from "next/font/google";
+import { Gloock, Open_Sans } from "next/font/google";
 import { notFound } from "next/navigation";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
@@ -6,8 +6,14 @@ import { getMessages } from "next-intl/server";
 import { Toaster } from "@/components/ui/sonner";
 import { routing } from "@/i18n/routing";
 
-const geist = Geist({
-  variable: "--font-geist-sans",
+const openSans = Open_Sans({
+  variable: "--font-open-sans",
+  subsets: ["latin"],
+});
+
+const gloock = Gloock({
+  variable: "--font-gloock",
+  weight: "400",
   subsets: ["latin"],
 });
 
@@ -31,7 +37,7 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
 
   return (
     <html lang={locale} suppressHydrationWarning>
-      <body className={`${geist.variable} antialiased`}>
+      <body className={`${openSans.variable} ${gloock.variable} antialiased`}>
         <NextIntlClientProvider messages={messages}>{children}</NextIntlClientProvider>
         <Toaster />
       </body>

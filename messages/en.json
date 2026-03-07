@@ -109,7 +109,10 @@
     "logs": "Audit logs",
     "signOut": "Sign out",
     "main": "Main",
-    "management": "Management"
+    "management": "Management",
+    "myAccounts": "My accounts",
+    "manageAccount": "Manage account",
+    "back": "Back"
   },
   "catalogue": {
     "title": "Catalogue",
@@ -272,6 +275,35 @@
       },
       "remove": "Remove",
       "pending": "Invitation pending"
+    }
+  },
+  "accountSettings": {
+    "heading": "Account settings",
+    "headingDescription": "Manage your organisation's information, members, and settings.",
+    "title": "Account information",
+    "description": "Update your organisation's details.",
+    "companyName": "Company name",
+    "country": "Country",
+    "address": "Address",
+    "addressPlaceholder": "Street address",
+    "city": "City",
+    "postalCode": "Postal code",
+    "vatNumber": "VAT number",
+    "vatPlaceholder": "e.g. FR12345678901",
+    "vatValidated": "Validated",
+    "save": "Save changes",
+    "saved": "Account information saved.",
+    "cinemasPlaceholder": "Cinema management will be available soon.",
+    "tabs": {
+      "informations": "Information",
+      "members": "Members",
+      "cinemas": "Cinemas"
+    },
+    "error": {
+      "UNAUTHORIZED": "You must be signed in.",
+      "FORBIDDEN": "You do not have permission to edit this account.",
+      "NOT_FOUND": "Account not found.",
+      "INVALID_INPUT": "Please fill in all required fields."
     }
   },
   "films": {
@@ -590,6 +622,7 @@
     "processing": "Processing your invitation…",
     "success": "Invitation accepted!",
     "successMessage": "You have joined the organisation. You can now access the platform.",
+    "switchedToAccount": "Switched to {name}.",
     "continue": "Continue",
     "goHome": "Go to homepage",
     "error": {
@@ -598,6 +631,32 @@
       "EMAIL_MISMATCH": "This invitation was sent to a different email address.",
       "ALREADY_MEMBER": "You are already a member of this organisation.",
       "UNKNOWN": "An error occurred. Please try again."
+    }
+  },
+  "selectAccount": {
+    "title": "Select an account",
+    "description": "Choose the account you want to use.",
+    "typeExhibitor": "Exhibitor",
+    "typeRightsHolder": "Rights holder",
+    "typeAdmin": "Admin",
+    "switched": "Switched to {name}.",
+    "error": "Failed to switch account. Please try again."
+  },
+  "noAccount": {
+    "title": "No active account",
+    "description": "You don't have any active account. Create one or contact support.",
+    "createAccount": "Create an account",
+    "contactSupport": "Contact support"
+  },
+  "accountSwitcher": {
+    "label": "Accounts",
+    "viewAll": "View all accounts",
+    "switched": "Switched to {name}.",
+    "error": "Failed to switch account.",
+    "type": {
+      "exhibitor": "Exhibitor",
+      "rights_holder": "Rights holder",
+      "admin": "Admin"
     }
   },
   "emails": {
@@ -639,6 +698,34 @@
     "deliveryConfirmed": {
       "subject": "DCP delivered — {filmTitle}",
       "body": "Your DCP for {filmTitle} has been delivered."
+    }
+  },
+  "accounts": {
+    "title": "My accounts",
+    "description": "Manage your accounts and create new ones.",
+    "noAccounts": "You don't have any accounts yet.",
+    "switch": "Switch",
+    "switchError": "Failed to switch account.",
+    "switched": "Switched to {name}.",
+    "createNew": "Create a new account",
+    "createTitle": "New exhibitor account",
+    "createDescription": "Create a new exhibitor account to manage your cinemas.",
+    "companyName": "Company name",
+    "companyNamePlaceholder": "e.g. My Cinema Company",
+    "country": "Country",
+    "countryPlaceholder": "Select a country",
+    "cancel": "Cancel",
+    "create": "Create account",
+    "created": "Account {name} created!",
+    "type": {
+      "exhibitor": "Exhibitor",
+      "rights_holder": "Rights holder",
+      "admin": "Admin"
+    },
+    "createError": {
+      "UNAUTHORIZED": "You must be signed in.",
+      "FORBIDDEN": "You are not allowed to create this type of account.",
+      "CREATION_FAILED": "Failed to create the account. Please try again."
     }
   }
 }

@@ -14,7 +14,7 @@ export default async function FilmsPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold">{t("title")}</h1>
+      <h1 className="font-heading text-2xl">{t("title")}</h1>
     </div>
   );
 }

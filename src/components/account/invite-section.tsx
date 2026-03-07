@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-import { cancelInvitation, getPendingInvitations, inviteMember } from "./invitation-actions";
+import { cancelInvitation, getPendingInvitations, inviteMember } from "./actions";
 
 interface PendingInvitation {
   id: string;

@@ -5,6 +5,7 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { auth } from "@/lib/auth";
+import { getActiveAccountCookie, getAllMemberships } from "@/lib/auth/membership";
 
 import type { NavSection } from "@/components/app-sidebar";
 import type { ReactNode } from "react";
@@ -20,6 +21,14 @@ export default async function RightsHolderLayout({ children }: { children: React
     email: session?.user.email ?? "",
   };
 
+  const [memberships, activeCookie] = await Promise.all([
+    session ? getAllMemberships(session.user.id) : [],
+    getActiveAccountCookie(),
+  ]);
+
+  const activeMembership = memberships.find((m) => m.accountId === activeCookie?.accountId);
+  const canManageAccount = activeMembership?.role === "owner" || activeMembership?.role === "admin";
+
   const sections: NavSection[] = [
     {
       items: [
@@ -28,10 +37,20 @@ export default async function RightsHolderLayout({ children }: { children: React
         { title: t("wallet"), href: "/wallet", icon: "wallet" },
       ],
     },
-    {
-      label: t("account"),
-      items: [{ title: t("members"), href: "/account/members", icon: "users" }],
-    },
+    ...(canManageAccount
+      ? [
+          {
+            label: t("account"),
+            items: [
+              {
+                title: t("manageAccount"),
+                href: "/account/informations",
+                icon: "settings" as const,
+              },
+            ],
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -43,7 +62,16 @@ export default async function RightsHolderLayout({ children }: { children: React
         } as React.CSSProperties
       }
     >
-      <AppSidebar variant="inset" user={user} sections={sections} profileHref="/account/profile" />
+      <AppSidebar
+        variant="inset"
+        user={user}
+        sections={sections}
+        profileHref="/account/profile"
+        accountHref="/account/informations"
+        canManageAccount={canManageAccount}
+        memberships={memberships}
+        activeAccountId={activeCookie?.accountId ?? ""}
+      />
       <SidebarInset>
         <SiteHeader />
         <div className="flex flex-1 flex-col">

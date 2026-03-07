@@ -7,9 +7,11 @@
 
 ## Contexte
 
-Deux types de comptes distincts : **Exploitant** et **Ayant droit**. Chaque compte peut avoir plusieurs utilisateurs avec des niveaux de permissions différents.
+Deux types de comptes distincts : **Exploitant** et **Ayant droit**. Chaque compte peut avoir plusieurs utilisateurs avec des niveaux de permissions différents. **Un utilisateur peut aussi être membre de plusieurs comptes** (ex : invité dans un second compte) — il faut un mécanisme de sélection du compte actif.
 
 Règle métier clé : les ayants droits ne peuvent pas s'inscrire eux-mêmes — ils sont créés par les admins dans le backoffice.
+
+Principe d'architecture : les pages de **gestion du compte** (informations, membres, cinémas) et le **profil utilisateur** restent dans chaque groupe de routes (pour garder le layout contextuel) mais partagent des **composants communs** (`src/components/account/`, `src/components/profile/`).
 
 ---
 
@@ -87,7 +89,7 @@ Règle métier clé : les ayants droits ne peuvent pas s'inscrire eux-mêmes —
 
 ---
 
-### E01-007 — Profil utilisateur ✅ Done
+### E01-007 — Profil utilisateur 🔄 En cours
 **Priorité** : P1 | **Taille** : S
 
 - ✅ Nom (modification)
@@ -95,6 +97,7 @@ Règle métier clé : les ayants droits ne peuvent pas s'inscrire eux-mêmes —
 - ✅ Changement de mot de passe (current + new + confirm)
 - ⬜ Activation/désactivation MFA (dépend de E01-003)
 - ⬜ Langue (FR / EN) — le language switcher existe dans le layout auth
+- ⬜ Migration vers composants partagés + route `/profile` dans chaque contexte (voir E01-011)
 
 ---
 
@@ -106,3 +109,166 @@ Règle métier clé : les ayants droits ne peuvent pas s'inscrire eux-mêmes —
 - ✅ Révocation individuelle de session
 - ✅ Révocation de toutes les autres sessions
 - ✅ Expiration automatique des sessions (30 jours, refresh 24h — configuré dans Better Auth)
+
+---
+
+### E01-009 — Compte actif & multi-comptes ✅ Done
+**Priorité** : P0 | **Taille** : L
+
+Un utilisateur peut être membre de plusieurs comptes (via invitations). Aujourd'hui `getCurrentMembership()` fait un `findFirst` non-déterministe — il faut un vrai mécanisme de sélection du compte actif.
+
+**Problèmes actuels** :
+- Aucune notion de "compte actif" (pas de cookie, pas de context)
+- `findFirst` sans tri → le compte résolu est aléatoire si l'utilisateur a plusieurs memberships
+- `getCurrentMembership()` est dupliquée dans `actions.ts` et `invitation-actions.ts`
+- Le middleware ne vérifie pas le type de compte → un exploitant peut naviguer vers `/films` (routes ayant droit)
+
+**Décisions** :
+- **Multi-type** : l'architecture permet qu'un user soit dans des comptes de types différents (exploitant + ayant droit), mais on ne construit pas l'UI de switch cross-type pour l'instant.
+- **Pas de React Context** : le layout serveur fetch les memberships et les passe en props au header/sidebar. Pas de provider client global.
+- **Cookie HttpOnly** : `active_account_id` est un cookie HttpOnly — le switch passe par une server action `switchAccount()`.
+- **Cookie encodé** : le cookie contient `accountId:type` (ex: `abc-123:exhibitor`) pour que le middleware puisse vérifier le type sans DB call.
+- **Switcher = dropdown** : composant intégré au header marketplace / sidebar dashboard — pas de page dédiée. Masqué si l'user n'a qu'un seul compte.
+- **Guard = middleware** : vérification du type de compte vs route group au niveau middleware (edge), avant le rendering.
+- **User sans compte** : page explicative (pas le flow onboarding classique) — "Vous n'avez plus de compte actif" + bouton créer ou contacter admin.
+- **Acceptation invitation** : switch automatique vers le nouveau compte après acceptation.
+- **Member et switcher** : un `member` peut switcher de compte via le dropdown, il ne peut juste pas accéder aux pages `/account/*` (gestion).
+- **Helper centralisé** : `getCurrentMembership()` et `switchAccount()` dans `src/lib/auth/membership.ts`.
+- **Cookie invalide** : si le cookie référence un compte dont le user n'est plus membre → auto-nettoyage du cookie + redirect vers la page racine (qui réévalue les memberships).
+- **Toast après switch** : afficher un toast «Vous êtes maintenant sur [nom du compte]» après un switch.
+- **Page sans compte** : dans le route group `(auth)` (layout centré, même style que login/register).
+
+**Tâches** :
+- ✅ Créer `src/lib/auth/membership.ts` avec les helpers centralisés : `getCurrentMembership()`, `switchAccount()`, `getAllMemberships()` — supprimer les doublons dans actions.ts / invitation-actions.ts
+- ✅ Stocker le `accountId:type` actif dans un cookie HttpOnly (`active_account_id`) — mis à jour au login et au switch via server action
+- ✅ Au login / sur la page racine (`[locale]/page.tsx`) : si 1 seul compte → auto-sélection + set cookie ; si plusieurs → afficher un sélecteur de compte
+- ✅ Composant `AccountSwitcher` (dropdown) dans le header marketplace et dans la sidebar dashboard — reçoit les memberships en props depuis le layout serveur — masqué si un seul compte
+- ✅ Au switch de compte : server action `switchAccount()` → met à jour le cookie + redirige vers l'interface correspondante (exploitant → `/catalogue`, ayant droit → `/films`, admin → `/dashboard`)
+- ✅ Guard middleware : lire le cookie `active_account_id`, extraire le type, vérifier la correspondance avec le route group — rediriger si mismatch
+- ✅ Auto-nettoyage : si le cookie référence un compte invalide (user retiré) → supprimer le cookie + redirect vers `/`
+- ✅ Acceptation d'invitation : après `acceptInvitation()`, switch automatique vers le nouveau compte (appel `switchAccount()`)
+- ✅ Page "sans compte" : si user authentifié sans aucun membership → page dédiée avec message explicatif + actions (créer un compte / contacter admin)
+- ✅ Page `/accounts` (route group `(auth)`) : liste tous les comptes de l'utilisateur avec switch + formulaire de création d'un nouveau compte exploitant (companyName + country). Lien "Mes comptes" ajouté dans le menu user du header marketplace et dans le dropdown sidebar. L'onboarding reste one-shot (première inscription uniquement).
+- ✅ Migration `middleware.ts` → `proxy.ts` (Next.js 16 — codemod officiel `middleware-to-proxy`)
+
+---
+
+### E01-010 — Gestion du compte (pages contextuelles + composants partagés) ✅ Done
+**Priorité** : P0 | **Taille** : L
+
+Les pages de gestion d'un compte (informations, membres, invitations) restent **dans chaque groupe de routes** (`(app)`, `(rights-holder)`, `(admin)`) pour que l'utilisateur ne quitte jamais son contexte visuel. La logique et les composants sont **partagés** via `src/components/account/`.
+
+**Problèmes actuels** :
+- Pages members existantes uniquement dans `(app)/account/` — vides côté `(rights-holder)`
+- Pas de page d'édition des informations du compte (nom société, adresse, TVA…)
+- Les pages cinémas sont dans `(app)/account/cinemas/` (placeholder)
+
+**Décisions** :
+- **Pas de route group `(account)` dédié** — chaque interface garde ses pages `/account/*` dans son propre layout (marketplace, dashboard sidebar, admin sidebar).
+- Les comptes **admin** sont un cas à part — la gestion admin se fait via le backoffice `(admin)`, pas via `/account/`.
+- Le compte est résolu via le cookie `active_account_id` (cf. E01-009), pas via l'URL.
+- **Tabs horizontaux** : sous-navigation `Informations | Membres | Cinémas` (composant partagé). Le tab Cinémas est masqué si le compte n'est pas exploitant.
+- **Formulaire unique** : page informations = un seul formulaire avec tous les champs + bouton Sauvegarder.
+- **TVA** : vérification automatique du numéro de TVA via API VIES (UE) à la saisie.
+- **Redirect `/account`** : la route `/account` redirige vers `/account/informations`.
+- **Suppression de compte** : pas de self-delete — uniquement via admin backoffice.
+- **Split actions** : server actions gestion compte dans `src/components/account/actions.ts` — helpers membership/switch dans `src/lib/auth/membership.ts`.
+- **Route group `(account)`** : dédié à toutes les pages `/account/*` (management + profil). Layout standalone avec header minimal (lien retour dynamique selon le type de compte). Évite le conflit de routes parallèles entre `(app)` et `(rights-holder)`.
+- **Route group `(management)`** : imbriqué dans `(account)/account/` pour isoler le layout avec tabs (heading + AccountTabs). Le profil reste hors de ce groupe.
+
+**Architecture implémentée** :
+
+```
+src/components/account/                     ← composants partagés
+├── account-info-form.tsx                   ← formulaire informations (companyName, address, TVA…)
+├── account-tabs.tsx                        ← sous-navigation horizontale (Informations | Membres | Cinémas)
+├── members-list.tsx                        ← liste des membres + gestion rôles (refacto)
+├── invite-section.tsx                      ← invitations (refacto)
+└── actions.ts                              ← server actions centralisées (getAccountInfo, updateAccountInfo, getMembers, updateMemberRole, removeMember, inviteMember, getPendingInvitations, cancelInvitation, acceptInvitation)
+
+src/app/[locale]/(account)/
+├── layout.tsx                              ← layout standalone (auth guard + header minimal avec lien retour)
+└── account/
+    ├── (management)/
+    │   ├── layout.tsx                      ← RBAC guard (owner/admin) + heading + AccountTabs
+    │   ├── page.tsx                        ← redirect vers /account/informations
+    │   ├── informations/page.tsx           ← <AccountInfoForm />
+    │   ├── members/page.tsx               ← <MembersList /> + <InviteSection />
+    │   └── cinemas/page.tsx               ← placeholder (exploitant uniquement)
+    └── profile/
+        ├── page.tsx                        ← <ProfileForm />
+        ├── actions.ts                      ← server actions profil (updateProfile, changePassword, sessions)
+        └── profile-form.tsx               ← formulaire profil (client component)
+```
+
+Le route group `(account)` est **séparé** de `(app)` et `(rights-holder)` pour éviter les conflits de routes parallèles Next.js. Le layout adapte le lien retour selon le type de compte actif (catalogue, films, dashboard).
+
+**Tâches** :
+- ✅ Créer `src/components/account/` avec les composants partagés : `AccountInfoForm`, `AccountTabs`, `MembersList`, `InviteSection`
+- ✅ Refactorer les composants existants (`members-list.tsx`, `invite-section.tsx`) depuis `(app)/account/members/` → `src/components/account/` — les rendre indépendants du layout
+- ✅ Centraliser les server actions (getAccountInfo, updateAccountInfo, getMembers, updateMemberRole, removeMember, inviteMember, cancelInvitation, acceptInvitation) dans `src/components/account/actions.ts` — anciens fichiers supprimés
+- ✅ Page informations du compte (`/account/informations`) dans `(app)` et `(rights-holder)` : affichage et édition de companyName, address, city, postalCode, country, vatNumber
+- ✅ Implémenter les pages `/account/informations` et `/account/members` dans `(rights-holder)`
+- ✅ RBAC : seuls les rôles `owner` et `admin` peuvent accéder aux pages `/account/*` — les `member` sont redirigés (via layout serveur)
+- ✅ Lien "Gérer le compte" dans le header marketplace (menu user) et dans la sidebar dashboard — visible uniquement pour owner/admin
+- ✅ Traductions (en/fr) : namespace `accountSettings` + clé `navigation.manageAccount`
+
+---
+
+### E01-011 — Profil utilisateur (dans chaque contexte) ⬜ A faire
+**Priorité** : P0 | **Taille** : M
+
+La page profil concerne l'**utilisateur** (pas le compte). Elle est actuellement dans `(account)/account/profile/` — accessible depuis tous les contextes via le layout standalone. Les composants pourraient être extraits dans `src/components/profile/` pour plus de modularité.
+
+**État actuel** :
+- Page profil dans `(account)/account/profile/` — accessible à `/account/profile`
+- Composants non encore extraits dans `src/components/profile/`
+- Le profil est une notion user, pas account — à terme, la route pourrait passer de `/account/profile` à `/profile`
+
+**Architecture cible** :
+
+```
+src/components/profile/                     ← composants partagés
+├── profile-form.tsx                        ← nom, email (readonly), changement mdp (refacto)
+├── sessions-list.tsx                       ← sessions actives + révocation
+└── actions.ts                              ← server actions (updateProfile, changePassword, listSessions…)
+```
+
+Note : la route pourrait passer de `/account/profile` à `/profile` (le profil n'est pas lié au compte).
+
+**Décisions** :
+- **Tabs** : sous-navigation `Profil | Sessions` (cohérent avec les tabs de `/account/*`).
+
+**Tâches** :
+- ⬜ Extraire `src/components/profile/` avec les composants partagés : `ProfileForm`, `SessionsList`
+- ⬜ Refactorer `profile-form.tsx` et `actions.ts` depuis `(account)/account/profile/` → `src/components/profile/`
+- ⬜ Éventuellement déplacer la route de `/account/profile` à `/profile`
+- ⬜ Mettre à jour les liens "Mon profil" dans le header marketplace et la sidebar dashboard
+- ⬜ Activation/désactivation MFA depuis la page profil (dépend de E01-003)
+- ⬜ Sélecteur de langue préférée (FR / EN) avec persistance
+
+---
+
+## Tests — Couverture E01
+
+### Tests unitaires (Vitest) — 96 tests ✅
+
+| Fichier | Tests | Couverture |
+|---------|-------|------------|
+| `src/lib/auth/__tests__/active-account-cookie.test.ts` | 16 | `parseActiveAccountCookie`, `encodeActiveAccountCookie`, `getHomePathForType`, roundtrip, edge cases |
+| `src/lib/auth/__tests__/proxy-helpers.test.ts` | 50 | `stripLocale`, `extractLocale`, `isPublicAuthPath`, `isAccountOptionalPath`, `isUnprotectedApiPath`, `getRequiredAccountType` — tous types de chemins |
+| `src/lib/pricing/__tests__/pricing.test.ts` | 19 | `calculatePricing` (marges, commissions, frais, arrondis), `resolveCommissionRate`, `formatAmount` |
+| `src/lib/__tests__/utils.test.ts` | 11 | `calculateRequestExpiry`, `isRequestExpired`, `findPriceForCountry` |
+
+### Tests E2E (Playwright) — 24 tests ✅
+
+| Fichier | Tests | Couverture |
+|---------|-------|------------|
+| `e2e/auth.spec.ts` | 16 | Pages auth (login/register/forgot-password), redirections auth, gestion des locales, validation formulaire login, mismatch mot de passe register |
+| `e2e/account.spec.ts` | 8 | Redirections compte non authentifié, API auth accessible, protection des routes par type de compte (exhibitor/RH/admin) |
+
+### Infrastructure test
+
+- **Vitest** : `vitest.config.ts`, `vitest.setup.ts` (jest-dom matchers)
+- **Playwright** : `playwright.config.ts` (chromium, 1 worker séquentiel, webServer auto-start)
+- **Extraction `proxy-helpers.ts`** : toutes les fonctions pures extraites de `proxy.ts` pour testabilité
