@@ -1,73 +1,39 @@
-import nodemailer from "nodemailer";
-
-import type { SentMessageInfo, Transporter } from "nodemailer";
+import { Resend } from "resend";
 
 // ─── Client ───────────────────────────────────────────────────────────────────
 
-const IS_PRODUCTION = process.env.NODE_ENV === "production";
-
-const EMAIL_ENABLED =
-  !!process.env.SMTP_HOST && !!process.env.SMTP_USER && !!process.env.SMTP_PASSWORD;
-
-// Port 465 uses implicit TLS (SMTPS); port 587 uses STARTTLS.
-const smtpPort = parseInt(process.env.SMTP_PORT ?? "465");
-
-/**
- * In production: use real SMTP credentials from env vars.
- * In development: use Ethereal (nodemailer's built-in fake SMTP).
- *   - No config needed — a test account is created on first send.
- *   - Each sent email logs a preview URL to the console.
- *   - Emails are never actually delivered.
- */
-async function getTransporter(): Promise<Transporter> {
-  if (IS_PRODUCTION || EMAIL_ENABLED) {
-    return nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: smtpPort,
-      secure: smtpPort === 465,
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASSWORD,
-      },
-    });
-  }
-
-  // Dev fallback: Ethereal fake SMTP
-  const testAccount = await nodemailer.createTestAccount();
-  return nodemailer.createTransport({
-    host: "smtp.ethereal.email",
-    port: 587,
-    secure: false,
-    auth: { user: testAccount.user, pass: testAccount.pass },
-  });
-}
-
+const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const FROM = process.env.EMAIL_FROM ?? "hello@timeless.film";
 
+const resend = RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null;
+
 /**
- * Safely execute an email send — logs errors but never throws.
- * Email sends are best-effort and must never break the main application flow.
- * In development, logs a preview URL to the console (Ethereal).
+ * Safely execute an email send via Resend HTTP API.
+ * Logs errors but never throws — email is best-effort.
+ * In development without RESEND_API_KEY, logs to console instead.
  */
 async function safeEmail(
   label: string,
-  fn: (transport: Transporter) => Promise<SentMessageInfo>
-): Promise<SentMessageInfo | undefined> {
-  if (IS_PRODUCTION && !EMAIL_ENABLED) {
-    console.warn(`[Email] ${label} skipped: SMTP not configured`);
-    return undefined;
+  params: { to: string; subject: string; html: string }
+): Promise<void> {
+  if (!resend) {
+    console.warn(`[Email] ${label} skipped: RESEND_API_KEY not configured`);
+    console.warn(`[Email] Would send to ${params.to}: ${params.subject}`);
+    return;
   }
   try {
-    const transport = await getTransporter();
-    const result = await fn(transport);
-    // In dev, log the Ethereal preview URL so you can inspect the email in a browser
-    if (!IS_PRODUCTION) {
-      console.warn(`[Email] ${label} preview: ${nodemailer.getTestMessageUrl(result)}`);
+    const { error } = await resend.emails.send({
+      from: FROM,
+      to: params.to,
+      subject: params.subject,
+      html: params.html,
+    });
+    if (error) {
+      console.error(`[Email] ${label} failed:`, error);
+      return;
     }
-    return result;
   } catch (err) {
     console.error(`[Email] ${label} failed:`, err);
-    return undefined;
   }
 }
 
@@ -82,28 +48,22 @@ export async function sendVerificationEmail(
   name: string,
   url: string
 ) {
-  await safeEmail("sendVerificationEmail", (transport) =>
-    transport.sendMail({
-      from: FROM,
-      to: email,
-      subject: "Verify your email — Timeless",
-      html: verificationEmailHtml(name, url),
-    })
-  );
+  await safeEmail("sendVerificationEmail", {
+    to: email,
+    subject: "Verify your email — Timeless",
+    html: verificationEmailHtml(name, url),
+  });
 }
 
 /**
  * Send the password reset link to a user.
  */
 export async function sendResetPasswordEmail(_userId: string, email: string, url: string) {
-  await safeEmail("sendResetPasswordEmail", (transport) =>
-    transport.sendMail({
-      from: FROM,
-      to: email,
-      subject: "Reset your password — Timeless",
-      html: resetPasswordEmailHtml(url),
-    })
-  );
+  await safeEmail("sendResetPasswordEmail", {
+    to: email,
+    subject: "Reset your password — Timeless",
+    html: resetPasswordEmailHtml(url),
+  });
 }
 
 /**
@@ -116,14 +76,11 @@ export async function sendInvitationEmail(params: {
   accountName: string;
   role: string;
 }) {
-  await safeEmail("sendInvitationEmail", (transport) =>
-    transport.sendMail({
-      from: FROM,
-      to: params.email,
-      subject: `${params.inviterName} invited you to join ${params.accountName} — Timeless`,
-      html: invitationEmailHtml(params),
-    })
-  );
+  await safeEmail("sendInvitationEmail", {
+    to: params.email,
+    subject: `${params.inviterName} invited you to join ${params.accountName} — Timeless`,
+    html: invitationEmailHtml(params),
+  });
 }
 
 // ─── HTML templates ───────────────────────────────────────────────────────────

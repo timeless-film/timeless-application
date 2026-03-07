@@ -34,7 +34,7 @@ This application is built for **long-term maintainability**. Every decision — 
 | ORM             | Drizzle ORM                             |
 | Auth            | Better Auth (self-hosted, email+MFA)    |
 | Payments        | Stripe + Stripe Connect (marketplace)   |
-| Emails          | Scaleway Transactional Email (nodemailer/SMTP) |
+| Emails          | Resend (HTTP API)                       |
 | UI              | Tailwind CSS v4 + shadcn/ui             |
 | i18n            | next-intl (en, fr — default: en)        |
 | Validation      | Zod                                     |
@@ -69,7 +69,7 @@ src/
 ├── i18n/                      # next-intl config (routing, request, navigation)
 ├── lib/
 │   ├── auth/                  # Better Auth server config + client + helpers
-│   ├── email/                 # Transactional email (nodemailer + Scaleway TEM SMTP)
+│   ├── email/                 # Transactional email (Resend HTTP API)
 │   ├── db/                    # Drizzle client + schema
 │   │   └── schema/            # DB tables (accounts, films, orders, cinemas, settings, auth)
 │   ├── pricing/               # Pricing calculation engine
@@ -349,10 +349,7 @@ Required in `.env.local`:
 | `BETTER_AUTH_SECRET`            | Session signing secret                              |
 | `STRIPE_SECRET_KEY`             | Stripe API key                                      |
 | `STRIPE_WEBHOOK_SECRET`         | Stripe webhook signing secret                       |
-| `SMTP_HOST`                     | SMTP host (`smtp.tem.scaleway.com`)                 |
-| `SMTP_PORT`                     | SMTP port (`465` for TLS, `587` for STARTTLS)       |
-| `SMTP_USER`                     | Scaleway Project ID                                 |
-| `SMTP_PASSWORD`                 | Scaleway API secret key (with TEM permissions)      |
+| `RESEND_API_KEY`                | Resend API key for transactional emails          |
 | `EMAIL_FROM`                    | Sender address (default: `hello@timeless.film`)     |
 | `TMDB_API_KEY`                  | TMDB read access token                              |
 | `NEXT_PUBLIC_APP_URL`           | App URL (default: `http://localhost:3000`)          |
