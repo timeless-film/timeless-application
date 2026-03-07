@@ -69,7 +69,7 @@ export function AccountsManager({ memberships, activeAccountId }: AccountsManage
   const [country, setCountry] = useState("");
 
   async function handleSwitch(accountId: string) {
-    if (accountId === activeAccountId || switching) return;
+    if (switching) return;
     setSwitching(accountId);
 
     const result = await switchAccount(accountId);
@@ -133,7 +133,7 @@ export function AccountsManager({ memberships, activeAccountId }: AccountsManage
                   key={membership.id}
                   variant={isActive ? "default" : "outline"}
                   className="flex h-auto w-full items-center justify-start gap-3 p-4"
-                  disabled={switching !== null || isActive}
+                  disabled={switching !== null}
                   onClick={() => handleSwitch(membership.accountId)}
                 >
                   {isLoading ? (
