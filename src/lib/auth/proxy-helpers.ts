@@ -17,7 +17,7 @@ export const ACCOUNT_OPTIONAL_PATHS = [
 ];
 
 // API routes that don't require authentication
-export const UNPROTECTED_API_PATHS = ["/api/auth", "/api/webhooks"];
+export const UNPROTECTED_API_PATHS = ["/api/auth", "/api/webhooks", "/api/debug"];
 
 // Map path prefixes to the account type that can access them
 export const EXHIBITOR_PATHS = ["/catalog", "/cart", "/orders", "/requests", "/accept-invitation"];

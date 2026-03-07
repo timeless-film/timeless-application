@@ -35,8 +35,6 @@ ENV DATABASE_URL="postgresql://x:x@localhost/x"
 ENV BETTER_AUTH_SECRET="build-placeholder"
 ENV STRIPE_SECRET_KEY="sk_test_build"
 ENV STRIPE_WEBHOOK_SECRET="whsec_build"
-ENV CUSTOMERIO_SITE_ID="build"
-ENV CUSTOMERIO_API_KEY="build"
 ENV TMDB_API_KEY="build"
 ENV NEXT_TELEMETRY_DISABLED=1
 
