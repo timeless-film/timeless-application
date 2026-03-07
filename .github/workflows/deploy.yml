@@ -81,25 +81,22 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
-      # ── Deploy to Scaleway Serverless Containers ──────────────────────────
-      - name: Set up Scaleway CLI
-        uses: scaleway/setup-scaleway-cli@v2
-        with:
-          version: latest
-          access-key: ${{ secrets.SCW_ACCESS_KEY }}
-          secret-key: ${{ secrets.SCW_SECRET_KEY }}
-          default-region: ${{ secrets.SCW_REGION }}
-          default-zone: ${{ secrets.SCW_ZONE }}
-
-      - name: Update container image
-        # Point the container to the new immutable image (SHA tag, not :latest)
+      # ── Deploy to Scaleway Serverless Containers (via API) ───────────────
+      - name: Update container image and deploy
+        env:
+          SCW_SECRET_KEY: ${{ secrets.SCW_SECRET_KEY }}
+          SCW_REGION: ${{ secrets.SCW_REGION }}
+          SCW_CONTAINER_ID: ${{ secrets.SCW_CONTAINER_ID }}
+          IMAGE: ${{ secrets.SCW_REGISTRY_ENDPOINT }}/${{ secrets.SCW_REGISTRY_NAMESPACE }}/${{ env.IMAGE_NAME }}:${{ github.event.workflow_run.head_sha }}
         run: |
-          scw container container update ${{ secrets.SCW_CONTAINER_ID }} \
-            registry-image="${{ secrets.SCW_REGISTRY_ENDPOINT }}/${{ secrets.SCW_REGISTRY_NAMESPACE }}/${{ env.IMAGE_NAME }}:${{ github.event.workflow_run.head_sha }}" \
-            region=${{ secrets.SCW_REGION }}
+          # Point the container to the new immutable image (SHA tag)
+          curl -sf -X PATCH \
+            -H "X-Auth-Token: $SCW_SECRET_KEY" \
+            -H "Content-Type: application/json" \
+            -d "{\"registry_image\": \"$IMAGE\"}" \
+            "https://api.scaleway.com/containers/v1beta1/regions/$SCW_REGION/containers/$SCW_CONTAINER_ID"
 
-      - name: Deploy container
-        # Trigger a new deployment — Scaleway will pull the new image and restart
-        run: |
-          scw container container deploy ${{ secrets.SCW_CONTAINER_ID }} \
-            region=${{ secrets.SCW_REGION }}
+          # Trigger the deployment
+          curl -sf -X POST \
+            -H "X-Auth-Token: $SCW_SECRET_KEY" \
+            "https://api.scaleway.com/containers/v1beta1/regions/$SCW_REGION/containers/$SCW_CONTAINER_ID/deploy"

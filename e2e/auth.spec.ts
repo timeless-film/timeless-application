@@ -49,8 +49,8 @@ test.describe("Auth pages accessibility", () => {
 });
 
 test.describe("Auth redirects (unauthenticated)", () => {
-  test("redirects /en/catalogue to login when not authenticated", async ({ page }) => {
-    await page.goto("/en/catalogue");
+  test("redirects /en/catalog to login when not authenticated", async ({ page }) => {
+    await page.goto("/en/catalog");
     await expect(page).toHaveURL(/\/en\/login/);
   });
 
@@ -69,8 +69,8 @@ test.describe("Auth redirects (unauthenticated)", () => {
     await expect(page).toHaveURL(/\/en\/login/);
   });
 
-  test("redirects /en/account/informations to login when not authenticated", async ({ page }) => {
-    await page.goto("/en/account/informations");
+  test("redirects /en/account/information to login when not authenticated", async ({ page }) => {
+    await page.goto("/en/account/information");
     await expect(page).toHaveURL(/\/en\/login/);
   });
 });

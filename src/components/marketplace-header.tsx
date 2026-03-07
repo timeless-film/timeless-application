@@ -95,7 +95,7 @@ export function MarketplaceHeader({ user, memberships, activeAccountId }: Market
   const canManageAccount = activeAccount?.role === "owner" || activeAccount?.role === "admin";
 
   const mainNav: NavLink[] = [
-    { title: t("catalogue"), href: "/catalogue", icon: BookOpenIcon },
+    { title: t("catalog"), href: "/catalog", icon: BookOpenIcon },
     { title: t("orders"), href: "/orders", icon: TicketIcon },
     { title: t("requests"), href: "/requests", icon: ClipboardListIcon },
   ];
@@ -103,7 +103,7 @@ export function MarketplaceHeader({ user, memberships, activeAccountId }: Market
   const accountNav: NavLink[] = [
     { title: t("profile"), href: "/account/profile", icon: UserCircleIcon },
     ...(canManageAccount
-      ? [{ title: t("manageAccount"), href: "/account/informations", icon: SettingsIcon }]
+      ? [{ title: t("manageAccount"), href: "/account/information", icon: SettingsIcon }]
       : []),
     { title: t("myAccounts"), href: "/accounts", icon: LayersIcon },
   ];
@@ -140,7 +140,7 @@ export function MarketplaceHeader({ user, memberships, activeAccountId }: Market
       <div className="mx-auto flex h-14 max-w-7xl items-center px-4 lg:px-6">
         {/* Logo */}
         <Link href="/" className="mr-8 flex items-center gap-2">
-          <span className="font-heading text-xl tracking-tight">TIMELESS</span>
+          <span className="font-heading text-xl tracking-tight">Timeless</span>
         </Link>
 
         {/* Desktop nav */}

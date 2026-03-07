@@ -1,7 +1,7 @@
 import { db } from "@/lib/db";
 
 export interface PricingParams {
-  cataloguePrice: number; // In cents
+  catalogPrice: number; // In cents
   currency: string;
   platformMarginRate: number; // e.g. 0.20 for 20%
   deliveryFees: number; // In cents
@@ -9,7 +9,7 @@ export interface PricingParams {
 }
 
 export interface PricingResult {
-  cataloguePrice: number;
+  catalogPrice: number;
   platformMarginRate: number;
   deliveryFees: number;
   commissionRate: number;
@@ -23,19 +23,19 @@ export interface PricingResult {
  * Calculates the displayed price and split for an order line.
  *
  * Formula:
- *   displayedPrice = cataloguePrice × (1 + marginRate) + deliveryFees
- *   rightsHolderAmount = cataloguePrice × (1 - commissionRate)
+ *   displayedPrice = catalogPrice × (1 + marginRate) + deliveryFees
+ *   rightsHolderAmount = catalogPrice × (1 - commissionRate)
  *   timelessAmount = displayedPrice - rightsHolderAmount
  */
 export function calculatePricing(params: PricingParams): PricingResult {
-  const { cataloguePrice, platformMarginRate, deliveryFees, commissionRate, currency } = params;
+  const { catalogPrice, platformMarginRate, deliveryFees, commissionRate, currency } = params;
 
-  const displayedPrice = Math.round(cataloguePrice * (1 + platformMarginRate) + deliveryFees);
-  const rightsHolderAmount = Math.round(cataloguePrice * (1 - commissionRate));
+  const displayedPrice = Math.round(catalogPrice * (1 + platformMarginRate) + deliveryFees);
+  const rightsHolderAmount = Math.round(catalogPrice * (1 - commissionRate));
   const timelessAmount = displayedPrice - rightsHolderAmount;
 
   return {
-    cataloguePrice,
+    catalogPrice,
     platformMarginRate,
     deliveryFees,
     commissionRate,

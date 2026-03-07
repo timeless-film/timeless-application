@@ -11,7 +11,7 @@ import {
 
 describe("stripLocale", () => {
   it("strips /en prefix", () => {
-    expect(stripLocale("/en/catalogue")).toBe("/catalogue");
+    expect(stripLocale("/en/catalog")).toBe("/catalog");
   });
 
   it("strips /fr prefix", () => {
@@ -32,8 +32,8 @@ describe("stripLocale", () => {
 });
 
 describe("extractLocale", () => {
-  it("extracts 'en' from /en/catalogue", () => {
-    expect(extractLocale("/en/catalogue")).toBe("en");
+  it("extracts 'en' from /en/catalog", () => {
+    expect(extractLocale("/en/catalog")).toBe("en");
   });
 
   it("extracts 'fr' from /fr/login", () => {
@@ -78,8 +78,8 @@ describe("isPublicAuthPath", () => {
     expect(isPublicAuthPath("/en/reset-password")).toBe(true);
   });
 
-  it("returns false for /en/catalogue", () => {
-    expect(isPublicAuthPath("/en/catalogue")).toBe(false);
+  it("returns false for /en/catalog", () => {
+    expect(isPublicAuthPath("/en/catalog")).toBe(false);
   });
 
   it("returns false for /en/account/profile", () => {
@@ -112,8 +112,8 @@ describe("isAccountOptionalPath", () => {
     expect(isAccountOptionalPath("/en/onboarding/step-2")).toBe(true);
   });
 
-  it("returns false for /en/catalogue", () => {
-    expect(isAccountOptionalPath("/en/catalogue")).toBe(false);
+  it("returns false for /en/catalog", () => {
+    expect(isAccountOptionalPath("/en/catalog")).toBe(false);
   });
 
   it("returns false for /en/films", () => {
@@ -145,12 +145,12 @@ describe("isUnprotectedApiPath", () => {
 
 describe("getRequiredAccountType", () => {
   // Exhibitor paths
-  it("returns 'exhibitor' for /en/catalogue", () => {
-    expect(getRequiredAccountType("/en/catalogue")).toBe("exhibitor");
+  it("returns 'exhibitor' for /en/catalog", () => {
+    expect(getRequiredAccountType("/en/catalog")).toBe("exhibitor");
   });
 
-  it("returns 'exhibitor' for /en/catalogue/film-123", () => {
-    expect(getRequiredAccountType("/en/catalogue/film-123")).toBe("exhibitor");
+  it("returns 'exhibitor' for /en/catalog/film-123", () => {
+    expect(getRequiredAccountType("/en/catalog/film-123")).toBe("exhibitor");
   });
 
   it("returns 'exhibitor' for /en/cart", () => {
@@ -216,12 +216,12 @@ describe("getRequiredAccountType", () => {
     expect(getRequiredAccountType("/en/account/profile")).toBeNull();
   });
 
-  it("returns null for /en/account/informations", () => {
-    expect(getRequiredAccountType("/en/account/informations")).toBeNull();
+  it("returns null for /en/account/information", () => {
+    expect(getRequiredAccountType("/en/account/information")).toBeNull();
   });
 
   // Without locale
   it("handles paths without locale prefix", () => {
-    expect(getRequiredAccountType("/catalogue")).toBe("exhibitor");
+    expect(getRequiredAccountType("/catalog")).toBe("exhibitor");
   });
 });

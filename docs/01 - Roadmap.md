@@ -16,7 +16,7 @@
 
 | ID | Nom | Phase | Tickets |
 |---|---|---|---|
-| [[E01 - Auth & Comptes]] | Authentification & gestion des comptes | P0 | 8 | ✅ Done (sauf MFA UI — P1) |
+| [[E01 - Auth & Comptes]] | Authentification & gestion des comptes | P0 | 11 | ✅ Done |
 | [[E02 - Exploitants]] | Comptes exploitants de cinéma | P0 | 6 |
 | [[E03 - Ayants Droits]] | Comptes ayants droits | P0 | 4 |
 | [[E04 - Catalogue & Import]] | Import CSV, CRUD, enrichissement TMDB | P1 | 8 |
@@ -28,6 +28,7 @@
 | [[E10 - Livraison Opérationnelle]] | Notifications ops, suivi DCP/KDM | P3 | 4 |
 | [[E11 - Backoffice Admin]] | Dashboard admin, gestion comptes, supervision | P3 | 6 |
 | [[E12 - Notifications & Emails]] | Setup Customer.io, tous les flows email | P2–P3 | 8 |
+| [[E13 - Sécurité des Accès]] | MFA UI, codes de récupération, audit log | P2–P3 | 5 |
 
 **Total** : 72 tickets
 

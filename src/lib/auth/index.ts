@@ -20,6 +20,7 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: true,
+    revokeSessionsOnPasswordReset: true,
     sendResetPassword: async ({ user, url }) => {
       await sendResetPasswordEmail(user.id, user.email, url);
     },
@@ -33,7 +34,7 @@ export const auth = betterAuth({
 
   plugins: [
     twoFactor({
-      issuer: "TIMELESS",
+      issuer: "Timeless",
     }),
   ],
 

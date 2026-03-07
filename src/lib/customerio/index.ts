@@ -206,7 +206,7 @@ export const CioEvents = {
   USER_INVITED: "user_invited",
   USER_ACTIVATED: "user_activated",
 
-  // Catalogue
+  // Catalog
   FILM_ADDED: "film_added",
   FILM_IMPORTED: "film_imported",
 

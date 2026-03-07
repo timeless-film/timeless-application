@@ -31,7 +31,7 @@
       "signOut": "Se déconnecter"
     },
     "login": {
-      "title": "Connexion à TIMELESS",
+      "title": "Connexion à Timeless",
       "subtitle": "Bienvenue",
       "email": "Adresse email",
       "password": "Mot de passe",
@@ -49,7 +49,7 @@
     },
     "register": {
       "title": "Créer votre compte",
-      "subtitle": "Rejoignez TIMELESS",
+      "subtitle": "Rejoignez Timeless",
       "name": "Nom complet",
       "email": "Adresse email",
       "password": "Mot de passe",
@@ -90,7 +90,7 @@
     }
   },
   "navigation": {
-    "catalogue": "Catalogue",
+    "catalog": "Catalogue",
     "cart": "Panier",
     "orders": "Mes commandes",
     "requests": "Mes demandes",
@@ -114,7 +114,7 @@
     "manageAccount": "Gérer le compte",
     "back": "Retour"
   },
-  "catalogue": {
+  "catalog": {
     "title": "Catalogue",
     "searchPlaceholder": "Rechercher par titre, réalisateur, acteur...",
     "filters": {
@@ -153,7 +153,7 @@
   "cart": {
     "title": "Panier",
     "empty": "Votre panier est vide.",
-    "browseCatalogue": "Parcourir le catalogue",
+    "browseCatalog": "Parcourir le catalogue",
     "item": {
       "cinema": "Cinéma",
       "room": "Salle",
@@ -295,7 +295,7 @@
     "saved": "Informations du compte enregistrées.",
     "cinemasPlaceholder": "La gestion des cinémas sera bientôt disponible.",
     "tabs": {
-      "informations": "Informations",
+      "information": "Informations",
       "members": "Membres",
       "cinemas": "Cinémas"
     },
@@ -438,7 +438,7 @@
     "dashboard": {
       "title": "Tableau de bord",
       "metrics": {
-        "revenue": "Revenus (TIMELESS)",
+        "revenue": "Revenus (Timeless)",
         "transactions": "Transactions",
         "pendingDeliveries": "Livraisons en attente",
         "pendingRequests": "Demandes en attente"
@@ -510,7 +510,7 @@
         "platformMargin": "Marge plateforme (%)",
         "deliveryFees": "Frais de livraison (EUR)",
         "defaultCommission": "Commission par défaut (%)",
-        "preview": "Avec ces paramètres, un film à {catalogue} sera affiché à {displayed}.",
+        "preview": "Avec ces paramètres, un film à {catalogPrice} sera affiché à {displayed}.",
         "save": "Enregistrer les paramètres",
         "history": "Historique des modifications"
       },

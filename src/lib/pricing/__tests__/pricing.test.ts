@@ -5,7 +5,7 @@ import { calculatePricing, formatAmount, resolveCommissionRate } from "@/lib/pri
 describe("calculatePricing", () => {
   it("calculates basic pricing without delivery fees", () => {
     const result = calculatePricing({
-      cataloguePrice: 10000, // €100.00
+      catalogPrice: 10000, // €100.00
       currency: "EUR",
       platformMarginRate: 0.2, // 20%
       deliveryFees: 0,
@@ -20,7 +20,7 @@ describe("calculatePricing", () => {
 
   it("includes delivery fees in displayed price", () => {
     const result = calculatePricing({
-      cataloguePrice: 10000,
+      catalogPrice: 10000,
       currency: "EUR",
       platformMarginRate: 0.2,
       deliveryFees: 5000, // €50.00
@@ -34,7 +34,7 @@ describe("calculatePricing", () => {
 
   it("handles zero margin", () => {
     const result = calculatePricing({
-      cataloguePrice: 10000,
+      catalogPrice: 10000,
       currency: "EUR",
       platformMarginRate: 0,
       deliveryFees: 0,
@@ -48,7 +48,7 @@ describe("calculatePricing", () => {
 
   it("handles zero commission", () => {
     const result = calculatePricing({
-      cataloguePrice: 10000,
+      catalogPrice: 10000,
       currency: "EUR",
       platformMarginRate: 0.2,
       deliveryFees: 0,
@@ -60,9 +60,9 @@ describe("calculatePricing", () => {
     expect(result.timelessAmount).toBe(2000);
   });
 
-  it("handles zero catalogue price", () => {
+  it("handles zero catalog price", () => {
     const result = calculatePricing({
-      cataloguePrice: 0,
+      catalogPrice: 0,
       currency: "EUR",
       platformMarginRate: 0.2,
       deliveryFees: 5000,
@@ -77,7 +77,7 @@ describe("calculatePricing", () => {
   it("rounds to nearest cent", () => {
     // 333 × 1.2 = 399.6 → rounds to 400
     const result = calculatePricing({
-      cataloguePrice: 333,
+      catalogPrice: 333,
       currency: "EUR",
       platformMarginRate: 0.2,
       deliveryFees: 0,
@@ -91,7 +91,7 @@ describe("calculatePricing", () => {
 
   it("preserves all input params in output", () => {
     const params = {
-      cataloguePrice: 10000,
+      catalogPrice: 10000,
       currency: "USD",
       platformMarginRate: 0.15,
       deliveryFees: 2000,
@@ -100,7 +100,7 @@ describe("calculatePricing", () => {
 
     const result = calculatePricing(params);
 
-    expect(result.cataloguePrice).toBe(params.cataloguePrice);
+    expect(result.catalogPrice).toBe(params.catalogPrice);
     expect(result.platformMarginRate).toBe(params.platformMarginRate);
     expect(result.deliveryFees).toBe(params.deliveryFees);
     expect(result.commissionRate).toBe(params.commissionRate);
@@ -109,7 +109,7 @@ describe("calculatePricing", () => {
 
   it("ensures timelessAmount = displayedPrice - rightsHolderAmount", () => {
     const result = calculatePricing({
-      cataloguePrice: 7777,
+      catalogPrice: 7777,
       currency: "EUR",
       platformMarginRate: 0.25,
       deliveryFees: 3333,

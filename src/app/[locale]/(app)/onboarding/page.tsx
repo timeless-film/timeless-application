@@ -16,13 +16,13 @@ export default async function OnboardingPage({ params }: { params: Promise<{ loc
     redirect(`/${locale}/login`);
   }
 
-  // If user already has an account, redirect to catalogue
+  // If user already has an account, redirect to catalog
   const membership = await db.query.accountMembers.findFirst({
     where: (am, { eq }) => eq(am.userId, session.user.id),
   });
 
   if (membership) {
-    redirect(`/${locale}/catalogue`);
+    redirect(`/${locale}/catalog`);
   }
 
   return <OnboardingForm />;

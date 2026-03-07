@@ -21,7 +21,7 @@ export default async function AccountLayout({ children }: { children: ReactNode 
 
   const isRightsHolder = activeCookie?.type === "rights_holder";
   const isAdmin = activeCookie?.type === "admin";
-  const backHref = isAdmin ? "/dashboard" : isRightsHolder ? "/films" : "/catalogue";
+  const backHref = isAdmin ? "/dashboard" : isRightsHolder ? "/films" : "/catalog";
 
   return (
     <div className="min-h-screen bg-background">

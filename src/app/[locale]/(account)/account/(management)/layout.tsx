@@ -14,7 +14,7 @@ export default async function ManagementLayout({ children }: { children: ReactNo
   if (!ctx || (ctx.role !== "owner" && ctx.role !== "admin")) {
     const isRightsHolder = ctx?.account.type === "rights_holder";
     const isAdmin = ctx?.account.type === "admin";
-    redirect(isAdmin ? "/dashboard" : isRightsHolder ? "/films" : "/catalogue");
+    redirect(isAdmin ? "/dashboard" : isRightsHolder ? "/films" : "/catalog");
   }
 
   const isExhibitor = ctx.account.type === "exhibitor";

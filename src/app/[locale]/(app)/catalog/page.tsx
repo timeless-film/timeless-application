@@ -3,14 +3,14 @@ import { getTranslations } from "next-intl/server";
 import type { Metadata } from "next";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations("catalogue");
+  const t = await getTranslations("catalog");
   return {
     title: t("title"),
   };
 }
 
-export default async function CataloguePage() {
-  const t = await getTranslations("catalogue");
+export default async function CatalogPage() {
+  const t = await getTranslations("catalog");
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 px-4 py-8 lg:px-6">

@@ -31,7 +31,7 @@
       "signOut": "Sign out"
     },
     "login": {
-      "title": "Sign in to TIMELESS",
+      "title": "Sign in to Timeless",
       "subtitle": "Welcome back",
       "email": "Email address",
       "password": "Password",
@@ -49,7 +49,7 @@
     },
     "register": {
       "title": "Create your account",
-      "subtitle": "Start using TIMELESS",
+      "subtitle": "Start using Timeless",
       "name": "Full name",
       "email": "Email address",
       "password": "Password",
@@ -90,7 +90,7 @@
     }
   },
   "navigation": {
-    "catalogue": "Catalogue",
+    "catalog": "Catalog",
     "cart": "Cart",
     "orders": "My orders",
     "requests": "My requests",
@@ -114,8 +114,8 @@
     "manageAccount": "Manage account",
     "back": "Back"
   },
-  "catalogue": {
-    "title": "Catalogue",
+  "catalog": {
+    "title": "Catalog",
     "searchPlaceholder": "Search by title, director, cast...",
     "filters": {
       "genre": "Genre",
@@ -153,7 +153,7 @@
   "cart": {
     "title": "Cart",
     "empty": "Your cart is empty.",
-    "browseCatalogue": "Browse the catalogue",
+    "browseCatalog": "Browse the catalog",
     "item": {
       "cinema": "Cinema",
       "room": "Room",
@@ -295,7 +295,7 @@
     "saved": "Account information saved.",
     "cinemasPlaceholder": "Cinema management will be available soon.",
     "tabs": {
-      "informations": "Information",
+      "information": "Information",
       "members": "Members",
       "cinemas": "Cinemas"
     },
@@ -307,7 +307,7 @@
     }
   },
   "films": {
-    "title": "My catalogue",
+    "title": "My catalog",
     "add": "Add a film",
     "import": "Import CSV / Excel",
     "columns": {
@@ -344,7 +344,7 @@
     },
     "import": {
       "title": "Import films from CSV / Excel",
-      "description": "Upload a file to update your catalogue in bulk.",
+      "description": "Upload a file to update your catalog in bulk.",
       "templateDownload": "Download template",
       "columns": {
         "title": "title",
@@ -438,7 +438,7 @@
     "dashboard": {
       "title": "Dashboard",
       "metrics": {
-        "revenue": "Revenue (TIMELESS)",
+        "revenue": "Revenue (Timeless)",
         "transactions": "Transactions",
         "pendingDeliveries": "Pending deliveries",
         "pendingRequests": "Pending requests"
@@ -510,7 +510,7 @@
         "platformMargin": "Platform margin (%)",
         "deliveryFees": "Delivery fees (EUR)",
         "defaultCommission": "Default commission (%)",
-        "preview": "With these settings, a film priced at {catalogue} will be displayed at {displayed}.",
+        "preview": "With these settings, a film priced at {catalogPrice} will be displayed at {displayed}.",
         "save": "Save settings",
         "history": "Change history"
       },

@@ -1,8 +1,8 @@
 import { expect, test } from "@playwright/test";
 
 test.describe("Account management (unauthenticated)", () => {
-  test("redirects /account/informations to login", async ({ page }) => {
-    await page.goto("/en/account/informations");
+  test("redirects /account/information to login", async ({ page }) => {
+    await page.goto("/en/account/information");
     await expect(page).toHaveURL(/\/en\/login/);
   });
 
@@ -35,7 +35,7 @@ test.describe("API routes (unauthenticated)", () => {
 
 test.describe("Route protection by account type", () => {
   test("exhibitor paths redirect unauthenticated to login", async ({ page }) => {
-    const exhibitorPaths = ["/en/catalogue", "/en/cart", "/en/orders", "/en/requests"];
+    const exhibitorPaths = ["/en/catalog", "/en/cart", "/en/orders", "/en/requests"];
 
     for (const path of exhibitorPaths) {
       await page.goto(path);

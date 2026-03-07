@@ -24,7 +24,7 @@ export function AlreadyConnected({ name, email }: AlreadyConnectedProps) {
         <p className="text-center text-sm text-muted-foreground">{t("message", { name, email })}</p>
       </CardContent>
       <CardFooter className="flex-col gap-3">
-        <Link href="/catalogue" className="w-full">
+        <Link href="/catalog" className="w-full">
           <Button className="w-full">{t("dashboard")}</Button>
         </Link>
         <Button

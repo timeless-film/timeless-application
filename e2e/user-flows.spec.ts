@@ -75,7 +75,7 @@ test.describe("Registration flow", () => {
 // ---------------------------------------------------------------------------
 // 2. Onboarding flow — register, verify email, login, complete onboarding
 // ---------------------------------------------------------------------------
-// Helper: complete the onboarding flow (no-account → onboarding → catalogue)
+// Helper: complete the onboarding flow (no-account → onboarding → catalog)
 // ---------------------------------------------------------------------------
 async function completeOnboarding(page: Page, companyName: string) {
   // After login, user with no account lands on /no-account
@@ -92,8 +92,8 @@ async function completeOnboarding(page: Page, companyName: string) {
 
   await page.getByRole("button", { name: /continue/i }).click();
 
-  // Should redirect to catalogue after onboarding
-  await expect(page).toHaveURL(/\/en\/catalogue/, { timeout: 15000 });
+  // Should redirect to catalog after onboarding
+  await expect(page).toHaveURL(/\/en\/catalog/, { timeout: 15000 });
 }
 
 // ---------------------------------------------------------------------------
@@ -105,7 +105,7 @@ test.describe("Onboarding flow", () => {
   };
   const companyName = `E2E Cinema ${TEST_ID}`;
 
-  test("new user goes through onboarding and lands on catalogue", async ({ page, request }) => {
+  test("new user goes through onboarding and lands on catalog", async ({ page, request }) => {
     await registerAndLogin(page, request, user);
     await completeOnboarding(page, companyName);
 
@@ -132,7 +132,7 @@ test.describe("Account information editing", () => {
     await completeOnboarding(page, companyName);
 
     // Navigate to account information page
-    await page.goto("/en/account/informations");
+    await page.goto("/en/account/information");
     await expect(page.locator("#companyName")).toBeVisible({ timeout: 15000 });
 
     // Verify current company name is pre-filled

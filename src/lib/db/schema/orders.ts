@@ -53,7 +53,7 @@ export const requests = pgTable("requests", {
   endDate: date("end_date").notNull(),
 
   // Price snapshotted at request time
-  cataloguePrice: integer("catalogue_price").notNull(), // In cents
+  catalogPrice: integer("catalog_price").notNull(), // In cents
   currency: text("currency").notNull(),
   platformMarginRate: text("platform_margin_rate").notNull(), // e.g. "0.20"
   deliveryFees: integer("delivery_fees").notNull(), // In cents
@@ -133,7 +133,7 @@ export const orderItems = pgTable("order_items", {
   endDate: date("end_date").notNull(),
 
   // Snapshotted prices
-  cataloguePrice: integer("catalogue_price").notNull(),
+  catalogPrice: integer("catalog_price").notNull(),
   platformMarginRate: text("platform_margin_rate").notNull(),
   deliveryFees: integer("delivery_fees").notNull(),
   commissionRate: text("commission_rate").notNull(),

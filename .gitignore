@@ -35,8 +35,8 @@ yarn-error.log*
 .env.local
 .env.*.local
 
-# Drizzle migrations (généré automatiquement)
-/drizzle/meta/
+# Drizzle migrations — SQL files + journal are committed; snapshots are regeneratable
+/drizzle/meta/*_snapshot.json
 
 # vercel
 .vercel

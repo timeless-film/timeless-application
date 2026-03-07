@@ -12,7 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default async function InformationsPage() {
+export default async function InformationPage() {
   const result = await getAccountInfo();
 
   if ("error" in result) {

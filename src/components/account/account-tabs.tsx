@@ -14,7 +14,7 @@ export function AccountTabs({ showCinemas = false }: AccountTabsProps) {
   const pathname = usePathname();
 
   const tabs = [
-    { label: t("tabs.informations"), href: "/account/informations" },
+    { label: t("tabs.information"), href: "/account/information" },
     { label: t("tabs.members"), href: "/account/members" },
     ...(showCinemas ? [{ label: t("tabs.cinemas"), href: "/account/cinemas" }] : []),
   ];

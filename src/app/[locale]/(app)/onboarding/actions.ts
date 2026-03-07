@@ -77,5 +77,5 @@ export async function createExhibitorAccount(input: OnboardingInput) {
 }
 
 export async function redirectAfterOnboarding(locale: string) {
-  redirect(`/${locale}/catalogue`);
+  redirect(`/${locale}/catalog`);
 }

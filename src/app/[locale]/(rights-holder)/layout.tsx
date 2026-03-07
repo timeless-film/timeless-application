@@ -44,7 +44,7 @@ export default async function RightsHolderLayout({ children }: { children: React
             items: [
               {
                 title: t("manageAccount"),
-                href: "/account/informations",
+                href: "/account/information",
                 icon: "settings" as const,
               },
             ],
@@ -67,7 +67,7 @@ export default async function RightsHolderLayout({ children }: { children: React
         user={user}
         sections={sections}
         profileHref="/account/profile"
-        accountHref="/account/informations"
+        accountHref="/account/information"
         canManageAccount={canManageAccount}
         memberships={memberships}
         activeAccountId={activeCookie?.accountId ?? ""}

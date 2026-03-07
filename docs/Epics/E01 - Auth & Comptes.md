@@ -37,14 +37,12 @@ Principe d'architecture : les pages de **gestion du compte** (informations, memb
 
 ---
 
-### E01-003 — MFA (TOTP) 🔄 En cours
+### E01-003 — MFA (TOTP) ✅ Done (base)
 **Priorité** : P1 | **Taille** : M
 
 - ✅ Support TOTP dans le flow de login (saisie du code 6 chiffres)
 - ✅ Plugin twoFactor configuré (Better Auth server + client)
-- ⬜ Activation optionnelle depuis les paramètres du compte (UI)
-- ⬜ Codes de récupération générés à l'activation
-- ⬜ Forced MFA possible pour les admins
+- ➡️ Activation UI, codes de récupération, forced MFA → déplacés vers **E-Security**
 
 ---
 
@@ -53,7 +51,7 @@ Principe d'architecture : les pages de **gestion du compte** (informations, memb
 
 - ✅ Formulaire "mot de passe oublié" → email avec lien tokenisé
 - ✅ Page de réinitialisation (avec règles mdp + confirmation)
-- ⬜ Invalidation des sessions existantes après reset
+- ✅ Invalidation des sessions existantes après reset (`revokeSessionsOnPasswordReset: true`)
 
 ---
 
@@ -250,7 +248,7 @@ src/app/[locale]/(account)/account/profile/
 - ✅ Liens "Mon profil" fonctionnels (marketplace header, sidebar RH, sidebar admin)
 - ✅ Traductions en/fr mises à jour (tabs, language, titleDescription)
 - ⬜ Éventuellement déplacer la route de `/account/profile` à `/profile` (reporté)
-- ⬜ Activation/désactivation MFA depuis la page profil (dépend de E01-003)
+- ➡️ Activation/désactivation MFA depuis la page profil → déplacé vers **E-Security**
 
 ---
 

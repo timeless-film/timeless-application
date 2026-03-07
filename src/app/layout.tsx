@@ -4,8 +4,8 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: {
-    default: "TIMELESS",
-    template: "%s | TIMELESS",
+    default: "Timeless",
+    template: "%s | Timeless",
   },
   description: "The distribution platform for classic and heritage films",
 };
