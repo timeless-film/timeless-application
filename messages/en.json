@@ -547,6 +547,11 @@
   },
   "profile": {
     "title": "Profile",
+    "titleDescription": "Manage your personal information and preferences.",
+    "tabs": {
+      "profile": "Profile",
+      "sessions": "Sessions"
+    },
     "personalInfo": "Personal information",
     "personalInfoDescription": "Update your name and email address.",
     "email": "Email address",
@@ -570,6 +575,9 @@
     "passwordChanged": "Password changed successfully.",
     "sessionRevoked": "Session revoked.",
     "allSessionsRevoked": "All other sessions revoked.",
+    "language": "Language",
+    "languageDescription": "Choose your preferred language for the interface.",
+    "preferredLanguage": "Preferred language",
     "error": {
       "updateFailed": "Failed to update profile.",
       "passwordMismatch": "Passwords do not match.",

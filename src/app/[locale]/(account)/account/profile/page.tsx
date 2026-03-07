@@ -1,10 +1,10 @@
 import { headers } from "next/headers";
 import { getTranslations } from "next-intl/server";
 
+import { ChangePasswordForm } from "@/components/profile/change-password-form";
+import { LanguageSelector } from "@/components/profile/language-selector";
+import { ProfileInfoForm } from "@/components/profile/profile-info-form";
 import { auth } from "@/lib/auth";
-
-import { listSessions } from "./actions";
-import { ProfileForm } from "./profile-form";
 
 import type { Metadata } from "next";
 
@@ -16,28 +16,16 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function ProfilePage() {
-  const [{ sessions }, session] = await Promise.all([
-    listSessions(),
-    auth.api.getSession({ headers: await headers() }),
-  ]);
-
-  // Normalize session data for client component
-  const normalizedSessions = (sessions ?? []).map((s) => ({
-    id: s.id,
-    token: s.token,
-    userAgent: s.userAgent ?? null,
-    ipAddress: s.ipAddress ?? null,
-    createdAt: s.createdAt,
-  }));
+  const session = await auth.api.getSession({ headers: await headers() });
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6 px-4 py-8 lg:px-6">
-      <ProfileForm
-        initialSessions={normalizedSessions}
+    <div className="space-y-6">
+      <ProfileInfoForm
         initialName={session?.user.name ?? ""}
         initialEmail={session?.user.email ?? ""}
-        currentSessionToken={session?.session.token ?? ""}
       />
+      <ChangePasswordForm />
+      <LanguageSelector />
     </div>
   );
 }

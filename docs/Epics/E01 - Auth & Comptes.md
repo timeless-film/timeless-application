@@ -89,15 +89,15 @@ Principe d'architecture : les pages de **gestion du compte** (informations, memb
 
 ---
 
-### E01-007 — Profil utilisateur 🔄 En cours
+### E01-007 — Profil utilisateur ✅ Done
 **Priorité** : P1 | **Taille** : S
 
 - ✅ Nom (modification)
 - ✅ Email (affiché, en lecture seule avec hint re-confirmation)
 - ✅ Changement de mot de passe (current + new + confirm)
 - ⬜ Activation/désactivation MFA (dépend de E01-003)
-- ⬜ Langue (FR / EN) — le language switcher existe dans le layout auth
-- ⬜ Migration vers composants partagés + route `/profile` dans chaque contexte (voir E01-011)
+- ✅ Langue (FR / EN) — sélecteur avec Select dropdown dans la page profil + language switcher dans le layout auth
+- ✅ Migration vers composants partagés + route `/profile` dans chaque contexte (voir E01-011)
 
 ---
 
@@ -215,37 +215,42 @@ Le route group `(account)` est **séparé** de `(app)` et `(rights-holder)` pour
 
 ---
 
-### E01-011 — Profil utilisateur (dans chaque contexte) ⬜ A faire
+### E01-011 — Profil utilisateur (dans chaque contexte) ✅ Done
 **Priorité** : P0 | **Taille** : M
 
-La page profil concerne l'**utilisateur** (pas le compte). Elle est actuellement dans `(account)/account/profile/` — accessible depuis tous les contextes via le layout standalone. Les composants pourraient être extraits dans `src/components/profile/` pour plus de modularité.
+La page profil concerne l'**utilisateur** (pas le compte). Elle est dans `(account)/account/profile/` — accessible depuis tous les contextes via le layout standalone. Les composants sont extraits dans `src/components/profile/` pour la modularité.
 
-**État actuel** :
-- Page profil dans `(account)/account/profile/` — accessible à `/account/profile`
-- Composants non encore extraits dans `src/components/profile/`
-- Le profil est une notion user, pas account — à terme, la route pourrait passer de `/account/profile` à `/profile`
-
-**Architecture cible** :
+**Architecture implémentée** :
 
 ```
 src/components/profile/                     ← composants partagés
-├── profile-form.tsx                        ← nom, email (readonly), changement mdp (refacto)
-├── sessions-list.tsx                       ← sessions actives + révocation
-└── actions.ts                              ← server actions (updateProfile, changePassword, listSessions…)
-```
+├── actions.ts                              ← server actions (updateProfile, changePassword, listSessions, revokeSession, revokeAllOtherSessions)
+├── profile-info-form.tsx                   ← nom, email (readonly)
+├── change-password-form.tsx                ← changement de mot de passe (current + new + confirm)
+├── sessions-list.tsx                       ← sessions actives + révocation individuelle/globale + sign out
+├── language-selector.tsx                   ← sélecteur de langue (FR / EN) avec Select dropdown
+└── profile-tabs.tsx                        ← sous-navigation Profil | Sessions
 
-Note : la route pourrait passer de `/account/profile` à `/profile` (le profil n'est pas lié au compte).
+src/app/[locale]/(account)/account/profile/
+├── layout.tsx                              ← heading + ProfileTabs
+├── page.tsx                                ← ProfileInfoForm + ChangePasswordForm + LanguageSelector
+└── sessions/page.tsx                       ← SessionsList
+```
 
 **Décisions** :
 - **Tabs** : sous-navigation `Profil | Sessions` (cohérent avec les tabs de `/account/*`).
+- **Route** : reste à `/account/profile` (déplacement vers `/profile` reporté — pas prioritaire).
+- **Langue** : sélecteur avec `Select` dropdown dans un Card, utilise `next-intl` router.replace pour switcher la locale.
 
 **Tâches** :
-- ⬜ Extraire `src/components/profile/` avec les composants partagés : `ProfileForm`, `SessionsList`
-- ⬜ Refactorer `profile-form.tsx` et `actions.ts` depuis `(account)/account/profile/` → `src/components/profile/`
-- ⬜ Éventuellement déplacer la route de `/account/profile` à `/profile`
-- ⬜ Mettre à jour les liens "Mon profil" dans le header marketplace et la sidebar dashboard
+- ✅ Extraire `src/components/profile/` avec les composants partagés : `ProfileInfoForm`, `ChangePasswordForm`, `SessionsList`, `LanguageSelector`, `ProfileTabs`
+- ✅ Refactorer `profile-form.tsx` monolithique (~280 lignes) → composants séparés + server actions dans `src/components/profile/actions.ts`
+- ✅ Sous-navigation par tabs `Profil | Sessions` avec layout dédié
+- ✅ Sélecteur de langue préférée (FR / EN) avec Select dropdown
+- ✅ Liens "Mon profil" fonctionnels (marketplace header, sidebar RH, sidebar admin)
+- ✅ Traductions en/fr mises à jour (tabs, language, titleDescription)
+- ⬜ Éventuellement déplacer la route de `/account/profile` à `/profile` (reporté)
 - ⬜ Activation/désactivation MFA depuis la page profil (dépend de E01-003)
-- ⬜ Sélecteur de langue préférée (FR / EN) avec persistance
 
 ---
 
@@ -260,12 +265,13 @@ Note : la route pourrait passer de `/account/profile` à `/profile` (le profil n
 | `src/lib/pricing/__tests__/pricing.test.ts` | 19 | `calculatePricing` (marges, commissions, frais, arrondis), `resolveCommissionRate`, `formatAmount` |
 | `src/lib/__tests__/utils.test.ts` | 11 | `calculateRequestExpiry`, `isRequestExpired`, `findPriceForCountry` |
 
-### Tests E2E (Playwright) — 24 tests ✅
+### Tests E2E (Playwright) — 29 tests ✅
 
 | Fichier | Tests | Couverture |
 |---------|-------|------------|
 | `e2e/auth.spec.ts` | 16 | Pages auth (login/register/forgot-password), redirections auth, gestion des locales, validation formulaire login, mismatch mot de passe register |
 | `e2e/account.spec.ts` | 8 | Redirections compte non authentifié, API auth accessible, protection des routes par type de compte (exhibitor/RH/admin) |
+| `e2e/user-flows.spec.ts` | 5 | Inscription + vérification email, onboarding (no-account → onboarding → catalogue), édition infos account (company name persist), édition profil (name + toast), page sessions (heading + revoke buttons) |
 
 ### Infrastructure test
 

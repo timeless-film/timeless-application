@@ -547,6 +547,11 @@
   },
   "profile": {
     "title": "Profil",
+    "titleDescription": "Gérez vos informations personnelles et vos préférences.",
+    "tabs": {
+      "profile": "Profil",
+      "sessions": "Sessions"
+    },
     "personalInfo": "Informations personnelles",
     "personalInfoDescription": "Modifiez votre nom et votre adresse e-mail.",
     "email": "Adresse e-mail",
@@ -570,6 +575,9 @@
     "passwordChanged": "Mot de passe changé avec succès.",
     "sessionRevoked": "Session révoquée.",
     "allSessionsRevoked": "Toutes les autres sessions ont été révoquées.",
+    "language": "Langue",
+    "languageDescription": "Choisissez votre langue préférée pour l'interface.",
+    "preferredLanguage": "Langue préférée",
     "error": {
       "updateFailed": "Impossible de mettre à jour le profil.",
       "passwordMismatch": "Les mots de passe ne correspondent pas.",
