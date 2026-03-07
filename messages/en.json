@@ -24,6 +24,12 @@
     "noResults": "No results found."
   },
   "auth": {
+    "alreadyConnected": {
+      "title": "Already signed in",
+      "message": "You are signed in as {name} ({email}).",
+      "dashboard": "Go to dashboard",
+      "signOut": "Sign out"
+    },
     "login": {
       "title": "Sign in to TIMELESS",
       "subtitle": "Welcome back",
@@ -55,6 +61,7 @@
       "termsLink": "Terms of Service",
       "privacyLink": "Privacy Policy",
       "emailSent": "We sent a verification email to {email}. Please check your inbox.",
+      "passwordRules": "Must be at least 8 characters.",
       "error": {
         "emailTaken": "This email address is already in use.",
         "passwordMismatch": "Passwords do not match.",
@@ -75,19 +82,24 @@
       "passwordConfirm": "Confirm new password",
       "submit": "Reset password",
       "success": "Your password has been reset. You can now sign in.",
+      "passwordRules": "Must be at least 8 characters.",
       "error": {
-        "invalidToken": "This reset link is invalid or has expired."
+        "invalidToken": "This reset link is invalid or has expired.",
+        "passwordMismatch": "Passwords do not match."
       }
     }
   },
   "navigation": {
     "catalogue": "Catalogue",
     "cart": "Cart",
+    "orders": "My orders",
     "requests": "My requests",
     "account": "Account",
+    "profile": "Profile",
     "cinemas": "My cinemas",
     "members": "Members",
     "films": "My films",
+    "validationRequests": "Validation requests",
     "wallet": "Wallet",
     "dashboard": "Dashboard",
     "rightsHolders": "Rights holders",
@@ -95,7 +107,9 @@
     "deliveries": "Deliveries",
     "settings": "Settings",
     "logs": "Audit logs",
-    "signOut": "Sign out"
+    "signOut": "Sign out",
+    "main": "Main",
+    "management": "Management"
   },
   "catalogue": {
     "title": "Catalogue",
@@ -484,6 +498,106 @@
         "performedBy": "Performed by",
         "details": "Details"
       }
+    }
+  },
+  "onboarding": {
+    "title": "Set up your account",
+    "subtitle": "Tell us about your organisation to get started.",
+    "companyName": "Company name",
+    "country": "Country",
+    "submit": "Continue",
+    "success": "Account created successfully!",
+    "error": {
+      "UNAUTHORIZED": "You must be signed in.",
+      "ALREADY_HAS_ACCOUNT": "You already have an account.",
+      "CREATION_FAILED": "Failed to create your account. Please try again."
+    }
+  },
+  "profile": {
+    "title": "Profile",
+    "personalInfo": "Personal information",
+    "personalInfoDescription": "Update your name and email address.",
+    "email": "Email address",
+    "emailHint": "Changing your email will require re-verification.",
+    "name": "Full name",
+    "save": "Save changes",
+    "changePassword": "Change password",
+    "changePasswordDescription": "Update your password to keep your account secure.",
+    "currentPassword": "Current password",
+    "newPassword": "New password",
+    "confirmPassword": "Confirm new password",
+    "passwordRules": "Must be at least 8 characters.",
+    "updatePassword": "Update password",
+    "activeSessions": "Active sessions",
+    "activeSessionsDescription": "Manage your active sessions across devices.",
+    "unknownDevice": "Unknown device",
+    "unknownIp": "Unknown IP",
+    "revokeAllSessions": "Revoke all other sessions",
+    "signOut": "Sign out",
+    "profileUpdated": "Profile updated successfully.",
+    "passwordChanged": "Password changed successfully.",
+    "sessionRevoked": "Session revoked.",
+    "allSessionsRevoked": "All other sessions revoked.",
+    "error": {
+      "updateFailed": "Failed to update profile.",
+      "passwordMismatch": "Passwords do not match.",
+      "weakPassword": "Password must be at least 8 characters.",
+      "changeFailed": "Failed to change password.",
+      "revokeFailed": "Failed to revoke session."
+    }
+  },
+  "members": {
+    "title": "Team members",
+    "description": "Manage the members of your organisation.",
+    "you": "you",
+    "role": {
+      "owner": "Owner",
+      "admin": "Admin",
+      "member": "Member"
+    },
+    "promoteToAdmin": "Promote to admin",
+    "demoteToMember": "Demote to member",
+    "removeMember": "Remove member",
+    "roleUpdated": "Role updated.",
+    "memberRemoved": "Member removed.",
+    "inviteSent": "Invitation sent.",
+    "inviteCancelled": "Invitation cancelled.",
+    "invite": {
+      "title": "Invite a member",
+      "description": "Send an invitation to join your organisation.",
+      "email": "Email address",
+      "emailPlaceholder": "colleague@example.com",
+      "role": "Role",
+      "send": "Send invitation",
+      "pending": "Pending invitations",
+      "expiresAt": "Expires {date}",
+      "cancel": "Cancel invitation"
+    },
+    "error": {
+      "updateFailed": "Failed to update role.",
+      "removeFailed": "Failed to remove member.",
+      "cancelFailed": "Failed to cancel invitation.",
+      "invite": {
+        "UNAUTHORIZED": "You must be signed in.",
+        "FORBIDDEN": "You do not have permission to invite members.",
+        "ALREADY_INVITED": "This email has already been invited."
+      }
+    }
+  },
+  "acceptInvitation": {
+    "title": "Accept invitation",
+    "description": "You have been invited to join an organisation.",
+    "processing": "Processing your invitation…",
+    "success": "Invitation accepted!",
+    "successMessage": "You have joined the organisation. You can now access the platform.",
+    "continue": "Continue",
+    "goHome": "Go to homepage",
+    "error": {
+      "UNAUTHORIZED": "You must be signed in to accept this invitation.",
+      "INVALID_TOKEN": "This invitation link is invalid or has expired.",
+      "EMAIL_MISMATCH": "This invitation was sent to a different email address.",
+      "ALREADY_MEMBER": "You are already a member of this organisation.",
+      "UNKNOWN": "An error occurred. Please try again."
     }
   },
   "emails": {

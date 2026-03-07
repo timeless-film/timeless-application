@@ -4,7 +4,7 @@
 
 | Phase | Objectif | Sprints | Statut |
 |---|---|---|---|
-| **P0 — Fondations** | Infra, auth, structure des comptes | S1–S2 | A faire |
+| **P0 — Fondations** | Infra, auth, structure des comptes | S1–S2 | 🔄 En cours |
 | **P1 — Catalogue** | Import, enrichissement TMDB, recherche | S3–S4 | A faire |
 | **P2 — Réservation** | Panier, demandes, validation, paiement de base | S5–S7 | A faire |
 | **P3 — Finance & Ops** | Stripe Connect, wallets, backoffice, livraison | S8–S10 | A faire |
@@ -16,7 +16,7 @@
 
 | ID | Nom | Phase | Tickets |
 |---|---|---|---|
-| [[E01 - Auth & Comptes]] | Authentification & gestion des comptes | P0 | 8 |
+| [[E01 - Auth & Comptes]] | Authentification & gestion des comptes | P0 | 8 | ✅ Done (sauf MFA UI — P1) |
 | [[E02 - Exploitants]] | Comptes exploitants de cinéma | P0 | 6 |
 | [[E03 - Ayants Droits]] | Comptes ayants droits | P0 | 4 |
 | [[E04 - Catalogue & Import]] | Import CSV, CRUD, enrichissement TMDB | P1 | 8 |

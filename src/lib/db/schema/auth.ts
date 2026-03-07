@@ -10,6 +10,10 @@ export const betterAuthUsers = pgTable("better_auth_users", {
   image: text("image"),
   createdAt: timestamp("created_at").notNull(),
   updatedAt: timestamp("updated_at").notNull(),
+  // Two-factor plugin fields
+  twoFactorEnabled: boolean("two_factor_enabled"),
+  twoFactorSecret: text("two_factor_secret"),
+  twoFactorBackupCodes: text("two_factor_backup_codes"),
 });
 
 export const betterAuthSessions = pgTable("better_auth_sessions", {

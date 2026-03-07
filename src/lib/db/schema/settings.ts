@@ -18,7 +18,7 @@ export const platformSettings = pgTable("platform_settings", {
   requestUrgencyDaysBeforeStart: integer("request_urgency_days_before_start").notNull().default(7),
 
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-  updatedById: uuid("updated_by_id"), // References users.id (no FK to avoid circular dependencies)
+  updatedById: text("updated_by_id"), // References better_auth_users.id (no FK to avoid circular deps)
 });
 
 // ─── Platform settings history ────────────────────────────────────────────────
@@ -27,7 +27,7 @@ export const platformSettingsHistory = pgTable("platform_settings_history", {
   field: text("field").notNull(),
   oldValue: text("old_value"),
   newValue: text("new_value").notNull(),
-  changedById: uuid("changed_by_id").notNull(),
+  changedById: text("changed_by_id").notNull(),
   changedAt: timestamp("changed_at").defaultNow().notNull(),
 });
 
@@ -37,7 +37,7 @@ export const auditLogs = pgTable("audit_logs", {
   action: text("action").notNull(), // e.g. "account.suspended", "commission.updated"
   entityType: text("entity_type"), // e.g. "account", "film", "order"
   entityId: uuid("entity_id"),
-  performedById: uuid("performed_by_id"), // Admin who performed the action
+  performedById: text("performed_by_id"), // Admin who performed the action
   metadata: text("metadata"), // Stringified JSON with action details
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

@@ -24,6 +24,12 @@
     "noResults": "Aucun résultat trouvé."
   },
   "auth": {
+    "alreadyConnected": {
+      "title": "Déjà connecté",
+      "message": "Vous êtes connecté en tant que {name} ({email}).",
+      "dashboard": "Accéder au tableau de bord",
+      "signOut": "Se déconnecter"
+    },
     "login": {
       "title": "Connexion à TIMELESS",
       "subtitle": "Bienvenue",
@@ -55,6 +61,7 @@
       "termsLink": "Conditions d'utilisation",
       "privacyLink": "Politique de confidentialité",
       "emailSent": "Un email de vérification a été envoyé à {email}. Veuillez vérifier votre boîte mail.",
+      "passwordRules": "Doit contenir au moins 8 caractères.",
       "error": {
         "emailTaken": "Cette adresse email est déjà utilisée.",
         "passwordMismatch": "Les mots de passe ne correspondent pas.",
@@ -75,19 +82,24 @@
       "passwordConfirm": "Confirmer le nouveau mot de passe",
       "submit": "Réinitialiser le mot de passe",
       "success": "Votre mot de passe a été réinitialisé. Vous pouvez maintenant vous connecter.",
+      "passwordRules": "Doit contenir au moins 8 caractères.",
       "error": {
-        "invalidToken": "Ce lien de réinitialisation est invalide ou a expiré."
+        "invalidToken": "Ce lien de réinitialisation est invalide ou a expiré.",
+        "passwordMismatch": "Les mots de passe ne correspondent pas."
       }
     }
   },
   "navigation": {
     "catalogue": "Catalogue",
     "cart": "Panier",
+    "orders": "Mes commandes",
     "requests": "Mes demandes",
     "account": "Compte",
+    "profile": "Profil",
     "cinemas": "Mes cinémas",
     "members": "Membres",
     "films": "Mes films",
+    "validationRequests": "Demandes de validation",
     "wallet": "Portefeuille",
     "dashboard": "Tableau de bord",
     "rightsHolders": "Ayants droits",
@@ -95,7 +107,9 @@
     "deliveries": "Livraisons",
     "settings": "Paramètres",
     "logs": "Journal d'audit",
-    "signOut": "Se déconnecter"
+    "signOut": "Se déconnecter",
+    "main": "Principal",
+    "management": "Gestion"
   },
   "catalogue": {
     "title": "Catalogue",
@@ -484,6 +498,106 @@
         "performedBy": "Effectué par",
         "details": "Détails"
       }
+    }
+  },
+  "onboarding": {
+    "title": "Configurez votre compte",
+    "subtitle": "Parlez-nous de votre organisation pour commencer.",
+    "companyName": "Nom de l'entreprise",
+    "country": "Pays",
+    "submit": "Continuer",
+    "success": "Compte créé avec succès !",
+    "error": {
+      "UNAUTHORIZED": "Vous devez être connecté.",
+      "ALREADY_HAS_ACCOUNT": "Vous avez déjà un compte.",
+      "CREATION_FAILED": "Impossible de créer votre compte. Veuillez réessayer."
+    }
+  },
+  "profile": {
+    "title": "Profil",
+    "personalInfo": "Informations personnelles",
+    "personalInfoDescription": "Modifiez votre nom et votre adresse e-mail.",
+    "email": "Adresse e-mail",
+    "emailHint": "Changer votre e-mail nécessitera une nouvelle vérification.",
+    "name": "Nom complet",
+    "save": "Enregistrer",
+    "changePassword": "Changer le mot de passe",
+    "changePasswordDescription": "Mettez à jour votre mot de passe pour sécuriser votre compte.",
+    "currentPassword": "Mot de passe actuel",
+    "newPassword": "Nouveau mot de passe",
+    "confirmPassword": "Confirmer le nouveau mot de passe",
+    "passwordRules": "Au moins 8 caractères.",
+    "updatePassword": "Mettre à jour le mot de passe",
+    "activeSessions": "Sessions actives",
+    "activeSessionsDescription": "Gérez vos sessions actives sur vos appareils.",
+    "unknownDevice": "Appareil inconnu",
+    "unknownIp": "IP inconnue",
+    "revokeAllSessions": "Révoquer toutes les autres sessions",
+    "signOut": "Se déconnecter",
+    "profileUpdated": "Profil mis à jour.",
+    "passwordChanged": "Mot de passe changé avec succès.",
+    "sessionRevoked": "Session révoquée.",
+    "allSessionsRevoked": "Toutes les autres sessions ont été révoquées.",
+    "error": {
+      "updateFailed": "Impossible de mettre à jour le profil.",
+      "passwordMismatch": "Les mots de passe ne correspondent pas.",
+      "weakPassword": "Le mot de passe doit contenir au moins 8 caractères.",
+      "changeFailed": "Impossible de changer le mot de passe.",
+      "revokeFailed": "Impossible de révoquer la session."
+    }
+  },
+  "members": {
+    "title": "Membres de l'équipe",
+    "description": "Gérez les membres de votre organisation.",
+    "you": "vous",
+    "role": {
+      "owner": "Propriétaire",
+      "admin": "Administrateur",
+      "member": "Membre"
+    },
+    "promoteToAdmin": "Promouvoir administrateur",
+    "demoteToMember": "Rétrograder en membre",
+    "removeMember": "Retirer le membre",
+    "roleUpdated": "Rôle mis à jour.",
+    "memberRemoved": "Membre retiré.",
+    "inviteSent": "Invitation envoyée.",
+    "inviteCancelled": "Invitation annulée.",
+    "invite": {
+      "title": "Inviter un membre",
+      "description": "Envoyez une invitation à rejoindre votre organisation.",
+      "email": "Adresse e-mail",
+      "emailPlaceholder": "collegue@exemple.com",
+      "role": "Rôle",
+      "send": "Envoyer l'invitation",
+      "pending": "Invitations en attente",
+      "expiresAt": "Expire le {date}",
+      "cancel": "Annuler l'invitation"
+    },
+    "error": {
+      "updateFailed": "Impossible de mettre à jour le rôle.",
+      "removeFailed": "Impossible de retirer le membre.",
+      "cancelFailed": "Impossible d'annuler l'invitation.",
+      "invite": {
+        "UNAUTHORIZED": "Vous devez être connecté.",
+        "FORBIDDEN": "Vous n'avez pas la permission d'inviter des membres.",
+        "ALREADY_INVITED": "Cet e-mail a déjà été invité."
+      }
+    }
+  },
+  "acceptInvitation": {
+    "title": "Accepter l'invitation",
+    "description": "Vous avez été invité à rejoindre une organisation.",
+    "processing": "Traitement de votre invitation…",
+    "success": "Invitation acceptée !",
+    "successMessage": "Vous avez rejoint l'organisation. Vous pouvez maintenant accéder à la plateforme.",
+    "continue": "Continuer",
+    "goHome": "Retour à l'accueil",
+    "error": {
+      "UNAUTHORIZED": "Vous devez être connecté pour accepter cette invitation.",
+      "INVALID_TOKEN": "Ce lien d'invitation est invalide ou a expiré.",
+      "EMAIL_MISMATCH": "Cette invitation a été envoyée à une autre adresse e-mail.",
+      "ALREADY_MEMBER": "Vous êtes déjà membre de cette organisation.",
+      "UNKNOWN": "Une erreur est survenue. Veuillez réessayer."
     }
   },
   "emails": {

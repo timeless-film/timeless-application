@@ -101,7 +101,7 @@ export function normalizeTmdbData(movie: TmdbMovie) {
     synopsis: movie.overview,
     synopsisEn: enTranslation?.data.overview ?? null,
     duration: movie.runtime ?? null,
-    releaseYear: movie.release_date ? parseInt(movie.release_date.split("-")[0]) : null,
+    releaseYear: movie.release_date ? parseInt(movie.release_date.split("-")[0] ?? "", 10) : null,
     genres: movie.genres.map((g) => g.name),
     directors,
     cast,
@@ -126,6 +126,8 @@ export async function enrichFilmFromTmdb(
 
   // Simple heuristic: first result if the title matches well
   const best = results[0];
+  if (!best) return null;
+
   const titleMatch =
     best.title.toLowerCase().includes(title.toLowerCase()) ||
     best.original_title.toLowerCase().includes(title.toLowerCase());

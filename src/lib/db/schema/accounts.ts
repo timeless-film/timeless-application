@@ -1,6 +1,8 @@
 import { relations } from "drizzle-orm";
 import { pgTable, text, timestamp, pgEnum, uuid, boolean } from "drizzle-orm/pg-core";
 
+import { betterAuthUsers } from "./auth";
+
 export const accountTypeEnum = pgEnum("account_type", ["exhibitor", "rights_holder", "admin"]);
 
 export const accountStatusEnum = pgEnum("account_status", ["active", "suspended"]);
@@ -37,26 +39,15 @@ export const accounts = pgTable("accounts", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// ─── Users ────────────────────────────────────────────────────────────────────
-export const users = pgTable("users", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  email: text("email").notNull().unique(),
-  name: text("name").notNull(),
-  emailVerified: boolean("email_verified").default(false),
-  image: text("image"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
-
 // ─── Members (user <> account link with role) ─────────────────────────────────
 export const accountMembers = pgTable("account_members", {
   id: uuid("id").primaryKey().defaultRandom(),
   accountId: uuid("account_id")
     .notNull()
     .references(() => accounts.id, { onDelete: "cascade" }),
-  userId: uuid("user_id")
+  userId: text("user_id")
     .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
+    .references(() => betterAuthUsers.id, { onDelete: "cascade" }),
   role: memberRoleEnum("role").notNull().default("member"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -72,7 +63,7 @@ export const invitations = pgTable("invitations", {
   token: text("token").notNull().unique(),
   expiresAt: timestamp("expires_at").notNull(),
   acceptedAt: timestamp("accepted_at"),
-  invitedByUserId: uuid("invited_by_user_id").references(() => users.id),
+  invitedByUserId: text("invited_by_user_id").references(() => betterAuthUsers.id),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -82,7 +73,7 @@ export const accountsRelations = relations(accounts, ({ many }) => ({
   invitations: many(invitations),
 }));
 
-export const usersRelations = relations(users, ({ many }) => ({
+export const betterAuthUsersAccountRelations = relations(betterAuthUsers, ({ many }) => ({
   memberships: many(accountMembers),
 }));
 
@@ -91,8 +82,8 @@ export const accountMembersRelations = relations(accountMembers, ({ one }) => ({
     fields: [accountMembers.accountId],
     references: [accounts.id],
   }),
-  user: one(users, {
+  user: one(betterAuthUsers, {
     fields: [accountMembers.userId],
-    references: [users.id],
+    references: [betterAuthUsers.id],
   }),
 }));

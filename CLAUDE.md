@@ -101,6 +101,14 @@ Core flow: Catalogue → Cart → Request (if validation required) → Payment �
 - Use `cn()` from `@/lib/utils` for conditional class merging (clsx + tailwind-merge).
 - React Server Components by default; add `"use client"` only when needed.
 
+### Forms & feedback
+- Use **sonner** (`toast` from `"sonner"`) for success and error toasts. The `<Toaster />` is in the root layout.
+- Display **inline errors** in forms (below the field or in a summary) **and** fire a `toast.error()` for every user-facing error.
+- Mark required fields with a red asterisk: `<span className="text-destructive">*</span>` after the label text.
+- Show password rules as a hint (`text-xs text-muted-foreground`) below the password field.
+- Show real-time password mismatch below the confirm field when the user starts typing.
+- On auth pages, check the session (`useSession`). If the user is already signed in, render the `<AlreadyConnected />` component instead of the form.
+
 ### Database
 - Drizzle ORM with PostgreSQL.
 - Schema in `src/lib/db/schema/` — each file exports tables + relations.
@@ -143,3 +151,10 @@ Required in `.env`:
 - Always run `pnpm lint` before committing — pre-commit hooks enforce this.
 - When adding new DB tables, export them from `src/lib/db/schema/index.ts`.
 - Use `next-intl` for all user-facing strings — import `useTranslations` in client components, `getTranslations` in server components.
+
+## Progress tracking
+
+- Epics and tickets are documented in `docs/Epics/E*.md`. The roadmap is in `docs/01 - Roadmap.md`.
+- **Always update the relevant epic file when a ticket is completed or progresses** — add a status (`✅ Done`, `🔄 En cours`, `⬜ A faire`) next to each ticket title so we always know where we stand.
+- When a full epic is completed, update its status in `docs/01 - Roadmap.md` as well.
+- Move completed standalone files to the `done/` folder if applicable.
