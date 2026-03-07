@@ -1,0 +1,105 @@
+name: Deploy
+
+# Triggered automatically when the CI workflow completes successfully on main.
+# This ensures deploys only happen on green builds.
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
+
+env:
+  IMAGE_NAME: timeless
+  NODE_VERSION: "22"
+  PNPM_VERSION: "10"
+
+jobs:
+  deploy:
+    name: Build & Deploy to Scaleway
+    runs-on: ubuntu-latest
+
+    # Only run if CI passed
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      # ── Checkout the exact commit that passed CI ─────────────────────────
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      # ── Docker setup ─────────────────────────────────────────────────────
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Scaleway Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.SCW_REGISTRY_ENDPOINT }}
+          # Scaleway registry login: username is always "nologin", password is the secret key
+          username: nologin
+          password: ${{ secrets.SCW_SECRET_KEY }}
+
+      # ── Build & push image ────────────────────────────────────────────────
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          # Tag with both the commit SHA (immutable, used for deploy) and latest
+          tags: |
+            ${{ secrets.SCW_REGISTRY_ENDPOINT }}/${{ secrets.SCW_REGISTRY_NAMESPACE }}/${{ env.IMAGE_NAME }}:${{ github.event.workflow_run.head_sha }}
+            ${{ secrets.SCW_REGISTRY_ENDPOINT }}/${{ secrets.SCW_REGISTRY_NAMESPACE }}/${{ env.IMAGE_NAME }}:latest
+          build-args: |
+            NEXT_PUBLIC_APP_URL=${{ secrets.NEXT_PUBLIC_APP_URL }}
+            NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
+          # GitHub Actions cache for faster rebuilds
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # ── Database migrations ───────────────────────────────────────────────
+      # Run migrations BEFORE deploying the new image.
+      # If migration fails, the deploy step is skipped — safe rollback.
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run database migrations
+        # Run drizzle-kit directly (without the dotenv wrapper used locally)
+        # DATABASE_URL is injected from GitHub secrets
+        run: npx drizzle-kit migrate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      # ── Deploy to Scaleway Serverless Containers ──────────────────────────
+      - name: Set up Scaleway CLI
+        uses: scaleway/setup-scaleway-cli@v2
+        with:
+          version: latest
+          access-key: ${{ secrets.SCW_ACCESS_KEY }}
+          secret-key: ${{ secrets.SCW_SECRET_KEY }}
+          default-region: ${{ secrets.SCW_REGION }}
+          default-zone: ${{ secrets.SCW_ZONE }}
+
+      - name: Update container image
+        # Point the container to the new immutable image (SHA tag, not :latest)
+        run: |
+          scw container container update ${{ secrets.SCW_CONTAINER_ID }} \
+            registry-image="${{ secrets.SCW_REGISTRY_ENDPOINT }}/${{ secrets.SCW_REGISTRY_NAMESPACE }}/${{ env.IMAGE_NAME }}:${{ github.event.workflow_run.head_sha }}" \
+            region=${{ secrets.SCW_REGION }}
+
+      - name: Deploy container
+        # Trigger a new deployment — Scaleway will pull the new image and restart
+        run: |
+          scw container container deploy ${{ secrets.SCW_CONTAINER_ID }} \
+            region=${{ secrets.SCW_REGION }}

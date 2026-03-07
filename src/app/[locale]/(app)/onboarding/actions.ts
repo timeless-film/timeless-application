@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 
 import { auth } from "@/lib/auth";
 import { ACTIVE_ACCOUNT_COOKIE, encodeActiveAccountCookie } from "@/lib/auth/active-account-cookie";
+import { identifyUser } from "@/lib/customerio";
 import { db } from "@/lib/db";
 import { accountMembers, accounts } from "@/lib/db/schema";
 
@@ -60,6 +61,16 @@ export async function createExhibitorAccount(input: OnboardingInput) {
     sameSite: "lax",
     path: "/",
     maxAge: 60 * 60 * 24 * 365,
+  });
+
+  // Identify user in Customer.io
+  await identifyUser({
+    userId: session.user.id,
+    email: session.user.email,
+    name: session.user.name,
+    accountType: "exhibitor",
+    accountId: account.id,
+    country: input.country,
   });
 
   return { success: true, accountId: account.id };

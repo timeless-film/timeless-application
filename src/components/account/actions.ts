@@ -5,6 +5,7 @@ import { headers } from "next/headers";
 
 import { auth } from "@/lib/auth";
 import { getCurrentMembership } from "@/lib/auth/membership";
+import { sendInvitationEmail } from "@/lib/customerio";
 import { db } from "@/lib/db";
 import { accountMembers, accounts, invitations } from "@/lib/db/schema";
 
@@ -195,9 +196,15 @@ export async function inviteMember(input: { email: string; role: "admin" | "memb
     invitedByUserId: ctx.session.user.id,
   });
 
-  // TODO: integrate Customer.io to send invitation email
   const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/accept-invitation?token=${token}`;
-  console.warn(`Invitation for ${input.email}: ${inviteUrl}`);
+
+  await sendInvitationEmail({
+    email: input.email,
+    inviteUrl,
+    inviterName: ctx.session.user.name,
+    accountName: ctx.account.companyName,
+    role: input.role,
+  });
 
   return { success: true };
 }

@@ -1,0 +1,43 @@
+# Dependencies (reinstalled inside Docker)
+node_modules
+.pnpm-store
+
+# Next.js build output (produced inside Docker)
+.next
+out
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# CI/CD
+.github
+
+# Tests
+e2e
+playwright-report
+test-results
+coverage
+vitest.config.ts
+vitest.setup.ts
+playwright.config.ts
+
+# Documentation
+docs
+done
+CLAUDE.md
+README.md
+
+# Environment files — secrets are injected at runtime by Scaleway
+.env
+.env.local
+.env.*.local
+.env.production
+
+# Drizzle migrations — applied in CI before deploy, not needed in the container
+drizzle
+
+# Misc
+echo
+*.md

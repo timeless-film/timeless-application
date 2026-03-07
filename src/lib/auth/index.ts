@@ -2,6 +2,7 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { twoFactor } from "better-auth/plugins";
 
+import { sendResetPasswordEmail, sendVerificationEmail } from "@/lib/customerio";
 import { db } from "@/lib/db";
 import * as schema from "@/lib/db/schema";
 
@@ -20,15 +21,13 @@ export const auth = betterAuth({
     enabled: true,
     requireEmailVerification: true,
     sendResetPassword: async ({ user, url }) => {
-      // TODO: integrate Customer.io
-      console.warn(`Reset password for ${user.email}: ${url}`);
+      await sendResetPasswordEmail(user.id, user.email, url);
     },
   },
 
   emailVerification: {
     sendVerificationEmail: async ({ user, url }) => {
-      // TODO: integrate Customer.io
-      console.warn(`Verify email for ${user.email}: ${url}`);
+      await sendVerificationEmail(user.id, user.email, user.name, url);
     },
   },
 

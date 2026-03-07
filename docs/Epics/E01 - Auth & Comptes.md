@@ -65,7 +65,7 @@ Principe d'architecture : les pages de **gestion du compte** (informations, memb
 - ✅ Page d'acceptation d'invitation (`(app)/accept-invitation/`)
 - ✅ Liste des invitations en attente avec annulation
 - ✅ Contrôle de permissions (owner/admin) pour inviter
-- ⬜ Email d'invitation via Customer.io (actuellement console.warn)
+- ✅ Email d'invitation via Customer.io (event `member_invitation_sent`)
 
 ---
 
