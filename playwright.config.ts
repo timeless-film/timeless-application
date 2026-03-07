@@ -13,6 +13,8 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 1,
   workers: 1,
+  // CI runners are slow — give each test enough time for registration + onboarding + assertions
+  timeout: process.env.CI ? 60_000 : 30_000,
   reporter: process.env.CI ? "github" : "html",
   use: {
     baseURL,

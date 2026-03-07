@@ -2,7 +2,7 @@
 
 import { Loader2 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 import { createExhibitorAccount } from "./actions";
+
+// SSR: false → button disabled in server HTML. Client: true → button enabled after hydration.
+const noopSubscribe = () => () => {};
+function useIsHydrated(): boolean {
+  return useSyncExternalStore(
+    noopSubscribe,
+    () => true,
+    () => false
+  );
+}
 
 const COUNTRIES = [
   { code: "FR", label: "France" },
@@ -42,6 +52,12 @@ export function OnboardingForm() {
   const [country, setCountry] = useState("FR");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // Prevent form submission before React hydration.
+  // Without this, a fast click on the submit button (e.g. on slow CI) could
+  // trigger a native GET form submit because the React onSubmit handler
+  // (which calls e.preventDefault()) is not yet attached.
+  const isHydrated = useIsHydrated();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -120,7 +136,7 @@ export function OnboardingForm() {
               </div>
             </CardContent>
             <CardFooter>
-              <Button type="submit" className="w-full" disabled={loading}>
+              <Button type="submit" className="w-full" disabled={!isHydrated || loading}>
                 {loading && <Loader2 className="animate-spin" />}
                 {t("submit")}
               </Button>

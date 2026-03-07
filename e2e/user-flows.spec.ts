@@ -111,8 +111,11 @@ test.describe("Onboarding flow", () => {
     await registerAndLogin(page, request, user);
     await completeOnboarding(page, companyName);
 
-    // Company name should appear in the header (longer timeout for CI full-page reload)
-    await expect(page.getByText(companyName)).toBeVisible({ timeout: 15000 });
+    // After hard navigation (window.location.href), wait for page to fully load
+    await page.waitForLoadState("networkidle");
+
+    // Company name should appear in the marketplace header
+    await expect(page.getByText(companyName)).toBeVisible({ timeout: 30000 });
   });
 });
 
