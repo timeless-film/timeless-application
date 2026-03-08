@@ -42,7 +42,7 @@ jobs:
         # If the schema has changed without a matching migration, new files appear
         # in drizzle/ and git diff exits non-zero, failing the build.
         run: |
-          DATABASE_URL="postgresql://localhost/placeholder" npx drizzle-kit generate </dev/null 2>&1
+          DATABASE_URL="postgresql://localhost/placeholder" pnpm exec drizzle-kit generate </dev/null 2>&1
           if ! git diff --quiet -- drizzle/ || git ls-files --others --exclude-standard -- drizzle/ | grep -q .; then
             echo ""
             echo "❌ Schema changes detected without a corresponding Drizzle migration."
