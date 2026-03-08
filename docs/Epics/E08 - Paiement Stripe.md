@@ -20,14 +20,14 @@ prix_affiché = prix_catalogue × (1 + marge_plateforme%) + frais_livraison
 - → Prix affiché à l'exploitant : 150 × 1.20 + 50 = **230 EUR**
 
 **Répartition après paiement** :
-- Ayant droit reçoit : `prix_catalogue × (1 - commission%)` → ex. 150 × 90% = **135 EUR**
-- TIMELESS garde : `(prix_catalogue × marge%) + frais_livraison + (prix_catalogue × commission%)` → ex. 30 + 50 + 15 = **95 EUR**
+- Ayant droit reçoit : `prix_catalogue × (1 - commission%)` → ex. 150 × 85% = **127.50 EUR**
+- TIMELESS garde : `(prix_catalogue × marge%) + frais_livraison + (prix_catalogue × commission%)` → ex. 30 + 50 + 22.50 = **102.50 EUR**
 
 **Paramètres configurables en backoffice** (voir E11-007) :
 - `marge_plateforme` : % global appliqué à tous les films (défaut : à définir)
 - `frais_livraison` : montant fixe en EUR par commande (défaut : 50 EUR)
-- `commission_defaut` : % prélevé sur le prix catalogue de l'ayant droit (défaut : 10%)
-- `commission_par_ayant_droit` : override par compte (optionnel)
+- `commission_defaut` : % prélevé sur le prix catalogue de l'ayant droit (défaut : **15%**)
+- `commission_par_ayant_droit` : override par compte (optionnel, configuré à la création — voir E03-001)
 
 > L'ayant droit voit son prix catalogue dans son dashboard mais ne voit jamais le prix affiché côté exploitant.
 > L'exploitant voit uniquement le prix final (prix_affiché), pas la décomposition.
@@ -44,19 +44,9 @@ La TVA est calculée automatiquement via Stripe Tax en fonction de l'adresse de 
 
 ## Tickets
 
-### E08-001 — Onboarding Stripe Connect pour les ayants droits
-**Priorité** : P0 | **Taille** : L
+> **Note** : La configuration du compte Stripe Connect (KYC, onboarding Express, webhook `account.updated`) a été déplacée dans **E03-002**. Elle est implémentée dès le setup du compte ayant droit, indépendamment du flow de paiement.
 
-Flow déclenché lors de l'onboarding de l'ayant droit (E03-002) :
-- Intégration du flow Stripe Connect Express (hosted)
-- KYC automatique géré par Stripe (identité, coordonnées bancaires)
-- Statut de l'onboarding visible dans le backoffice admin et dans le dashboard ayant droit
-- Si onboarding incomplet → l'ayant droit ne peut pas recevoir de paiements (les fonds sont retenus)
-- Webhook Stripe → mise à jour du statut en base
-
----
-
-### E08-002 — Paiement du panier (achat direct)
+### E08-001 — Paiement du panier (achat direct)
 **Priorité** : P0 | **Taille** : L
 
 Flow :
@@ -69,7 +59,7 @@ Flow :
 
 ---
 
-### E08-003 — Paiement d'une demande validée
+### E08-002 — Paiement d'une demande validée
 **Priorité** : P0 | **Taille** : M
 
 - Création du lien de paiement Stripe lors de la validation par l'ayant droit
@@ -80,7 +70,7 @@ Flow :
 
 ---
 
-### E08-004 — Calcul du prix et splits de paiement
+### E08-003 — Calcul du prix et splits de paiement
 **Priorité** : P0 | **Taille** : L
 
 **Calcul du prix affiché** (fait côté serveur, jamais côté client) :
@@ -106,7 +96,7 @@ Chaque commande stocke :
 
 ---
 
-### E08-005 — Calcul automatique de la TVA (Stripe Tax)
+### E08-004 — Calcul automatique de la TVA (Stripe Tax)
 **Priorité** : P1 | **Taille** : M
 
 - Activation de Stripe Tax sur le compte TIMELESS
@@ -119,7 +109,7 @@ Affichage avant paiement : montant HT + TVA applicable + montant TTC.
 
 ---
 
-### E08-006 — Gestion des numéros de TVA
+### E08-005 — Gestion des numéros de TVA
 **Priorité** : P1 | **Taille** : M
 
 - Saisie du numéro de TVA dans le profil exploitant et ayant droit
@@ -129,7 +119,7 @@ Affichage avant paiement : montant HT + TVA applicable + montant TTC.
 
 ---
 
-### E08-007 — Génération des factures
+### E08-006 — Génération des factures
 **Priorité** : P1 | **Taille** : M
 
 - Facture générée automatiquement par Stripe après chaque paiement
@@ -139,7 +129,7 @@ Affichage avant paiement : montant HT + TVA applicable + montant TTC.
 
 ---
 
-### E08-008 — Gestion des remboursements
+### E08-007 — Gestion des remboursements
 **Priorité** : P2 | **Taille** : M
 
 - Les admins peuvent initier un remboursement depuis le backoffice
