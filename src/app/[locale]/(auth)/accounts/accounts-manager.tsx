@@ -9,8 +9,8 @@ import {
   ShieldCheckIcon,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
@@ -18,15 +18,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Separator } from "@/components/ui/separator";
 import { switchAccount } from "@/lib/auth/membership-actions";
+import { getCountryOptions } from "@/lib/countries";
 
 import { createAccount } from "./actions";
 
@@ -44,22 +39,12 @@ const TYPE_ICONS: Record<AccountType, typeof BuildingIcon> = {
   admin: ShieldCheckIcon,
 };
 
-const COUNTRIES = [
-  { code: "FR", label: "France" },
-  { code: "BE", label: "Belgique" },
-  { code: "CH", label: "Suisse" },
-  { code: "LU", label: "Luxembourg" },
-  { code: "CA", label: "Canada" },
-  { code: "DE", label: "Deutschland" },
-  { code: "GB", label: "United Kingdom" },
-  { code: "IT", label: "Italia" },
-  { code: "ES", label: "España" },
-  { code: "US", label: "United States" },
-];
-
 export function AccountsManager({ memberships, activeAccountId }: AccountsManagerProps) {
   const t = useTranslations("accounts");
+  const tCommon = useTranslations("common");
   const tMembers = useTranslations("members");
+  const locale = useLocale();
+  const countryOptions = useMemo(() => getCountryOptions(locale), [locale]);
   const router = useRouter();
 
   const [switching, setSwitching] = useState<string | null>(null);
@@ -189,18 +174,16 @@ export function AccountsManager({ memberships, activeAccountId }: AccountsManage
               <Label htmlFor="country">
                 {t("country")} <span className="text-destructive">*</span>
               </Label>
-              <Select value={country} onValueChange={setCountry} disabled={creating}>
-                <SelectTrigger id="country">
-                  <SelectValue placeholder={t("countryPlaceholder")} />
-                </SelectTrigger>
-                <SelectContent>
-                  {COUNTRIES.map((c) => (
-                    <SelectItem key={c.code} value={c.code}>
-                      {c.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                id="country"
+                options={countryOptions}
+                value={country}
+                onValueChange={setCountry}
+                disabled={creating}
+                placeholder={t("countryPlaceholder")}
+                searchPlaceholder={tCommon("search")}
+                emptyMessage={tCommon("noResults")}
+              />
             </div>
             <Separator />
             <div className="flex gap-2">

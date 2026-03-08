@@ -56,7 +56,7 @@ src/
 │   │   ├── (auth)/            # Login, register, forgot/reset password
 │   │   ├── (account)/         # Shared account management (profile, info, members)
 │   │   └── (rights-holder)/   # Rights holder routes (films, wallet…)
-│   └── api/                   # API routes (auth, webhooks)
+│   └── api/                   # API routes (auth, webhooks, v1 public API)
 ├── components/
 │   ├── ui/                    # shadcn/ui primitives (do not edit manually)
 │   ├── shared/                # Cross-feature reusable components
@@ -73,8 +73,11 @@ src/
 │   ├── db/                    # Drizzle client + schema
 │   │   └── schema/            # DB tables (accounts, films, orders, cinemas, settings, auth)
 │   ├── pricing/               # Pricing calculation engine
+│   ├── services/              # Business logic (shared between server actions & API routes)
 │   ├── stripe/                # Stripe + Connect helpers
 │   ├── tmdb/                  # TMDB API integration
+│   ├── countries.ts           # ISO country codes + localized names (Intl.DisplayNames)
+│   ├── currencies.ts          # ISO currency codes (Stripe-compatible) + localized names
 │   └── utils.ts               # Shared utilities (cn, formatters, etc.)
 ├── types/                     # Shared TypeScript types
 └── middleware.ts              # next-intl locale detection only — auth is in proxy.ts
@@ -83,6 +86,7 @@ messages/
 └── fr.json                    # French translations
 e2e/                           # Playwright E2E tests
 docs/                          # Project documentation (epics, roadmap)
+docs/api/                      # API documentation (README + per-resource docs)
 ```
 
 ### Key architecture decisions
@@ -183,8 +187,120 @@ Rules:
 
 - **Server Components (default)**: fetch data directly with `db.query.*` or service functions.
 - **Client Components**: TanStack React Query when interactivity demands it.
-- **Server actions**: mutations only. Never use `fetch()` from client to internal API routes.
-- **API routes** (`src/app/api/`): only for external consumers (webhooks, Better Auth).
+- **Server actions**: mutations and queries from the Next.js UI. Never use `fetch()` from client to internal API routes.
+- **API routes** (`src/app/api/`): public REST API for external consumers (third parties, mobile apps) + webhooks + Better Auth.
+
+### Service layer — shared business logic
+
+Business logic lives in **service functions** (`src/lib/services/*.ts`), not in server actions or API route handlers. Both entry points call the same services:
+
+```
+Next.js UI  →  server action  →  service function  ←  API route handler  ←  External client
+```
+
+- **Service functions** are pure business logic: validation, DB queries, rules enforcement. They receive already-authenticated context (accountId, userId) — they don't handle auth themselves.
+- **Server actions** handle auth (session check), call service functions, return `{ success }` or `{ error }`.
+- **API route handlers** handle auth (Bearer token), call service functions, return JSON with HTTP status codes.
+
+### API routes (REST v1)
+
+All public API routes live under `/api/v1/` with RESTful conventions:
+
+```
+src/app/api/
+├── auth/[...all]/route.ts          ← Better Auth (not versioned)
+├── webhooks/                       ← External webhooks (not versioned)
+│   ├── stripe/route.ts
+│   └── customerio/route.ts
+└── v1/                             ← Versioned public API
+    └── cinemas/
+        ├── route.ts                ← GET (list), POST (create)
+        └── [cinemaId]/
+            ├── route.ts            ← GET (detail), PATCH (update), DELETE
+            └── rooms/
+                ├── route.ts        ← GET (list), POST (create)
+                └── [roomId]/
+                    └── route.ts    ← GET, PATCH, DELETE
+```
+
+#### Conventions
+
+| Rule | Detail |
+|------|--------|
+| **Versioning** | `/api/v1/` prefix. Auth and webhooks stay unversioned (stable by nature). |
+| **RESTful** | Plural resource names. Standard HTTP verbs (GET/POST/PATCH/DELETE). |
+| **Nesting** | Max 2 levels deep (`/cinemas/[id]/rooms/[id]`). Beyond that, flatten. |
+| **Auth** | Bearer token in `Authorization` header. Webhooks use signature verification. |
+| **Success response** | `{ data: ... }` with appropriate status code (200, 201). |
+| **Error response** | `{ error: { code: "UPPER_SNAKE", message: "Human-readable" } }` with status code. |
+| **Status codes** | 200 (ok), 201 (created), 400 (validation), 401 (unauthorized), 403 (forbidden), 404 (not found), 409 (conflict), 500 (server error). |
+| **Pagination** | `?page=1&limit=20` → `{ data: [...], pagination: { page, limit, total } }`. |
+
+#### API route handler pattern
+
+```typescript
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+
+import { verifyBearerToken } from "@/lib/auth/api-auth";
+import { listCinemasForAccount } from "@/lib/services/cinema-service";
+
+export async function GET(request: NextRequest) {
+  // 1. Auth — verify Bearer token
+  const authResult = await verifyBearerToken(request);
+  if (!authResult.success) {
+    return NextResponse.json(
+      { error: { code: "UNAUTHORIZED", message: "Invalid or missing token" } },
+      { status: 401 }
+    );
+  }
+
+  // 2. Business logic — call service function
+  const cinemas = await listCinemasForAccount(authResult.accountId);
+
+  // 3. Return JSON response
+  return NextResponse.json({ data: cinemas });
+}
+```
+
+#### API documentation
+
+Every API route **must** have corresponding documentation in `docs/api/v1/`. Update docs whenever a route changes.
+
+```
+docs/api/
+├── README.md                       ← Overview, auth, conventions, versioning
+└── v1/
+    ├── cinemas.md                  ← Cinema endpoints
+    ├── rooms.md                    ← Room endpoints
+    └── ...
+```
+
+Standard format per endpoint:
+
+```markdown
+## GET /api/v1/cinemas
+
+List all cinemas for the authenticated account.
+
+**Auth**: Bearer token (required)
+
+**Query params**:
+| Param | Type | Default | Description |
+|-------|------|---------|-------------|
+| page  | int  | 1       | Page number |
+| limit | int  | 20      | Items per page (max 100) |
+
+**Response 200**:
+\`\`\`json
+{
+  "data": [{ "id": "...", "name": "...", ... }],
+  "pagination": { "page": 1, "limit": 20, "total": 3 }
+}
+\`\`\`
+
+**Errors**: 401 Unauthorized, 403 Forbidden
+```
 
 ### Loading & error states
 

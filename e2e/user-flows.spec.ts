@@ -85,15 +85,33 @@ async function completeOnboarding(page: Page, companyName: string) {
   await page.getByRole("link", { name: /create an account/i }).click();
   await expect(page).toHaveURL(/\/en\/onboarding/, { timeout: 15000 });
 
-  // Fill onboarding form
+  // ─── Step 1: Company information ─────────────────────────────────
   await expect(page.locator("#companyName")).toBeVisible({ timeout: 15000 });
   await page.fill("#companyName", companyName);
   // Country defaults to FR — leave as is
 
   await page.getByRole("button", { name: /continue/i }).click();
 
-  // Server action calls redirect() — Next.js handles navigation server-side.
-  // Wait for the catalog page to load.
+  // ─── Step 2: Add a cinema ────────────────────────────────────────
+  // The add cinema form should be visible (auto-shown when no cinemas)
+  await expect(page.locator("#cinemaName")).toBeVisible({ timeout: 15000 });
+  await page.fill("#cinemaName", `Cinema ${companyName}`);
+  // Cinema country defaults to account country (FR)
+  await page.fill("#cinemaCity", "Paris");
+
+  await page.getByRole("button", { name: /add cinema/i }).click();
+
+  // Wait for cinema to appear in the list
+  await expect(page.getByText(`Cinema ${companyName}`)).toBeVisible({ timeout: 10000 });
+
+  // Click Continue to go to step 3
+  await page.getByRole("button", { name: /continue/i }).click();
+
+  // ─── Step 3: Skip invitations ────────────────────────────────────
+  await expect(page.getByText(/invite your team/i)).toBeVisible({ timeout: 15000 });
+  await page.getByRole("button", { name: /skip this step/i }).click();
+
+  // Wait for redirect to catalog
   await expect(page).toHaveURL(/\/en\/catalog/, { timeout: 30000 });
 }
 

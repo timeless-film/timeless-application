@@ -7,9 +7,10 @@ import { cn } from "@/lib/utils";
 
 interface AccountTabsProps {
   showCinemas?: boolean;
+  showApi?: boolean;
 }
 
-export function AccountTabs({ showCinemas = false }: AccountTabsProps) {
+export function AccountTabs({ showCinemas = false, showApi = false }: AccountTabsProps) {
   const t = useTranslations("accountSettings");
   const pathname = usePathname();
 
@@ -17,6 +18,7 @@ export function AccountTabs({ showCinemas = false }: AccountTabsProps) {
     { label: t("tabs.information"), href: "/account/information" },
     { label: t("tabs.members"), href: "/account/members" },
     ...(showCinemas ? [{ label: t("tabs.cinemas"), href: "/account/cinemas" }] : []),
+    ...(showApi ? [{ label: t("tabs.api"), href: "/account/api" }] : []),
   ];
 
   return (

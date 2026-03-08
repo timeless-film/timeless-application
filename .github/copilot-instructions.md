@@ -45,7 +45,10 @@ Every decision must optimize for **long-term readability and maintainability**, 
 - `src/lib/db/schema/` — Drizzle schema files, re-exported from `index.ts`.
 - `src/lib/auth/` — Better Auth config + helpers. `proxy.ts` handles auth routing.
 - `src/lib/pricing/` — pricing engine. All money in **cents** (integers).
+- `src/lib/services/` — business logic shared between server actions & API routes.
 - `src/lib/customerio/` — Customer.io integration with `safeCio` wrapper.
+- `src/lib/countries.ts` — ISO country codes + localized names (`Intl.DisplayNames`).
+- `src/lib/currencies.ts` — ISO currency codes (Stripe-compatible) + localized names.
 - `src/i18n/` — next-intl routing, request, navigation.
 - `messages/en.json`, `messages/fr.json` — translations (keys must be English).
 - `middleware.ts` — next-intl locale detection only. Auth guards are in `proxy.ts`.
@@ -115,7 +118,26 @@ export async function doSomething(input: Input) {
 
 - **Server Components** (default): `db.query.*` directly in component.
 - **Client Components**: TanStack React Query.
-- **API routes**: only for external consumers (webhooks, Better Auth).
+- **Server actions**: mutations and queries from the Next.js UI.
+- **API routes**: public REST API for external consumers (third parties, mobile apps) + webhooks + Better Auth.
+
+### Service layer
+
+Business logic in `src/lib/services/*.ts`. Server actions and API routes both call service functions:
+
+```
+Next.js UI → server action → service function ← API route ← External client
+```
+
+### API routes (REST v1)
+
+- `/api/v1/` prefix. Auth and webhooks stay unversioned.
+- Plural resource names. Standard HTTP verbs. Max 2 levels nesting.
+- Auth: Bearer token in `Authorization` header.
+- Success: `{ data: ... }`. Error: `{ error: { code, message } }`.
+- Status codes: 200, 201, 400, 401, 403, 404, 409, 500.
+- Pagination: `?page=1&limit=20` → `{ data, pagination: { page, limit, total } }`.
+- **Documentation required**: every route must have docs in `docs/api/v1/*.md`. Update docs when routes change.
 
 ---
 

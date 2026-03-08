@@ -1,4 +1,5 @@
 import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 
 import { MarketplaceHeader } from "@/components/marketplace-header";
 import { AccountProvider } from "@/components/providers/account-provider";
@@ -19,6 +20,26 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
     session ? getAllMemberships(session.user.id) : [],
     getActiveAccountCookie(),
   ]);
+
+  // Onboarding guard — redirect to onboarding if not completed
+  // Skip if already on the onboarding page to avoid redirect loop
+  if (session && activeCookie) {
+    const headersList = await headers();
+    const pathname = headersList.get("x-pathname") ?? "";
+    const isOnOnboarding = pathname.includes("/onboarding");
+
+    if (!isOnOnboarding) {
+      const activeMembership = memberships.find((m) => m.accountId === activeCookie.accountId);
+      if (
+        activeMembership &&
+        activeCookie.type === "exhibitor" &&
+        !activeMembership.account.onboardingCompleted
+      ) {
+        const locale = pathname.split("/")[1] ?? "en";
+        redirect(`/${locale}/onboarding`);
+      }
+    }
+  }
 
   return (
     <AccountProvider

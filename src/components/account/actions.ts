@@ -32,6 +32,10 @@ export async function getAccountInfo() {
       postalCode: account.postalCode,
       vatNumber: account.vatNumber,
       vatValidated: account.vatValidated,
+      preferredCurrency: account.preferredCurrency,
+      contactEmail: account.contactEmail,
+      contactPhone: account.contactPhone,
+      cinemaType: account.cinemaType,
     },
     currentUserRole: ctx.role,
   };
@@ -44,6 +48,10 @@ export async function updateAccountInfo(input: {
   city?: string;
   postalCode?: string;
   vatNumber?: string;
+  preferredCurrency?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  cinemaType?: string;
 }) {
   const ctx = await getCurrentMembership();
   if (!ctx) return { error: "UNAUTHORIZED" as const };
@@ -65,6 +73,11 @@ export async function updateAccountInfo(input: {
       city: input.city?.trim() || null,
       postalCode: input.postalCode?.trim() || null,
       vatNumber: input.vatNumber?.trim() || null,
+      preferredCurrency: input.preferredCurrency || null,
+      contactEmail: input.contactEmail?.trim() || null,
+      contactPhone: input.contactPhone?.trim() || null,
+      // SAFETY: cinemaType is validated by the pgEnum constraint in the database
+      cinemaType: (input.cinemaType as typeof accounts.$inferInsert.cinemaType) || null,
       updatedAt: new Date(),
     })
     .where(eq(accounts.id, ctx.accountId));

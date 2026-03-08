@@ -1,5 +1,6 @@
 // Central schema — exports everything for Drizzle Kit and queries
 
+export * from "./api-tokens";
 export * from "./auth";
 export * from "./accounts";
 export * from "./cinemas";

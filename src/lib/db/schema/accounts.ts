@@ -9,6 +9,17 @@ export const accountStatusEnum = pgEnum("account_status", ["active", "suspended"
 
 export const memberRoleEnum = pgEnum("member_role", ["owner", "admin", "member"]);
 
+export const cinemaTypeEnum = pgEnum("cinema_type", [
+  "art_house",
+  "circuit",
+  "municipal",
+  "independent",
+  "festival",
+  "cine_club",
+  "cultural_center",
+  "other",
+]);
+
 // ─── Accounts (legal entities) ───────────────────────────────────────────────
 export const accounts = pgTable("accounts", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -23,6 +34,14 @@ export const accounts = pgTable("accounts", {
   postalCode: text("postal_code"),
   vatNumber: text("vat_number"),
   vatValidated: boolean("vat_validated").default(false),
+
+  // Contact
+  contactEmail: text("contact_email"),
+  contactPhone: text("contact_phone"),
+
+  // Exhibitor-specific
+  cinemaType: cinemaTypeEnum("cinema_type"),
+  onboardingCompleted: boolean("onboarding_completed").notNull().default(false),
 
   // Stripe
   stripeCustomerId: text("stripe_customer_id"),

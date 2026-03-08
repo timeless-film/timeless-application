@@ -3,11 +3,7 @@
 import { cookies, headers } from "next/headers";
 
 import { auth } from "@/lib/auth";
-import {
-  ACTIVE_ACCOUNT_COOKIE,
-  encodeActiveAccountCookie,
-  getHomePathForType,
-} from "@/lib/auth/active-account-cookie";
+import { ACTIVE_ACCOUNT_COOKIE, encodeActiveAccountCookie } from "@/lib/auth/active-account-cookie";
 import { db } from "@/lib/db";
 import { accountMembers, accounts } from "@/lib/db/schema";
 
@@ -67,7 +63,7 @@ export async function createAccount(input: CreateAccountInput) {
   return {
     success: true as const,
     accountId: account.id,
-    redirectUrl: getHomePathForType(input.type),
+    redirectUrl: "/onboarding",
     accountName: input.companyName,
   };
 }

@@ -297,19 +297,153 @@
     "vatNumber": "Numéro de TVA",
     "vatPlaceholder": "ex. FR12345678901",
     "vatValidated": "Validé",
+    "preferredCurrency": "Devise préférée",
+    "contactEmail": "Email de contact",
+    "contactEmailPlaceholder": "booking@votrecinema.com",
+    "contactPhone": "Téléphone",
+    "contactPhonePlaceholder": "+33 1 23 45 67 89",
+    "cinemaType": "Type de cinéma",
+    "cinemaTypeOptions": {
+      "art_house": "Art et essai",
+      "circuit": "Circuit",
+      "municipal": "Municipal",
+      "independent": "Indépendant",
+      "festival": "Festival",
+      "cine_club": "Ciné-club",
+      "cultural_center": "Centre culturel",
+      "other": "Autre"
+    },
     "save": "Enregistrer",
     "saved": "Informations du compte enregistrées.",
     "cinemasPlaceholder": "La gestion des cinémas sera bientôt disponible.",
     "tabs": {
       "information": "Informations",
       "members": "Membres",
-      "cinemas": "Cinémas"
+      "cinemas": "Cinémas",
+      "api": "API"
+    },
+    "api": {
+      "title": "Clés API",
+      "description": "Gérez vos clés API pour accéder à l'API TIMELESS.",
+      "emptyTitle": "Aucune clé API",
+      "emptyDescription": "Créez une clé API pour accéder à l'API TIMELESS.",
+      "createButton": "Créer une clé API",
+      "createTitle": "Créer une clé API",
+      "createDescription": "Donnez un nom descriptif à votre clé API.",
+      "nameLabel": "Nom de la clé",
+      "namePlaceholder": "ex. Production, Test",
+      "create": "Créer",
+      "cancel": "Annuler",
+      "tokenCreatedTitle": "Clé API créée",
+      "tokenCreatedDescription": "Copiez cette clé maintenant. Elle ne sera plus affichée.",
+      "copy": "Copier",
+      "copied": "Clé API copiée dans le presse-papier.",
+      "close": "Fermer",
+      "columnPrefix": "Clé",
+      "columnName": "Nom",
+      "columnCreatedAt": "Créée le",
+      "columnLastUsedAt": "Dernière utilisation",
+      "lastUsedNever": "Jamais",
+      "revoke": "Révoquer",
+      "revokeTitle": "Révoquer la clé API",
+      "revokeDescription": "Êtes-vous sûr de vouloir révoquer la clé \"{name}\" ? Cette action est irréversible. Toute application utilisant cette clé perdra l'accès.",
+      "revokeConfirm": "Révoquer la clé",
+      "revokeSuccess": "Clé API révoquée.",
+      "createSuccess": "Clé API créée.",
+      "error": {
+        "UNAUTHORIZED": "Vous devez être connecté.",
+        "FORBIDDEN": "Vous n'avez pas la permission de gérer les clés API.",
+        "INVALID_INPUT": "Veuillez fournir un nom pour la clé API.",
+        "NOT_FOUND": "Clé API introuvable.",
+        "UNKNOWN": "Une erreur inattendue s'est produite."
+      }
     },
     "error": {
       "UNAUTHORIZED": "Vous devez être connecté.",
       "FORBIDDEN": "Vous n'avez pas la permission de modifier ce compte.",
       "NOT_FOUND": "Compte introuvable.",
       "INVALID_INPUT": "Veuillez remplir tous les champs obligatoires."
+    }
+  },
+  "cinemas": {
+    "addCinema": "Ajouter un cinéma",
+    "addCinemaTitle": "Nouveau cinéma",
+    "addCinemaButton": "Ajouter le cinéma",
+    "cancel": "Annuler",
+    "name": "Nom du cinéma",
+    "namePlaceholder": "ex. Le Grand Rex",
+    "country": "Pays",
+    "city": "Ville",
+    "address": "Adresse",
+    "postalCode": "Code postal",
+    "rooms": "Salles",
+    "roomCount": "{count, plural, =1 {1 salle} other {# salles}}",
+    "capacity": "{count, plural, =1 {1 place} other {# places}}",
+    "empty": "Aucun cinéma pour le moment. Ajoutez votre premier cinéma pour commencer.",
+    "created": "Cinéma ajouté.",
+    "saved": "Cinéma mis à jour.",
+    "archived": "Cinéma archivé.",
+    "save": "Enregistrer",
+    "archive": "Archiver",
+    "archiveDialog": {
+      "title": "Archiver le cinéma",
+      "description": "Le cinéma « {name} » sera archivé et ne sera plus visible dans votre interface. Cette action peut être inversée ultérieurement.",
+      "cancel": "Annuler",
+      "confirm": "Archiver"
+    },
+    "error": {
+      "UNAUTHORIZED": "Vous devez être connecté.",
+      "FORBIDDEN": "Vous n'avez pas la permission de gérer les cinémas.",
+      "INVALID_INPUT": "Veuillez remplir tous les champs obligatoires.",
+      "NOT_FOUND": "Cinéma introuvable.",
+      "CREATION_FAILED": "Impossible de créer le cinéma. Veuillez réessayer.",
+      "LAST_CINEMA": "Vous devez conserver au moins un cinéma.",
+      "UNKNOWN": "Une erreur inattendue s'est produite."
+    }
+  },
+  "rooms": {
+    "addRoom": "Ajouter une salle",
+    "addTitle": "Nouvelle salle",
+    "editTitle": "Modifier la salle",
+    "addButton": "Ajouter la salle",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "name": "Nom de la salle",
+    "namePlaceholder": "ex. Salle 1 (auto-généré si vide)",
+    "capacity": "Capacité (places)",
+    "capacityHint": "Nombre de places dans la salle (minimum 1).",
+    "reference": "Référence interne",
+    "referencePlaceholder": "ex. SKU, code salle",
+    "projectionType": "Type de projection",
+    "projectionTypePlaceholder": "Sélectionner un type",
+    "projectionTypes": {
+      "digital": "Numérique",
+      "film_35mm": "Pellicule 35 mm",
+      "film_70mm": "Pellicule 70 mm"
+    },
+    "hasDcpEquipment": "Équipement DCP disponible",
+    "screenFormat": "Format d'écran",
+    "screenFormatPlaceholder": "ex. Scope 2.39, Flat 1.85",
+    "soundSystem": "Système son",
+    "soundSystemPlaceholder": "ex. Dolby 7.1, Dolby Atmos",
+    "created": "Salle ajoutée.",
+    "saved": "Salle mise à jour.",
+    "archived": "Salle archivée.",
+    "archiveDialog": {
+      "title": "Archiver la salle",
+      "description": "La salle « {name} » sera archivée et ne sera plus visible dans votre interface. Cette action peut être inversée ultérieurement.",
+      "cancel": "Annuler",
+      "confirm": "Archiver"
+    },
+    "error": {
+      "UNAUTHORIZED": "Vous devez être connecté.",
+      "FORBIDDEN": "Vous n'avez pas la permission de gérer les salles.",
+      "INVALID_INPUT": "Veuillez remplir tous les champs obligatoires.",
+      "INVALID_CAPACITY": "La capacité doit être d'au moins 1 place.",
+      "CINEMA_NOT_FOUND": "Cinéma introuvable.",
+      "NOT_FOUND": "Salle introuvable.",
+      "LAST_ROOM": "Vous devez conserver au moins une salle par cinéma.",
+      "UNKNOWN": "Une erreur inattendue s'est produite."
     }
   },
   "films": {
@@ -440,6 +574,10 @@
       }
     }
   },
+  "exhibitorDashboard": {
+    "title": "Tableau de bord",
+    "placeholder": "Votre tableau de bord sera disponible prochainement."
+  },
   "admin": {
     "dashboard": {
       "title": "Tableau de bord",
@@ -541,14 +679,70 @@
   "onboarding": {
     "title": "Configurez votre compte",
     "subtitle": "Parlez-nous de votre organisation pour commencer.",
-    "companyName": "Nom de l'entreprise",
-    "country": "Pays",
-    "submit": "Continuer",
-    "success": "Compte créé avec succès !",
+    "step": "Étape {current} sur {total}",
+    "step1": {
+      "title": "Informations de l'entreprise",
+      "description": "Parlez-nous de votre organisation.",
+      "companyName": "Nom de l'entreprise",
+      "country": "Pays",
+      "address": "Adresse",
+      "addressPlaceholder": "Adresse postale",
+      "city": "Ville",
+      "postalCode": "Code postal",
+      "vatNumber": "Numéro de TVA",
+      "vatPlaceholder": "ex. FR12345678901",
+      "preferredCurrency": "Devise préférée",
+      "contactEmail": "Email de contact",
+      "contactEmailPlaceholder": "reservation@votrecinema.com",
+      "contactPhone": "Téléphone",
+      "contactPhonePlaceholder": "+33 1 23 45 67 89",
+      "cinemaType": "Type de cinéma",
+      "cinemaTypeOptions": {
+        "art_house": "Art et essai",
+        "circuit": "Circuit",
+        "municipal": "Municipal",
+        "independent": "Indépendant",
+        "festival": "Festival",
+        "cine_club": "Ciné-club",
+        "cultural_center": "Centre culturel",
+        "other": "Autre"
+      },
+      "continue": "Continuer"
+    },
+    "step2": {
+      "title": "Cinémas et salles",
+      "description": "Ajoutez au moins un cinéma avec une salle pour continuer.",
+      "addCinema": "Ajouter un cinéma",
+      "cinemaName": "Nom du cinéma",
+      "cinemaNamePlaceholder": "ex. Le Grand Rex",
+      "country": "Pays",
+      "city": "Ville",
+      "address": "Adresse",
+      "postalCode": "Code postal",
+      "addCinemaButton": "Ajouter le cinéma",
+      "cinemaAdded": "Cinéma ajouté.",
+      "cinemaList": "Vos cinémas",
+      "rooms": "{count, plural, =1 {1 salle} other {# salles}}",
+      "noCinemas": "Vous devez ajouter au moins un cinéma avec une salle pour continuer.",
+      "continue": "Continuer"
+    },
+    "step3": {
+      "title": "Invitez votre équipe",
+      "description": "Invitez des collaborateurs à rejoindre votre compte. Vous pourrez aussi le faire plus tard.",
+      "skip": "Passer cette étape",
+      "finish": "Terminer la configuration"
+    },
+    "memberBlocked": {
+      "title": "Configuration en cours",
+      "description": "L'administrateur du compte doit terminer la configuration avant que vous puissiez accéder à la plateforme. Veuillez contacter le propriétaire du compte."
+    },
     "error": {
       "UNAUTHORIZED": "Vous devez être connecté.",
-      "ALREADY_HAS_ACCOUNT": "Vous avez déjà un compte.",
-      "CREATION_FAILED": "Impossible de créer votre compte. Veuillez réessayer."
+      "INVALID_INPUT": "Veuillez remplir tous les champs obligatoires.",
+      "CREATION_FAILED": "Impossible de créer votre compte. Veuillez réessayer.",
+      "NO_ACCOUNT": "Aucun compte trouvé.",
+      "MUST_ADD_CINEMA": "Vous devez ajouter au moins un cinéma avant de terminer.",
+      "UNKNOWN": "Une erreur inattendue s'est produite."
     }
   },
   "profile": {

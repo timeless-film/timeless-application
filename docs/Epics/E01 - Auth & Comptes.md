@@ -21,7 +21,7 @@ Principe d'architecture : les pages de **gestion du compte** (informations, memb
 **Priorité** : P0 | **Taille** : M
 
 - ✅ Formulaire : email, mot de passe, nom
-- ✅ Validation email (lien de confirmation — lien affiché en console, Customer.io pas encore branché)
+- ✅ Validation email (lien de confirmation via Resend HTTP API)
 - ✅ Création du compte exploitant associé (onboarding flow — `(app)/onboarding/`)
 - ✅ Redirection vers l'onboarding si pas de compte lié (`[locale]/page.tsx`)
 
@@ -32,6 +32,7 @@ Principe d'architecture : les pages de **gestion du compte** (informations, memb
 
 - ✅ Page de connexion
 - ✅ Gestion des erreurs (email inconnu, mdp incorrect, email non vérifié)
+- ✅ Lien "Renvoyer l'email de vérification" affiché sur la page login si `emailNotVerified`
 - ✅ Session persistante (cookie Better Auth)
 - ✅ Redirection post-login selon le type de compte (exploitant → catalogue, ayant droit → films, admin → dashboard)
 
@@ -63,7 +64,7 @@ Principe d'architecture : les pages de **gestion du compte** (informations, memb
 - ✅ Page d'acceptation d'invitation (`(app)/accept-invitation/`)
 - ✅ Liste des invitations en attente avec annulation
 - ✅ Contrôle de permissions (owner/admin) pour inviter
-- ✅ Email d'invitation via Customer.io (event `member_invitation_sent`)
+- ✅ Email d'invitation via Resend HTTP API (`sendInvitationEmail`)
 
 ---
 
@@ -103,6 +104,7 @@ Principe d'architecture : les pages de **gestion du compte** (informations, memb
 **Priorité** : P0 | **Taille** : S
 
 - ✅ Déconnexion manuelle (bouton sign-out sur les pages auth + page profil)
+- ✅ `signOutAndCleanup()` centralisé dans `src/lib/auth/client.ts` — supprime le cookie `active_account_id` + appelle `authClient.signOut()` + redirige vers `/`. Utilisé par marketplace-header, nav-user, already-connected, sessions-list.
 - ✅ Liste des sessions actives (device, IP, date)
 - ✅ Révocation individuelle de session
 - ✅ Révocation de toutes les autres sessions
@@ -123,18 +125,22 @@ Un utilisateur peut être membre de plusieurs comptes (via invitations). Aujourd
 
 **Décisions** :
 - **Multi-type** : l'architecture permet qu'un user soit dans des comptes de types différents (exploitant + ayant droit), mais on ne construit pas l'UI de switch cross-type pour l'instant.
-- **Pas de React Context** : le layout serveur fetch les memberships et les passe en props au header/sidebar. Pas de provider client global.
-- **Cookie HttpOnly** : `active_account_id` est un cookie HttpOnly — le switch passe par une server action `switchAccount()`.
-- **Cookie encodé** : le cookie contient `accountId:type` (ex: `abc-123:exhibitor`) pour que le middleware puisse vérifier le type sans DB call.
+- **AccountProvider (React Context)** : `src/components/providers/account-provider.tsx` — contexte React avec `useAccountContext()` hook. Les layouts serveur fetchent les memberships et les passent au provider, qui les expose à tous les composants enfants (header, sidebar, switcher). Le provider est monté avec `key={activeCookie?.accountId ?? "no-account"}` pour forcer le remount au switch de compte.
+- **Cookie non-HttpOnly** : `active_account_id` est un cookie standard (pas HttpOnly) — nécessaire pour le nettoyage côté client dans `signOutAndCleanup()`. Le switch passe par une server action `switchAccount()`.
+- **Cookie encodé** : le cookie contient `accountId:type` (ex: `abc-123:exhibitor`) pour que le proxy puisse vérifier le type sans DB call.
 - **Switcher = dropdown** : composant intégré au header marketplace / sidebar dashboard — pas de page dédiée. Masqué si l'user n'a qu'un seul compte.
-- **Guard = middleware** : vérification du type de compte vs route group au niveau middleware (edge), avant le rendering.
-- **User sans compte** : page explicative (pas le flow onboarding classique) — "Vous n'avez plus de compte actif" + bouton créer ou contacter admin.
+- **Guard = proxy.ts** : vérification du type de compte vs route group au niveau proxy (edge), avant le rendering.
+- **Guards page-level** : la page `/accounts` redirige vers `/no-account` si `memberships.length === 0` (guard côté serveur, car proxy.ts n'a pas accès à la DB). La page racine `[locale]/page.tsx` redirige vers `/no-account` si 0 membership, `/select-account` si 1+.
+- **User sans compte** : page `/no-account` — message explicatif + bouton créer un compte + section invitations en attente.
+- **Invitations en attente** : composant `PendingInvitations` affiché sur `/no-account` et `/accounts`. Sur `/no-account`, après acceptation → redirect vers `/accounts` (via prop `redirectAfterAccept`). Sur `/accounts` → `router.refresh()` pour mettre à jour la liste.
 - **Acceptation invitation** : switch automatique vers le nouveau compte après acceptation.
 - **Member et switcher** : un `member` peut switcher de compte via le dropdown, il ne peut juste pas accéder aux pages `/account/*` (gestion).
 - **Helper centralisé** : `getCurrentMembership()` et `switchAccount()` dans `src/lib/auth/membership.ts`.
 - **Cookie invalide** : si le cookie référence un compte dont le user n'est plus membre → auto-nettoyage du cookie + redirect vers la page racine (qui réévalue les memberships).
 - **Toast après switch** : afficher un toast «Vous êtes maintenant sur [nom du compte]» après un switch.
 - **Page sans compte** : dans le route group `(auth)` (layout centré, même style que login/register).
+- **Compte actif cliquable** : sur la page `/accounts`, le bouton du compte actif est cliquable — appelle `switchAccount()` qui redirige vers l'accueil correspondant.
+- **signOutAndCleanup()** : helper centralisé dans `src/lib/auth/client.ts` — supprime le cookie `active_account_id` côté client + appelle `authClient.signOut()` + redirige vers `/`. Tous les points de déconnexion utilisent ce helper.
 
 **Tâches** :
 - ✅ Créer `src/lib/auth/membership.ts` avec les helpers centralisés : `getCurrentMembership()`, `switchAccount()`, `getAllMemberships()` — supprimer les doublons dans actions.ts / invitation-actions.ts
@@ -147,6 +153,10 @@ Un utilisateur peut être membre de plusieurs comptes (via invitations). Aujourd
 - ✅ Acceptation d'invitation : après `acceptInvitation()`, switch automatique vers le nouveau compte (appel `switchAccount()`)
 - ✅ Page "sans compte" : si user authentifié sans aucun membership → page dédiée avec message explicatif + actions (créer un compte / contacter admin)
 - ✅ Page `/accounts` (route group `(auth)`) : liste tous les comptes de l'utilisateur avec switch + formulaire de création d'un nouveau compte exploitant (companyName + country). Lien "Mes comptes" ajouté dans le menu user du header marketplace et dans le dropdown sidebar. L'onboarding reste one-shot (première inscription uniquement).
+- ✅ Guard page `/accounts` : redirige vers `/no-account` si `memberships.length === 0` (guard côté serveur)
+- ✅ Composant `PendingInvitations` (`src/components/account/pending-invitations.tsx`) : affiché sur `/no-account` et `/accounts`, prop `redirectAfterAccept` pour contrôler la navigation post-acceptation
+- ✅ Server actions `getMyPendingInvitations()` et `acceptInvitationById()` dans les actions du compte
+- ✅ Relation Drizzle `invitationsRelations` ajoutée au schéma (pas de migration nécessaire)
 - ✅ Migration `middleware.ts` → `proxy.ts` (Next.js 16 — codemod officiel `middleware-to-proxy`)
 
 ---

@@ -5,7 +5,7 @@ import { getTranslations } from "next-intl/server";
 
 import { Link } from "@/i18n/navigation";
 import { auth } from "@/lib/auth";
-import { getActiveAccountCookie } from "@/lib/auth/membership";
+import { getActiveAccountCookie, getAllMemberships } from "@/lib/auth/membership";
 
 import type { ReactNode } from "react";
 
@@ -16,8 +16,23 @@ export default async function AccountLayout({ children }: { children: ReactNode 
     redirect("/login");
   }
 
+  // Onboarding guard — exhibitors must complete onboarding before accessing account pages
+  const [activeCookie, memberships] = await Promise.all([
+    getActiveAccountCookie(),
+    getAllMemberships(session.user.id),
+  ]);
+
+  if (activeCookie && activeCookie.type === "exhibitor") {
+    const activeMembership = memberships.find((m) => m.accountId === activeCookie.accountId);
+    if (activeMembership && !activeMembership.account.onboardingCompleted) {
+      const headersList = await headers();
+      const pathname = headersList.get("x-pathname") ?? "";
+      const locale = pathname.split("/")[1] ?? "en";
+      redirect(`/${locale}/onboarding`);
+    }
+  }
+
   const t = await getTranslations("navigation");
-  const activeCookie = await getActiveAccountCookie();
 
   const isRightsHolder = activeCookie?.type === "rights_holder";
   const isAdmin = activeCookie?.type === "admin";

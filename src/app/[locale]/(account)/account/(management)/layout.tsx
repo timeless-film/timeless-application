@@ -25,7 +25,7 @@ export default async function ManagementLayout({ children }: { children: ReactNo
         <h1 className="font-heading text-2xl">{t("heading")}</h1>
         <p className="text-sm text-muted-foreground">{t("headingDescription")}</p>
       </div>
-      <AccountTabs showCinemas={isExhibitor} />
+      <AccountTabs showCinemas={isExhibitor} showApi />
       {children}
     </div>
   );

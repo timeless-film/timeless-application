@@ -1,7 +1,9 @@
 import { relations } from "drizzle-orm";
-import { pgTable, text, timestamp, uuid, integer } from "drizzle-orm/pg-core";
+import { boolean, integer, pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
 import { accounts } from "./accounts";
+
+export const projectionTypeEnum = pgEnum("projection_type", ["digital", "film_35mm", "film_70mm"]);
 
 // ─── Cinemas ──────────────────────────────────────────────────────────────────
 export const cinemas = pgTable("cinemas", {
@@ -14,6 +16,7 @@ export const cinemas = pgTable("cinemas", {
   city: text("city"),
   postalCode: text("postal_code"),
   country: text("country").notNull(),
+  archivedAt: timestamp("archived_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -25,7 +28,13 @@ export const rooms = pgTable("rooms", {
     .notNull()
     .references(() => cinemas.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
-  capacity: integer("capacity").notNull(), // Seating capacity
+  capacity: integer("capacity").notNull(),
+  reference: text("reference"),
+  projectionType: projectionTypeEnum("projection_type"),
+  hasDcpEquipment: boolean("has_dcp_equipment").notNull().default(false),
+  screenFormat: text("screen_format"),
+  soundSystem: text("sound_system"),
+  archivedAt: timestamp("archived_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

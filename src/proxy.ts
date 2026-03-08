@@ -36,6 +36,9 @@ export async function proxy(request: NextRequest) {
   // Run next-intl middleware (locale detection + redirect for missing prefix)
   const intlResponse = intlMiddleware(request);
 
+  // Forward pathname to server components via request header
+  intlResponse.headers.set("x-middleware-request-x-pathname", pathname);
+
   // Skip auth check for public pages
   if (isPublicAuthPath(pathname)) {
     return intlResponse;

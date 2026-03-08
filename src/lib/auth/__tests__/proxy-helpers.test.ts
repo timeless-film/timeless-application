@@ -141,6 +141,18 @@ describe("isUnprotectedApiPath", () => {
   it("returns false for /api/something-else", () => {
     expect(isUnprotectedApiPath("/api/something-else")).toBe(false);
   });
+
+  it("returns true for /api/v1", () => {
+    expect(isUnprotectedApiPath("/api/v1")).toBe(true);
+  });
+
+  it("returns true for /api/v1/cinemas", () => {
+    expect(isUnprotectedApiPath("/api/v1/cinemas")).toBe(true);
+  });
+
+  it("returns true for /api/v1/cinemas/123/rooms", () => {
+    expect(isUnprotectedApiPath("/api/v1/cinemas/123/rooms")).toBe(true);
+  });
 });
 
 describe("getRequiredAccountType", () => {
@@ -167,6 +179,10 @@ describe("getRequiredAccountType", () => {
 
   it("returns 'exhibitor' for /en/accept-invitation", () => {
     expect(getRequiredAccountType("/en/accept-invitation")).toBe("exhibitor");
+  });
+
+  it("returns 'exhibitor' for /en/home", () => {
+    expect(getRequiredAccountType("/en/home")).toBe("exhibitor");
   });
 
   // Rights holder paths

@@ -16,11 +16,19 @@ export const ACCOUNT_OPTIONAL_PATHS = [
   "/accounts",
 ];
 
-// API routes that don't require authentication
-export const UNPROTECTED_API_PATHS = ["/api/auth", "/api/webhooks", "/api/debug"];
+// API routes that don't require session-based authentication
+// v1 API routes use Bearer token auth (handled by api-auth.ts), not proxy session
+export const UNPROTECTED_API_PATHS = ["/api/auth", "/api/webhooks", "/api/debug", "/api/v1"];
 
 // Map path prefixes to the account type that can access them
-export const EXHIBITOR_PATHS = ["/catalog", "/cart", "/orders", "/requests", "/accept-invitation"];
+export const EXHIBITOR_PATHS = [
+  "/catalog",
+  "/cart",
+  "/orders",
+  "/requests",
+  "/accept-invitation",
+  "/home",
+];
 export const RIGHTS_HOLDER_PATHS = ["/films", "/validation-requests", "/wallet"];
 export const ADMIN_PATHS = [
   "/dashboard",

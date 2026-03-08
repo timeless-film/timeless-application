@@ -1,14 +1,15 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
-import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import {
   Select,
   SelectContent,
@@ -16,21 +17,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { getCountryOptions } from "@/lib/countries";
+import { getCurrencyOptions } from "@/lib/currencies";
 
 import { updateAccountInfo } from "./actions";
 
-const COUNTRIES = [
-  { code: "FR", label: "France" },
-  { code: "BE", label: "Belgique" },
-  { code: "CH", label: "Suisse" },
-  { code: "LU", label: "Luxembourg" },
-  { code: "CA", label: "Canada" },
-  { code: "DE", label: "Deutschland" },
-  { code: "GB", label: "United Kingdom" },
-  { code: "IT", label: "Italia" },
-  { code: "ES", label: "España" },
-  { code: "US", label: "United States" },
-];
+const CINEMA_TYPES = [
+  "art_house",
+  "circuit",
+  "municipal",
+  "independent",
+  "festival",
+  "cine_club",
+  "cultural_center",
+  "other",
+] as const;
 
 interface AccountInfoFormProps {
   account: {
@@ -43,12 +44,21 @@ interface AccountInfoFormProps {
     postalCode: string | null;
     vatNumber: string | null;
     vatValidated: boolean | null;
+    preferredCurrency: string | null;
+    contactEmail: string | null;
+    contactPhone: string | null;
+    cinemaType: string | null;
   };
   canEdit: boolean;
 }
 
 export function AccountInfoForm({ account, canEdit }: AccountInfoFormProps) {
   const t = useTranslations("accountSettings");
+  const tCommon = useTranslations("common");
+  const locale = useLocale();
+
+  const countryOptions = useMemo(() => getCountryOptions(locale), [locale]);
+  const currencyOptions = useMemo(() => getCurrencyOptions(locale), [locale]);
 
   const [companyName, setCompanyName] = useState(account.companyName);
   const [country, setCountry] = useState(account.country);
@@ -56,6 +66,10 @@ export function AccountInfoForm({ account, canEdit }: AccountInfoFormProps) {
   const [city, setCity] = useState(account.city ?? "");
   const [postalCode, setPostalCode] = useState(account.postalCode ?? "");
   const [vatNumber, setVatNumber] = useState(account.vatNumber ?? "");
+  const [preferredCurrency, setPreferredCurrency] = useState(account.preferredCurrency ?? "EUR");
+  const [contactEmail, setContactEmail] = useState(account.contactEmail ?? "");
+  const [contactPhone, setContactPhone] = useState(account.contactPhone ?? "");
+  const [cinemaType, setCinemaType] = useState(account.cinemaType ?? "");
   const [saving, setSaving] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -71,6 +85,10 @@ export function AccountInfoForm({ account, canEdit }: AccountInfoFormProps) {
       city: city || undefined,
       postalCode: postalCode || undefined,
       vatNumber: vatNumber || undefined,
+      preferredCurrency,
+      contactEmail: contactEmail || undefined,
+      contactPhone: contactPhone || undefined,
+      cinemaType: cinemaType || undefined,
     });
 
     if ("error" in result) {
@@ -107,20 +125,41 @@ export function AccountInfoForm({ account, canEdit }: AccountInfoFormProps) {
               <Label htmlFor="country">
                 {t("country")} <span className="text-destructive">*</span>
               </Label>
-              <Select value={country} onValueChange={setCountry} disabled={!canEdit || saving}>
-                <SelectTrigger id="country">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {COUNTRIES.map((c) => (
-                    <SelectItem key={c.code} value={c.code}>
-                      {c.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                id="country"
+                options={countryOptions}
+                value={country}
+                onValueChange={setCountry}
+                disabled={!canEdit || saving}
+                searchPlaceholder={tCommon("search")}
+                emptyMessage={tCommon("noResults")}
+              />
             </div>
 
+            {account.type === "exhibitor" && (
+              <div className="space-y-2">
+                <Label htmlFor="cinemaType">{t("cinemaType")}</Label>
+                <Select
+                  value={cinemaType}
+                  onValueChange={setCinemaType}
+                  disabled={!canEdit || saving}
+                >
+                  <SelectTrigger id="cinemaType">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CINEMA_TYPES.map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {t(`cinemaTypeOptions.${type}`)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="vatNumber">{t("vatNumber")}</Label>
               <div className="flex items-center gap-2">
@@ -168,6 +207,44 @@ export function AccountInfoForm({ account, canEdit }: AccountInfoFormProps) {
                 id="postalCode"
                 value={postalCode}
                 onChange={(e) => setPostalCode(e.target.value)}
+                disabled={!canEdit || saving}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="preferredCurrency">{t("preferredCurrency")}</Label>
+            <SearchableSelect
+              id="preferredCurrency"
+              options={currencyOptions}
+              value={preferredCurrency}
+              onValueChange={setPreferredCurrency}
+              disabled={!canEdit || saving}
+              searchPlaceholder={tCommon("search")}
+              emptyMessage={tCommon("noResults")}
+            />
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="contactEmail">{t("contactEmail")}</Label>
+              <Input
+                id="contactEmail"
+                type="email"
+                value={contactEmail}
+                onChange={(e) => setContactEmail(e.target.value)}
+                placeholder={t("contactEmailPlaceholder")}
+                disabled={!canEdit || saving}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="contactPhone">{t("contactPhone")}</Label>
+              <Input
+                id="contactPhone"
+                type="tel"
+                value={contactPhone}
+                onChange={(e) => setContactPhone(e.target.value)}
+                placeholder={t("contactPhonePlaceholder")}
                 disabled={!canEdit || saving}
               />
             </div>

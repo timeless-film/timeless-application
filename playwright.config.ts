@@ -38,6 +38,7 @@ export default defineConfig({
       ...process.env,
       PORT: String(E2E_PORT),
       NEXT_PUBLIC_APP_URL: baseURL,
+      RESEND_API_KEY: "", // Disable real email sending during E2E tests
     },
   },
 });

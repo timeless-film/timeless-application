@@ -162,7 +162,7 @@
     "browseCatalog": "Browse the catalog",
     "item": {
       "cinema": "Cinema",
-      "room": "Room",
+      "room": "Screen",
       "screenings": "Number of screenings",
       "startDate": "Start date",
       "endDate": "End date",
@@ -180,7 +180,7 @@
     "modal": {
       "title": "Screening details",
       "cinema": "Select a cinema",
-      "room": "Select a room",
+      "room": "Select a screen",
       "screenings": "Number of screenings",
       "startDate": "Start date",
       "endDate": "End date",
@@ -264,9 +264,9 @@
       "address": "Address",
       "city": "City",
       "country": "Country",
-      "rooms": "Rooms",
-      "addRoom": "Add a room",
-      "roomName": "Room name",
+      "rooms": "Screens",
+      "addRoom": "Add a screen",
+      "roomName": "Screen name",
       "capacity": "Capacity (seats)"
     },
     "members": {
@@ -297,19 +297,153 @@
     "vatNumber": "VAT number",
     "vatPlaceholder": "e.g. FR12345678901",
     "vatValidated": "Validated",
+    "preferredCurrency": "Preferred currency",
+    "contactEmail": "Contact email",
+    "contactEmailPlaceholder": "booking@yourcinema.com",
+    "contactPhone": "Phone",
+    "contactPhonePlaceholder": "+33 1 23 45 67 89",
+    "cinemaType": "Cinema type",
+    "cinemaTypeOptions": {
+      "art_house": "Art house",
+      "circuit": "Circuit",
+      "municipal": "Municipal",
+      "independent": "Independent",
+      "festival": "Festival",
+      "cine_club": "Film club",
+      "cultural_center": "Cultural centre",
+      "other": "Other"
+    },
     "save": "Save changes",
     "saved": "Account information saved.",
     "cinemasPlaceholder": "Cinema management will be available soon.",
     "tabs": {
       "information": "Information",
       "members": "Members",
-      "cinemas": "Cinemas"
+      "cinemas": "Cinemas",
+      "api": "API"
+    },
+    "api": {
+      "title": "API keys",
+      "description": "Manage your API keys to access the TIMELESS API.",
+      "emptyTitle": "No API keys yet",
+      "emptyDescription": "Create an API key to access the TIMELESS API.",
+      "createButton": "Create an API key",
+      "createTitle": "Create an API key",
+      "createDescription": "Give your API key a descriptive name.",
+      "nameLabel": "Key name",
+      "namePlaceholder": "e.g. Production, Test",
+      "create": "Create",
+      "cancel": "Cancel",
+      "tokenCreatedTitle": "API key created",
+      "tokenCreatedDescription": "Copy this key now. It will not be shown again.",
+      "copy": "Copy",
+      "copied": "API key copied to clipboard.",
+      "close": "Close",
+      "columnPrefix": "Key",
+      "columnName": "Name",
+      "columnCreatedAt": "Created",
+      "columnLastUsedAt": "Last used",
+      "lastUsedNever": "Never",
+      "revoke": "Revoke",
+      "revokeTitle": "Revoke API key",
+      "revokeDescription": "Are you sure you want to revoke the key \"{name}\"? This action cannot be undone. Any application using this key will lose access.",
+      "revokeConfirm": "Revoke key",
+      "revokeSuccess": "API key revoked.",
+      "createSuccess": "API key created.",
+      "error": {
+        "UNAUTHORIZED": "You must be signed in.",
+        "FORBIDDEN": "You do not have permission to manage API keys.",
+        "INVALID_INPUT": "Please provide a name for the API key.",
+        "NOT_FOUND": "API key not found.",
+        "UNKNOWN": "An unexpected error occurred."
+      }
     },
     "error": {
       "UNAUTHORIZED": "You must be signed in.",
       "FORBIDDEN": "You do not have permission to edit this account.",
       "NOT_FOUND": "Account not found.",
       "INVALID_INPUT": "Please fill in all required fields."
+    }
+  },
+  "cinemas": {
+    "addCinema": "Add a cinema",
+    "addCinemaTitle": "New cinema",
+    "addCinemaButton": "Add cinema",
+    "cancel": "Cancel",
+    "name": "Cinema name",
+    "namePlaceholder": "e.g. Le Grand Rex",
+    "country": "Country",
+    "city": "City",
+    "address": "Address",
+    "postalCode": "Postal code",
+    "rooms": "Screens",
+    "roomCount": "{count, plural, =1 {1 screen} other {# screens}}",
+    "capacity": "{count, plural, =1 {1 seat} other {# seats}}",
+    "empty": "No cinemas yet. Add your first cinema to get started.",
+    "created": "Cinema added.",
+    "saved": "Cinema updated.",
+    "archived": "Cinema archived.",
+    "save": "Save changes",
+    "archive": "Archive",
+    "archiveDialog": {
+      "title": "Archive cinema",
+      "description": "The cinema \"{name}\" will be archived and will no longer be visible in your interface. This action can be reversed later.",
+      "cancel": "Cancel",
+      "confirm": "Archive"
+    },
+    "error": {
+      "UNAUTHORIZED": "You must be signed in.",
+      "FORBIDDEN": "You do not have permission to manage cinemas.",
+      "INVALID_INPUT": "Please fill in all required fields.",
+      "NOT_FOUND": "Cinema not found.",
+      "CREATION_FAILED": "Failed to create cinema. Please try again.",
+      "LAST_CINEMA": "You must keep at least one cinema.",
+      "UNKNOWN": "An unexpected error occurred."
+    }
+  },
+  "rooms": {
+    "addRoom": "Add a screen",
+    "addTitle": "New screen",
+    "editTitle": "Edit screen",
+    "addButton": "Add screen",
+    "cancel": "Cancel",
+    "save": "Save",
+    "name": "Screen name",
+    "namePlaceholder": "e.g. Screen 1 (auto-generated if empty)",
+    "capacity": "Capacity (seats)",
+    "capacityHint": "Number of seats in the screen (minimum 1).",
+    "reference": "Internal reference",
+    "referencePlaceholder": "e.g. SKU, screen code",
+    "projectionType": "Projection type",
+    "projectionTypePlaceholder": "Select a type",
+    "projectionTypes": {
+      "digital": "Digital",
+      "film_35mm": "35mm film",
+      "film_70mm": "70mm film"
+    },
+    "hasDcpEquipment": "DCP equipment available",
+    "screenFormat": "Screen format",
+    "screenFormatPlaceholder": "e.g. Scope 2.39, Flat 1.85",
+    "soundSystem": "Sound system",
+    "soundSystemPlaceholder": "e.g. Dolby 7.1, Dolby Atmos",
+    "created": "Screen added.",
+    "saved": "Screen updated.",
+    "archived": "Screen archived.",
+    "archiveDialog": {
+      "title": "Archive screen",
+      "description": "The screen \"{name}\" will be archived and no longer visible in your interface. This action can be reversed later.",
+      "cancel": "Cancel",
+      "confirm": "Archive"
+    },
+    "error": {
+      "UNAUTHORIZED": "You must be signed in.",
+      "FORBIDDEN": "You do not have permission to manage screens.",
+      "INVALID_INPUT": "Please fill in all required fields.",
+      "INVALID_CAPACITY": "Capacity must be at least 1.",
+      "CINEMA_NOT_FOUND": "Cinema not found.",
+      "NOT_FOUND": "Screen not found.",
+      "LAST_ROOM": "You must keep at least one screen per cinema.",
+      "UNKNOWN": "An unexpected error occurred."
     }
   },
   "films": {
@@ -378,7 +512,7 @@
         "cinema": "Cinema",
         "dates": "Dates",
         "screenings": "Screenings",
-        "room": "Room ({capacity} seats)",
+        "room": "Screen ({capacity} seats)",
         "price": "Price",
         "expires": "Expires on",
         "actions": "Actions"
@@ -439,6 +573,10 @@
         "failed": "Failed"
       }
     }
+  },
+  "exhibitorDashboard": {
+    "title": "Dashboard",
+    "placeholder": "Your dashboard will be available soon."
   },
   "admin": {
     "dashboard": {
@@ -541,14 +679,70 @@
   "onboarding": {
     "title": "Set up your account",
     "subtitle": "Tell us about your organisation to get started.",
-    "companyName": "Company name",
-    "country": "Country",
-    "submit": "Continue",
-    "success": "Account created successfully!",
+    "step": "Step {current} of {total}",
+    "step1": {
+      "title": "Company information",
+      "description": "Tell us about your organisation.",
+      "companyName": "Company name",
+      "country": "Country",
+      "address": "Address",
+      "addressPlaceholder": "Street address",
+      "city": "City",
+      "postalCode": "Postal code",
+      "vatNumber": "VAT number",
+      "vatPlaceholder": "e.g. FR12345678901",
+      "preferredCurrency": "Preferred currency",
+      "contactEmail": "Contact email",
+      "contactEmailPlaceholder": "booking@yourcinema.com",
+      "contactPhone": "Phone",
+      "contactPhonePlaceholder": "+33 1 23 45 67 89",
+      "cinemaType": "Cinema type",
+      "cinemaTypeOptions": {
+        "art_house": "Art house",
+        "circuit": "Circuit",
+        "municipal": "Municipal",
+        "independent": "Independent",
+        "festival": "Festival",
+        "cine_club": "Film club",
+        "cultural_center": "Cultural centre",
+        "other": "Other"
+      },
+      "continue": "Continue"
+    },
+    "step2": {
+      "title": "Cinemas and screens",
+      "description": "Add at least one cinema with one screen to continue.",
+      "addCinema": "Add a cinema",
+      "cinemaName": "Cinema name",
+      "cinemaNamePlaceholder": "e.g. Le Grand Rex",
+      "country": "Country",
+      "city": "City",
+      "address": "Address",
+      "postalCode": "Postal code",
+      "addCinemaButton": "Add cinema",
+      "cinemaAdded": "Cinema added.",
+      "cinemaList": "Your cinemas",
+      "rooms": "{count, plural, =1 {1 screen} other {# screens}}",
+      "noCinemas": "You must add at least one cinema with one screen to continue.",
+      "continue": "Continue"
+    },
+    "step3": {
+      "title": "Invite your team",
+      "description": "Invite collaborators to join your account. You can also do this later.",
+      "skip": "Skip this step",
+      "finish": "Finish setup"
+    },
+    "memberBlocked": {
+      "title": "Setup in progress",
+      "description": "The account administrator must complete the setup before you can access the platform. Please contact the account owner."
+    },
     "error": {
       "UNAUTHORIZED": "You must be signed in.",
-      "ALREADY_HAS_ACCOUNT": "You already have an account.",
-      "CREATION_FAILED": "Failed to create your account. Please try again."
+      "INVALID_INPUT": "Please fill in all required fields.",
+      "CREATION_FAILED": "Failed to create your account. Please try again.",
+      "NO_ACCOUNT": "No account found.",
+      "MUST_ADD_CINEMA": "You must add at least one cinema before finishing.",
+      "UNKNOWN": "An unexpected error occurred."
     }
   },
   "profile": {
@@ -699,7 +893,7 @@
       "requestDetails": "Request details",
       "screenings": "Number of screenings",
       "dates": "Dates",
-      "room": "Room",
+      "room": "Screen",
       "capacity": "Capacity",
       "price": "Price",
       "expires": "This request expires on {date}.",
