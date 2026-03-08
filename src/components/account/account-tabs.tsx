@@ -7,10 +7,15 @@ import { cn } from "@/lib/utils";
 
 interface AccountTabsProps {
   showCinemas?: boolean;
+  showStripeConnect?: boolean;
   showApi?: boolean;
 }
 
-export function AccountTabs({ showCinemas = false, showApi = false }: AccountTabsProps) {
+export function AccountTabs({
+  showCinemas = false,
+  showStripeConnect = false,
+  showApi = false,
+}: AccountTabsProps) {
   const t = useTranslations("accountSettings");
   const pathname = usePathname();
 
@@ -18,6 +23,9 @@ export function AccountTabs({ showCinemas = false, showApi = false }: AccountTab
     { label: t("tabs.information"), href: "/account/information" },
     { label: t("tabs.members"), href: "/account/members" },
     ...(showCinemas ? [{ label: t("tabs.cinemas"), href: "/account/cinemas" }] : []),
+    ...(showStripeConnect
+      ? [{ label: t("tabs.stripeConnect"), href: "/account/stripe-connect" }]
+      : []),
     ...(showApi ? [{ label: t("tabs.api"), href: "/account/api" }] : []),
   ];
 

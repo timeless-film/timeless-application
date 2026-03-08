@@ -45,7 +45,7 @@ export function getHomePathForType(type: AccountType): string {
     case "exhibitor":
       return "/catalog";
     case "rights_holder":
-      return "/films";
+      return "/home";
     case "admin":
       return "/dashboard";
   }

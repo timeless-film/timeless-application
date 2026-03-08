@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 
 import { AppSidebar } from "@/components/app-sidebar";
 import { AccountProvider } from "@/components/providers/account-provider";
+import { StripeConnectBanner } from "@/components/shared/stripe-connect-banner";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { auth } from "@/lib/auth";
@@ -29,10 +30,12 @@ export default async function RightsHolderLayout({ children }: { children: React
 
   const activeMembership = memberships.find((m) => m.accountId === activeCookie?.accountId);
   const canManageAccount = activeMembership?.role === "owner" || activeMembership?.role === "admin";
+  const showBanner = !activeMembership?.account.stripeConnectOnboardingComplete;
 
   const sections: NavSection[] = [
     {
       items: [
+        { title: t("home"), href: "/home", icon: "gauge" },
         { title: t("films"), href: "/films", icon: "film" },
         { title: t("validationRequests"), href: "/validation-requests", icon: "clipboard-list" },
         { title: t("wallet"), href: "/wallet", icon: "wallet" },
@@ -78,6 +81,7 @@ export default async function RightsHolderLayout({ children }: { children: React
         />
         <SidebarInset>
           <SiteHeader />
+          {showBanner && <StripeConnectBanner canManage={canManageAccount} />}
           <div className="flex flex-1 flex-col">
             <div className="flex flex-1 flex-col gap-4 p-4 lg:p-6">{children}</div>
           </div>

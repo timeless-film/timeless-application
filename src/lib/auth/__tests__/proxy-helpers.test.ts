@@ -92,8 +92,8 @@ describe("isAccountOptionalPath", () => {
     expect(isAccountOptionalPath("/en")).toBe(true);
   });
 
-  it("returns true for /en/select-account", () => {
-    expect(isAccountOptionalPath("/en/select-account")).toBe(true);
+  it("returns true for /en/accounts", () => {
+    expect(isAccountOptionalPath("/en/accounts")).toBe(true);
   });
 
   it("returns true for /en/no-account", () => {
@@ -181,8 +181,12 @@ describe("getRequiredAccountType", () => {
     expect(getRequiredAccountType("/en/accept-invitation")).toBe("exhibitor");
   });
 
-  it("returns 'exhibitor' for /en/home", () => {
-    expect(getRequiredAccountType("/en/home")).toBe("exhibitor");
+  it("returns null for /en/home (shared path)", () => {
+    expect(getRequiredAccountType("/en/home")).toBeNull();
+  });
+
+  it("returns null for /en/home/sub-page (shared path)", () => {
+    expect(getRequiredAccountType("/en/home/sub-page")).toBeNull();
   });
 
   // Rights holder paths

@@ -28,7 +28,7 @@ export default async function LocaleRootPage({ params }: { params: Promise<{ loc
     redirect(`/${locale}/no-account`);
   }
 
-  // One or more memberships → redirect to the account selector
-  // (the selector will auto-select if only one account)
-  redirect(`/${locale}/select-account`);
+  // One or more memberships → redirect to the accounts page
+  // (shows account list, pending invitations, and account creation)
+  redirect(`/${locale}/accounts`);
 }

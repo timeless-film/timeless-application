@@ -118,6 +118,7 @@
     "management": "Management",
     "myAccounts": "My accounts",
     "manageAccount": "Manage account",
+    "home": "Home",
     "back": "Back"
   },
   "catalog": {
@@ -320,6 +321,7 @@
       "information": "Information",
       "members": "Members",
       "cinemas": "Cinemas",
+      "stripeConnect": "Stripe Connect",
       "api": "API"
     },
     "api": {
@@ -841,15 +843,6 @@
       "UNKNOWN": "An error occurred. Please try again."
     }
   },
-  "selectAccount": {
-    "title": "Select an account",
-    "description": "Choose the account you want to use.",
-    "typeExhibitor": "Exhibitor",
-    "typeRightsHolder": "Rights holder",
-    "typeAdmin": "Admin",
-    "switched": "Switched to {name}.",
-    "error": "Failed to switch account. Please try again."
-  },
   "pendingInvitations": {
     "title": "Pending invitations",
     "description": "You have been invited to join the following accounts.",
@@ -952,5 +945,37 @@
       "FORBIDDEN": "You are not allowed to create this type of account.",
       "CREATION_FAILED": "Failed to create the account. Please try again."
     }
+  },
+  "stripeConnect": {
+    "title": "Payment account",
+    "notConfigured": {
+      "heading": "Set up your payment account",
+      "description": "Configure your payment account to receive revenue from your films.",
+      "cta": "Set up payments"
+    },
+    "configured": {
+      "heading": "Payment account active",
+      "description": "Your Stripe Connect account is configured and ready to receive payments.",
+      "dashboardLink": "Open Stripe dashboard"
+    },
+    "incomplete": {
+      "heading": "Setup incomplete",
+      "description": "Your payment account setup was not completed. Please try again.",
+      "cta": "Complete setup"
+    },
+    "banner": {
+      "message": "Your payment account is not yet configured — purchases of your films are blocked.",
+      "cta": "Set up payments"
+    },
+    "error": {
+      "UNAUTHORIZED": "You must be signed in.",
+      "FORBIDDEN": "You do not have permission to manage payment settings.",
+      "NOT_CONFIGURED": "Payment account is not configured yet.",
+      "UNKNOWN": "An unexpected error occurred."
+    }
+  },
+  "rightsHolderDashboard": {
+    "title": "Dashboard",
+    "placeholder": "Your dashboard will be available soon."
   }
 }

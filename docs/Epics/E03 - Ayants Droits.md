@@ -1,7 +1,7 @@
 # E03 — Comptes Ayants Droits
 
 **Phase** : P0
-**Statut** : 🔄 En cours
+**Statut** : ✅ Done
 
 ---
 
@@ -111,15 +111,15 @@ Affichée sur **toutes les pages** de l'interface ayant droit tant que `stripeCo
 - Disparaît après `revalidatePath` déclenché par le webhook (pas de temps réel — un reload suffit)
 
 #### Critères d'acceptation
-- [ ] Le formulaire profil rights_holder n'affiche pas "type de cinéma" ni l'onglet "Cinémas"
-- [ ] L'onglet "Stripe Connect" est visible pour owner/admin, absent pour les membres
-- [ ] L'onglet "API" est disponible pour les rights_holders
-- [ ] Clic sur "Configurer le paiement" → crée le compte Express (ou réutilise l'existant) et redirige vers Stripe
-- [ ] Retour depuis Stripe → vérification `details_submitted` et affichage de l'état correct
-- [ ] Si onboarding abandonné et repris → le même compte Stripe est réutilisé (pas de doublon)
-- [ ] Le webhook `account.updated` met à jour `stripeConnectOnboardingComplete` en base
-- [ ] La bannière s'affiche sur toutes les pages si `stripeConnectOnboardingComplete = false`
-- [ ] La bannière est cliquable pour owner/admin, non cliquable pour les membres
+- [x] Le formulaire profil rights_holder n'affiche pas "type de cinéma" ni l'onglet "Cinémas"
+- [x] L'onglet "Stripe Connect" est visible pour owner/admin, absent pour les membres
+- [x] L'onglet "API" est disponible pour les rights_holders
+- [x] Clic sur "Configurer le paiement" → crée le compte Express (ou réutilise l'existant) et redirige vers Stripe
+- [x] Retour depuis Stripe → vérification `details_submitted` et affichage de l'état correct
+- [x] Si onboarding abandonné et repris → le même compte Stripe est réutilisé (pas de doublon)
+- [x] Le webhook `account.updated` met à jour `stripeConnectOnboardingComplete` en base
+- [x] La bannière s'affiche sur toutes les pages si `stripeConnectOnboardingComplete = false`
+- [x] La bannière est cliquable pour owner/admin, non cliquable pour les membres
 
 ---
 
@@ -143,9 +143,9 @@ Les données réelles seront ajoutées dans les épics suivants (E04, E07, E09).
 - Solde wallet (disponible / en attente)
 
 #### Critères d'acceptation
-- [ ] La page `/home` s'affiche sans erreur pour un compte rights_holder
-- [ ] Un empty state est affiché (pas de page blanche)
-- [ ] Après login, un rights_holder est redirigé vers `/home` (pas `/films`)
+- [x] La page `/home` s'affiche sans erreur pour un compte rights_holder
+- [x] Un empty state est affiché (pas de page blanche)
+- [x] Après login, un rights_holder est redirigé vers `/home` (pas `/films`)
 
 ---
 
@@ -161,9 +161,9 @@ Fonctionnalités disponibles via `/account/information` → onglet "Membres" (ow
 - Modification de rôle / révocation
 
 #### Critères d'acceptation
-- [ ] Un owner/admin rights_holder peut inviter un utilisateur
-- [ ] L'utilisateur invité reçoit un email et peut rejoindre le compte
-- [ ] La modification de rôle et la révocation fonctionnent
+- [x] Un owner/admin rights_holder peut inviter un utilisateur
+- [x] L'utilisateur invité reçoit un email et peut rejoindre le compte
+- [x] La modification de rôle et la révocation fonctionnent
 
 ---
 
@@ -171,18 +171,24 @@ Fonctionnalités disponibles via `/account/information` → onglet "Membres" (ow
 
 ## Tests
 
-### Tests unitaires (Vitest)
+### Tests unitaires (Vitest) ✅
 
-**`src/lib/auth/__tests__/proxy-helpers.test.ts`** — compléter le fichier existant :
-- `getRequiredAccountType("/en/home")` → `"rights_holder"`
+**`src/lib/auth/__tests__/proxy-helpers.test.ts`** — mis à jour :
+- `getRequiredAccountType("/en/home")` → `null` (path partagé exhibitor/RH)
+- `getRequiredAccountType("/en/home/sub-page")` → `null`
 - `getRequiredAccountType("/en/films")` → `"rights_holder"`
 - `getHomePathForType("rights_holder")` → `"/home"`
-- Un rights_holder accédant à un path exhibitor (`/catalog`) → redirigé vers `/home`
 
-**`src/lib/services/__tests__/rights-holder-service.test.ts`** — logique pure extraite du webhook :
+> Note : `/home` est un path partagé (pas dans EXHIBITOR_PATHS ni RIGHTS_HOLDER_PATHS) car les deux types de compte y accèdent. La différenciation se fait dans le layout `(home)/layout.tsx` qui rend le bon shell selon le type de compte.
+
+**`src/lib/auth/__tests__/active-account-cookie.test.ts`** — mis à jour :
+- `getHomePathForType("rights_holder")` → `"/home"` (était `"/films"`)
+
+**`src/lib/services/__tests__/rights-holder-service.test.ts`** — créé (4 tests) :
 - `isStripeConnectComplete({ details_submitted: true, charges_enabled: true })` → `true`
 - `isStripeConnectComplete({ details_submitted: true, charges_enabled: false })` → `false`
 - `isStripeConnectComplete({ details_submitted: false, charges_enabled: false })` → `false`
+- `isStripeConnectComplete({ details_submitted: false, charges_enabled: true })` → `false`
 
 ---
 
@@ -216,3 +222,52 @@ Fonctionnalités disponibles via `/account/information` → onglet "Membres" (ow
 ## Points ouverts
 
 *Aucun point ouvert.*
+
+---
+
+## Implémentation
+
+### Fichiers créés
+
+| Fichier | Description |
+|---------|-------------|
+| `src/lib/services/rights-holder-service.ts` | Fonction pure `isStripeConnectComplete()` |
+| `src/lib/services/__tests__/rights-holder-service.test.ts` | Tests unitaires (4 tests) |
+| `src/components/account/stripe-connect-actions.ts` | Server actions : `startStripeConnectOnboarding`, `checkStripeConnectStatus`, `createStripeConnectDashboardLink` |
+| `src/components/account/stripe-connect-tab.tsx` | Composant client — onglet Stripe Connect (3 états) |
+| `src/components/shared/stripe-connect-banner.tsx` | Bannière non-dismissable (server component) |
+| `src/app/[locale]/(account)/account/(management)/stripe-connect/page.tsx` | Page onglet Stripe Connect |
+| `src/app/[locale]/(account)/account/stripe-connect/refresh/page.tsx` | Page de refresh (régénère le lien Stripe) |
+| `src/app/[locale]/(home)/layout.tsx` | Layout conditionnel : marketplace header (exhibitor) ou sidebar (RH) |
+| `src/app/[locale]/(home)/home/page.tsx` | Dashboard unifié (affichage conditionnel par type de compte) |
+
+### Fichiers modifiés
+
+| Fichier | Changement |
+|---------|------------|
+| `src/lib/auth/proxy-helpers.ts` | `/home` retiré de `EXHIBITOR_PATHS` (devient path partagé) |
+| `src/lib/auth/active-account-cookie.ts` | `getHomePathForType("rights_holder")` → `"/home"` |
+| `src/app/[locale]/(rights-holder)/layout.tsx` | Ajout lien `/home` en premier item sidebar + `StripeConnectBanner` |
+| `src/app/[locale]/(account)/layout.tsx` | Back href RH : `/films` → `/home` |
+| `src/app/[locale]/(account)/account/(management)/layout.tsx` | Ajout `showStripeConnect={isRightsHolder}` sur `AccountTabs` |
+| `src/components/account/account-tabs.tsx` | Nouveau prop `showStripeConnect` |
+| `src/app/api/webhooks/stripe/route.ts` | Webhook `account.updated` complété (DB update + `revalidatePath`) |
+| `messages/en.json` | Ajout `stripeConnect`, `rightsHolderDashboard`, `navigation.home`, `accountSettings.tabs.stripeConnect` |
+| `messages/fr.json` | Idem en français |
+| `src/lib/auth/__tests__/proxy-helpers.test.ts` | `/home` → `null` (shared path) |
+| `src/lib/auth/__tests__/active-account-cookie.test.ts` | RH home → `/home` |
+
+### Fichiers supprimés
+
+| Fichier | Raison |
+|---------|--------|
+| `src/app/[locale]/(app)/home/page.tsx` | Déplacé vers `(home)/home/page.tsx` (route group dédiée) |
+
+### Décision d'architecture : `/home` comme path partagé
+
+Le spec initial prévoyait `/home` dans `RIGHTS_HOLDER_PATHS`. Cependant, les exhibitors utilisent aussi `/home` (lien dans la marketplace header). Pour éviter de bloquer un type de compte :
+
+- `/home` n'est dans **aucune** liste de paths typés → `getRequiredAccountType("/home")` retourne `null`
+- La route group `(home)` a son propre `layout.tsx` qui détecte le type de compte et rend le bon shell
+- Les pages sous `(rights-holder)/` (films, validation-requests, wallet) conservent le sidebar layout existant
+- La bannière Stripe Connect est affichée dans les deux layouts (RH sidebar + home layout)

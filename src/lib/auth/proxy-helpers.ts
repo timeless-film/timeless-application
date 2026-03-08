@@ -9,26 +9,14 @@ import type { AccountType } from "@/lib/auth/active-account-cookie";
 export const PUBLIC_AUTH_PATHS = ["/login", "/register", "/forgot-password", "/reset-password"];
 
 // Paths that require a session but NOT an active account cookie
-export const ACCOUNT_OPTIONAL_PATHS = [
-  "/select-account",
-  "/no-account",
-  "/onboarding",
-  "/accounts",
-];
+export const ACCOUNT_OPTIONAL_PATHS = ["/no-account", "/onboarding", "/accounts"];
 
 // API routes that don't require session-based authentication
 // v1 API routes use Bearer token auth (handled by api-auth.ts), not proxy session
 export const UNPROTECTED_API_PATHS = ["/api/auth", "/api/webhooks", "/api/debug", "/api/v1"];
 
 // Map path prefixes to the account type that can access them
-export const EXHIBITOR_PATHS = [
-  "/catalog",
-  "/cart",
-  "/orders",
-  "/requests",
-  "/accept-invitation",
-  "/home",
-];
+export const EXHIBITOR_PATHS = ["/catalog", "/cart", "/orders", "/requests", "/accept-invitation"];
 export const RIGHTS_HOLDER_PATHS = ["/films", "/validation-requests", "/wallet"];
 export const ADMIN_PATHS = [
   "/dashboard",

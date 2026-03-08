@@ -104,7 +104,7 @@ export function AccountSwitcherSidebar() {
         </SidebarMenuButton>
       </DropdownMenuTrigger>
       <DropdownMenuContent
-        className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+        className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
         align="start"
         side="bottom"
         sideOffset={4}
@@ -131,7 +131,7 @@ export function AccountSwitcherSidebar() {
           );
         })}
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="gap-2 p-2" onClick={() => router.push("/select-account")}>
+        <DropdownMenuItem className="gap-2 p-2" onClick={() => router.push("/accounts")}>
           <div className="flex size-6 items-center justify-center rounded-sm border bg-background">
             <ChevronsUpDownIcon className="size-4" />
           </div>

@@ -1,1 +1,32 @@
 npx lint-staged
+
+# ── Drizzle migration check ───────────────────────────────────────────────────
+# drizzle-kit generate reads TypeScript schema files + snapshots — it does NOT
+# connect to the database. DATABASE_URL is required by the config loader only,
+# so a placeholder is sufficient here.
+# Stdin is redirected from /dev/null so any interactive prompt fails fast
+# instead of hanging the terminal.
+echo ""
+echo "Checking Drizzle schema for missing migrations..."
+DATABASE_URL="postgresql://localhost/placeholder" npx drizzle-kit generate </dev/null 2>&1
+DRIZZLE_EXIT=$?
+
+if [ $DRIZZLE_EXIT -ne 0 ]; then
+  echo ""
+  echo "⚠️  drizzle-kit generate failed — run 'pnpm db:generate' manually and commit the result."
+  # Non-blocking: don't fail the commit on a tool error (e.g. interactive prompt)
+  exit 0
+fi
+
+# Auto-stage any newly generated migration files or updated snapshots
+NEW_FILES=$(git ls-files --others --exclude-standard drizzle/ 2>/dev/null)
+MODIFIED=$(git diff drizzle/ 2>/dev/null)
+
+if [ -n "$NEW_FILES" ] || [ -n "$MODIFIED" ]; then
+  echo ""
+  echo "📦 New migration generated — staged automatically:"
+  git add drizzle/
+  git diff --cached --name-only -- drizzle/ | sed 's/^/   /'
+  echo ""
+  echo "   Review the migration above. It will be included in this commit."
+fi

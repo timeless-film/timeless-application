@@ -53,7 +53,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // Account-optional paths (select-account, no-account, onboarding) — allow through
+  // Account-optional paths (accounts, no-account, onboarding) — allow through
   if (isAccountOptionalPath(pathname)) {
     return intlResponse;
   }

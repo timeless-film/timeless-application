@@ -118,6 +118,7 @@
     "management": "Gestion",
     "myAccounts": "Mes comptes",
     "manageAccount": "Gérer le compte",
+    "home": "Accueil",
     "back": "Retour"
   },
   "catalog": {
@@ -320,6 +321,7 @@
       "information": "Informations",
       "members": "Membres",
       "cinemas": "Cinémas",
+      "stripeConnect": "Stripe Connect",
       "api": "API"
     },
     "api": {
@@ -841,15 +843,6 @@
       "UNKNOWN": "Une erreur est survenue. Veuillez réessayer."
     }
   },
-  "selectAccount": {
-    "title": "Sélectionner un compte",
-    "description": "Choisissez le compte que vous souhaitez utiliser.",
-    "typeExhibitor": "Exploitant",
-    "typeRightsHolder": "Ayant droit",
-    "typeAdmin": "Administrateur",
-    "switched": "Vous êtes maintenant sur {name}.",
-    "error": "Impossible de changer de compte. Veuillez réessayer."
-  },
   "pendingInvitations": {
     "title": "Invitations en attente",
     "description": "Vous avez été invité(e) à rejoindre les comptes suivants.",
@@ -952,5 +945,37 @@
       "FORBIDDEN": "Vous n'êtes pas autorisé à créer ce type de compte.",
       "CREATION_FAILED": "Impossible de créer le compte. Veuillez réessayer."
     }
+  },
+  "stripeConnect": {
+    "title": "Compte de paiement",
+    "notConfigured": {
+      "heading": "Configurez votre compte de paiement",
+      "description": "Configurez votre compte de paiement pour recevoir les revenus de vos films.",
+      "cta": "Configurer le paiement"
+    },
+    "configured": {
+      "heading": "Compte de paiement actif",
+      "description": "Votre compte Stripe Connect est configuré et prêt à recevoir des paiements.",
+      "dashboardLink": "Ouvrir le tableau de bord Stripe"
+    },
+    "incomplete": {
+      "heading": "Configuration incomplète",
+      "description": "La configuration de votre compte de paiement n'a pas été terminée. Veuillez réessayer.",
+      "cta": "Terminer la configuration"
+    },
+    "banner": {
+      "message": "Votre compte de paiement n'est pas encore configuré — les achats de vos films sont bloqués.",
+      "cta": "Configurer le paiement"
+    },
+    "error": {
+      "UNAUTHORIZED": "Vous devez être connecté.",
+      "FORBIDDEN": "Vous n'avez pas la permission de gérer les paramètres de paiement.",
+      "NOT_CONFIGURED": "Le compte de paiement n'est pas encore configuré.",
+      "UNKNOWN": "Une erreur inattendue s'est produite."
+    }
+  },
+  "rightsHolderDashboard": {
+    "title": "Tableau de bord",
+    "placeholder": "Votre tableau de bord sera disponible prochainement."
   }
 }

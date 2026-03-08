@@ -14,10 +14,11 @@ export default async function ManagementLayout({ children }: { children: ReactNo
   if (!ctx || (ctx.role !== "owner" && ctx.role !== "admin")) {
     const isRightsHolder = ctx?.account.type === "rights_holder";
     const isAdmin = ctx?.account.type === "admin";
-    redirect(isAdmin ? "/dashboard" : isRightsHolder ? "/films" : "/catalog");
+    redirect(isAdmin ? "/dashboard" : isRightsHolder ? "/home" : "/catalog");
   }
 
   const isExhibitor = ctx.account.type === "exhibitor";
+  const isRightsHolder = ctx.account.type === "rights_holder";
 
   return (
     <div className="mx-auto max-w-2xl space-y-6 px-4 py-8 lg:px-6">
@@ -25,7 +26,7 @@ export default async function ManagementLayout({ children }: { children: ReactNo
         <h1 className="font-heading text-2xl">{t("heading")}</h1>
         <p className="text-sm text-muted-foreground">{t("headingDescription")}</p>
       </div>
-      <AccountTabs showCinemas={isExhibitor} showApi />
+      <AccountTabs showCinemas={isExhibitor} showStripeConnect={isRightsHolder} showApi />
       {children}
     </div>
   );

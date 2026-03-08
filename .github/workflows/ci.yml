@@ -36,6 +36,23 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Check Drizzle migrations
+        # drizzle-kit generate reads schema files + snapshots — no DB connection needed.
+        # A placeholder DATABASE_URL satisfies the config loader.
+        # If the schema has changed without a matching migration, new files appear
+        # in drizzle/ and git diff exits non-zero, failing the build.
+        run: |
+          DATABASE_URL="postgresql://localhost/placeholder" npx drizzle-kit generate </dev/null 2>&1
+          if ! git diff --quiet -- drizzle/ || git ls-files --others --exclude-standard -- drizzle/ | grep -q .; then
+            echo ""
+            echo "❌ Schema changes detected without a corresponding Drizzle migration."
+            echo "   Run 'pnpm db:generate', commit the generated files, and push again."
+            echo ""
+            git diff -- drizzle/
+            exit 1
+          fi
+          echo "✅ Drizzle migrations are up to date."
+
       - name: Typecheck
         run: pnpm typecheck
 

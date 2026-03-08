@@ -1,8 +1,10 @@
 import { eq } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 
 import { db } from "@/lib/db";
-import { orders } from "@/lib/db/schema";
+import { accounts, orders } from "@/lib/db/schema";
+import { isStripeConnectComplete } from "@/lib/services/rights-holder-service";
 import { stripe } from "@/lib/stripe";
 
 import type { NextRequest } from "next/server";
@@ -48,10 +50,19 @@ export async function POST(req: NextRequest) {
       case "account.updated": {
         // Stripe Connect — update rights holder onboarding status
         const account = event.data.object;
-        const onboardingComplete = account.details_submitted && account.charges_enabled;
+        const onboardingComplete = isStripeConnectComplete(account);
 
-        // TODO: update the status in DB for the relevant rights holder
-        console.warn(`Connect account ${account.id} onboarding: ${onboardingComplete}`);
+        if (onboardingComplete) {
+          const updated = await db
+            .update(accounts)
+            .set({ stripeConnectOnboardingComplete: true, updatedAt: new Date() })
+            .where(eq(accounts.stripeConnectAccountId, account.id))
+            .returning({ id: accounts.id });
+
+          if (updated.length > 0) {
+            revalidatePath("/", "layout");
+          }
+        }
         break;
       }
 

@@ -94,12 +94,46 @@ CREATE UNIQUE INDEX films_account_external_id_idx ON films (account_id, external
 
 ---
 
+## Infrastructure commune (pré-requis transverse)
+
+> Ces tâches sont nécessaires avant ou pendant les tickets. Elles ne sont rattachées à aucun ticket en particulier.
+
+| Tâche | Statut |
+|-------|--------|
+| Ajouter colonne `external_id` + index unique conditionnel sur `films` (migration Drizzle) | ⬜ |
+| Créer `src/lib/services/film-service.ts` : `listFilmsForAccount`, `getFilm`, `createFilm`, `updateFilm`, `archiveFilm` | ⬜ |
+| Créer page liste `/films` (squelette → liste réelle avec pagination) | ⬜ |
+| Créer route `/films/new` (création manuelle) | ⬜ |
+| Créer route `/films/[filmId]` (fiche détail / édition) | ⬜ |
+| Créer route `/films/import` (import CSV / Excel) | ⬜ |
+
+---
+
 ## Tickets
 
 ---
 
 ### E04-001 — Import CSV / Excel (sync catalogue)
 **Priorité** : P0 | **Taille** : L
+
+#### Tâches de développement
+
+| Tâche | Statut |
+|-------|--------|
+| Installer `papaparse` + `@types/papaparse` et `xlsx` (SheetJS) | ⬜ |
+| Créer `src/lib/services/film-import-service.ts` : parsing, regroupement par clé, calcul du diff | ⬜ |
+| Parser CSV côté client (`papaparse`) avec détection de l'encodage | ⬜ |
+| Parser Excel côté client (`xlsx`) avec extraction de la première feuille | ⬜ |
+| Composant "étape 1 — Upload" : drag & drop + sélecteur, limite 10 Mo / 500 lignes | ⬜ |
+| Composant "étape 2 — Mapping" : colonnes auto-détectées, correctives, désignation identifiant unique | ⬜ |
+| Composant "étape 3 — Prévisualisation" : diff créations ✅ / mises à jour 🔄 / archivages ⚠️ / erreurs ❌ | ⬜ |
+| Composant "étape 4 — Confirmation" : liste des archivages + input `CONFIRMER` si films à archiver | ⬜ |
+| Server action `importFilms(payload)` : sync complète (create / update / archive) dans une transaction | ⬜ |
+| Générer `importBatchId` (uuid) à la création des films | ⬜ |
+| Route handler `POST /api/internal/enrich-batch/[batchId]` : enrichissement TMDB séquentiel | ⬜ |
+| Appel fire-and-forget vers `/api/internal/enrich-batch/[batchId]` depuis le server action | ⬜ |
+| Templates téléchargeables : fichiers CSV et Excel pré-formatés avec exemple | ⬜ |
+| Rapport post-import : X créés / Y mis à jour / Z archivés / W erreurs | ⬜ |
 
 #### Description
 Un ayant droit peut importer son catalogue en masse via un fichier CSV ou Excel (`.xlsx`).
@@ -225,6 +259,15 @@ L'ayant droit doit confirmer explicitement avant exécution. Si des films doiven
 ### E04-002 — Validation et détection d'erreurs à l'import
 **Priorité** : P0 | **Taille** : M
 
+#### Tâches de développement
+
+| Tâche | Statut |
+|-------|--------|
+| Implémenter les règles d'erreurs bloquantes dans `film-import-service.ts` (titre vide, type invalide, pays vide, prix invalide, devise inconnue, pays en double) | ⬜ |
+| Implémenter les warnings (statut absent → défaut, codes pays partiellement invalides, doublons de zone → dernier gagne) | ⬜ |
+| Afficher les erreurs avec numéro de ligne et nom de colonne dans la prévisualisation | ⬜ |
+| Re-validation serveur complète dans le server action `importFilms` (double sécurité) | ⬜ |
+
 #### Description
 Règles de validation appliquées pendant le parsing client-side et re-vérifiées côté serveur.
 
@@ -254,6 +297,17 @@ Règles de validation appliquées pendant le parsing client-side et re-vérifié
 
 ### E04-003 — Création manuelle d'un film
 **Priorité** : P0 | **Taille** : M
+
+#### Tâches de développement
+
+| Tâche | Statut |
+|-------|--------|
+| Composant `FilmForm` : champs titre, identifiant externe, type, statut | ⬜ |
+| Composant de recherche TMDB en temps réel : debounce 300ms, affichage des 5 premiers résultats (titre, année, affiche) | ⬜ |
+| Gestion des 3 cas TMDB : sélection → enrichissement synchrone, "Aucune correspondance" → `no_match`, TMDB indisponible → `pending` + toast | ⬜ |
+| Sous-formulaire zones de prix (intégré dans `FilmForm`) : add / remove dynamique | ⬜ |
+| Server action `createFilm(input)` : validation Zod, appel `film-service.ts`, enrichissement TMDB synchrone si résultat sélectionné | ⬜ |
+| Page `/films/new` avec `FilmForm` et feedback toast | ⬜ |
 
 #### Description
 Un ayant droit peut ajouter un film manuellement via un formulaire.
@@ -293,6 +347,15 @@ Un ayant droit peut ajouter un film manuellement via un formulaire.
 ### E04-004 — Édition et suppression d'un film
 **Priorité** : P0 | **Taille** : S
 
+#### Tâches de développement
+
+| Tâche | Statut |
+|-------|--------|
+| Server action `updateFilm(filmId, input)` : validation Zod, vérification ownership, mise à jour des champs + remplacement complet des zones de prix | ⬜ |
+| Server action `archiveFilm(filmId)` : passage à `retired`, vérification ownership, blocage si déjà `retired` | ⬜ |
+| Page `/films/[filmId]` : chargement de la fiche, `FilmForm` pré-rempli en mode édition | ⬜ |
+| Dialog de confirmation d'archivage (irréversible) | ⬜ |
+
 #### Description
 Un ayant droit peut modifier ou archiver un film depuis sa fiche détail.
 
@@ -321,6 +384,15 @@ Un ayant droit peut modifier ou archiver un film depuis sa fiche détail.
 
 ### E04-005 — Enrichissement automatique TMDB
 **Priorité** : P1 | **Taille** : M
+
+#### Tâches de développement
+
+| Tâche | Statut |
+|-------|--------|
+| Intégrer `enrichFilmFromTmdb()` dans le server action `createFilm` (chemin synchrone) | ⬜ |
+| Implémenter `POST /api/internal/enrich-batch/[batchId]` : récupérer films `pending` du batch, traitement séquentiel, mise à jour `tmdbMatchStatus` + `tmdbData` | ⬜ |
+| Gérer l'erreur TMDB par film dans le batch : reste `pending`, passe au suivant | ⬜ |
+| Badges `tmdbMatchStatus` sur la liste des films : `pending` orange / `no_match` gris / `manual` bleu | ⬜ |
 
 > L'intégration TMDB est **déjà codée** dans `src/lib/tmdb/index.ts`. Ce ticket concerne uniquement l'intégration dans les flows de création/import.
 
@@ -382,6 +454,16 @@ Un ayant droit peut modifier ou archiver un film depuis sa fiche détail.
 ### E04-006 — Correction manuelle des données TMDB
 **Priorité** : P2 | **Taille** : M
 
+#### Tâches de développement
+
+| Tâche | Statut |
+|-------|--------|
+| Section "Données TMDB" en lecture sur la fiche film : synopsis, affiche, cast, genres… | ⬜ |
+| Mode édition des champs TMDB : mise à jour `tmdbData` + passage à `tmdbMatchStatus = "manual"` | ⬜ |
+| Server action `resyncTmdb(filmId)` : re-fetch complet, écrase `tmdbData`, repasse à `matched` ou `no_match` | ⬜ |
+| Server action `disassociateTmdb(filmId)` : `tmdbMatchStatus = "no_match"`, efface `tmdbData` | ⬜ |
+| Boutons "Resynchroniser avec TMDB" et "Supprimer la correspondance" avec confirmations | ⬜ |
+
 #### Description
 Un ayant droit peut corriger manuellement les données TMDB depuis la fiche film.
 
@@ -403,6 +485,17 @@ Un ayant droit peut corriger manuellement les données TMDB depuis la fiche film
 
 ### E04-007 — Gestion des prix multi-zones
 **Priorité** : P0 | **Taille** : M
+
+#### Tâches de développement
+
+| Tâche | Statut |
+|-------|--------|
+| Composant `PriceZonesEditor` : tableau éditable avec colonnes pays (multi-select + recherche), prix, devise | ⬜ |
+| Ajout de zone (bouton + ligne vide ou modale) | ⬜ |
+| Modification inline d'une zone | ⬜ |
+| Suppression d'une zone avec confirmation | ⬜ |
+| Validation : un pays ne peut pas apparaître dans deux zones (client + serveur) | ⬜ |
+| Conversion centimes ↔ unité monétaire à l'affichage et à l'enregistrement | ⬜ |
 
 #### Description
 Interface de gestion des zones de prix sur la fiche film.
@@ -444,6 +537,17 @@ Interface de gestion des zones de prix sur la fiche film.
 ### E04-008 — Statut et visibilité d'un film
 **Priorité** : P0 | **Taille** : S
 
+#### Tâches de développement
+
+| Tâche | Statut |
+|-------|--------|
+| Logique de transition dans `film-service.ts` : `active ↔ inactive`, `active/inactive → retired` (irréversible), bloquer `retired → *` | ⬜ |
+| Server action `setFilmStatus(filmId, status)` | ⬜ |
+| Action rapide de bascule `active/inactive` depuis la liste des films (toggle ou dropdown) | ⬜ |
+| Changement de statut depuis la fiche film | ⬜ |
+| Dialog de confirmation pour le passage à `retired` ("Cette action est irréversible") | ⬜ |
+| Filtrage des films `retired` dans `listFilmsForAccount` (exclus par défaut) | ⬜ |
+
 #### Description
 Gestion des transitions de statut d'un film.
 
@@ -478,6 +582,23 @@ Gestion des transitions de statut d'un film.
 
 ## API REST v1
 
+### Tâches de développement API
+
+| Tâche | Statut |
+|-------|--------|
+| `GET /api/v1/films` — liste paginée (auth Bearer) | ⬜ |
+| `POST /api/v1/films` — création d'un film | ⬜ |
+| `GET /api/v1/films/[filmId]` — détail | ⬜ |
+| `PATCH /api/v1/films/[filmId]` — mise à jour | ⬜ |
+| `DELETE /api/v1/films/[filmId]` — archivage (`retired`) | ⬜ |
+| `GET /api/v1/films/[filmId]/prices` — liste des zones | ⬜ |
+| `POST /api/v1/films/[filmId]/prices` — création d'une zone | ⬜ |
+| `PATCH /api/v1/films/[filmId]/prices/[priceId]` — modification | ⬜ |
+| `DELETE /api/v1/films/[filmId]/prices/[priceId]` — suppression | ⬜ |
+| Créer `docs/api/v1/films.md` | ⬜ |
+
+
+
 Routes à créer sous `/api/v1/films/` (pattern identique à `/api/v1/cinemas/`) :
 
 | Méthode | Route | Description |
@@ -497,6 +618,17 @@ Documentation à créer dans `docs/api/v1/films.md`.
 ---
 
 ## Tests
+
+### Tâches de développement tests
+
+| Tâche | Statut |
+|-------|--------|
+| `film-service.test.ts` : listFilmsForAccount, createFilm (avec / sans zone), updateFilm (ownership), archiveFilm (irréversible), pays en double | ⬜ |
+| `film-import-service.test.ts` : parsing CSV/Excel, regroupement par externalId, diff create/update/archive, cas bord (retired ignoré, erreurs ignorées, fallback titre normalisé) | ⬜ |
+| `tmdb/index.test.ts` : normalizeTmdbData (directeurs, cast limité), enrichFilmFromTmdb (titre inconnu → null) | ⬜ |
+| E2E `films-crud.spec.ts` : création manuelle, recherche TMDB, édition, archivage, disparition de la liste | ⬜ |
+| E2E `films-import.spec.ts` : mapping, auto-détection, diff, CSV et Excel, regroupement, confirmation CONFIRMER, badge pending | ⬜ |
+| E2E `films-pricing.spec.ts` : multi-zones, pays en double (client + serveur), centimes vs affichage | ⬜ |
 
 ### Tests unitaires (Vitest)
 

@@ -130,7 +130,7 @@ Un utilisateur peut être membre de plusieurs comptes (via invitations). Aujourd
 - **Cookie encodé** : le cookie contient `accountId:type` (ex: `abc-123:exhibitor`) pour que le proxy puisse vérifier le type sans DB call.
 - **Switcher = dropdown** : composant intégré au header marketplace / sidebar dashboard — pas de page dédiée. Masqué si l'user n'a qu'un seul compte.
 - **Guard = proxy.ts** : vérification du type de compte vs route group au niveau proxy (edge), avant le rendering.
-- **Guards page-level** : la page `/accounts` redirige vers `/no-account` si `memberships.length === 0` (guard côté serveur, car proxy.ts n'a pas accès à la DB). La page racine `[locale]/page.tsx` redirige vers `/no-account` si 0 membership, `/select-account` si 1+.
+- **Guards page-level** : la page `/accounts` redirige vers `/no-account` si `memberships.length === 0` (guard côté serveur, car proxy.ts n'a pas accès à la DB). La page racine `[locale]/page.tsx` redirige vers `/no-account` si 0 membership, `/accounts` si 1+.
 - **User sans compte** : page `/no-account` — message explicatif + bouton créer un compte + section invitations en attente.
 - **Invitations en attente** : composant `PendingInvitations` affiché sur `/no-account` et `/accounts`. Sur `/no-account`, après acceptation → redirect vers `/accounts` (via prop `redirectAfterAccept`). Sur `/accounts` → `router.refresh()` pour mettre à jour la liste.
 - **Acceptation invitation** : switch automatique vers le nouveau compte après acceptation.

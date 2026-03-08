@@ -79,8 +79,8 @@ describe("getHomePathForType", () => {
     expect(getHomePathForType("exhibitor")).toBe("/catalog");
   });
 
-  it("returns /films for rights_holder", () => {
-    expect(getHomePathForType("rights_holder")).toBe("/films");
+  it("returns /home for rights_holder", () => {
+    expect(getHomePathForType("rights_holder")).toBe("/home");
   });
 
   it("returns /dashboard for admin", () => {
