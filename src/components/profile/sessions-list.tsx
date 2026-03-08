@@ -14,8 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ACTIVE_ACCOUNT_COOKIE } from "@/lib/auth/active-account-cookie";
-import { signOut } from "@/lib/auth/client";
+import { signOutAndCleanup } from "@/lib/auth/client";
 
 import { revokeAllOtherSessions, revokeSession } from "./actions";
 
@@ -103,20 +102,7 @@ export function SessionsList({
           <LogOut className="h-4 w-4" />
           {t("revokeAllSessions")}
         </Button>
-        <Button
-          variant="destructive"
-          className="w-full"
-          onClick={() => {
-            document.cookie = `${ACTIVE_ACCOUNT_COOKIE}=; path=/; max-age=0`;
-            signOut({
-              fetchOptions: {
-                onSuccess: () => {
-                  window.location.href = "/";
-                },
-              },
-            });
-          }}
-        >
+        <Button variant="destructive" className="w-full" onClick={signOutAndCleanup}>
           <LogOut className="h-4 w-4" />
           {t("signOut")}
         </Button>

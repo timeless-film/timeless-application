@@ -35,8 +35,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Link } from "@/i18n/navigation";
-import { ACTIVE_ACCOUNT_COOKIE } from "@/lib/auth/active-account-cookie";
-import { signOut } from "@/lib/auth/client";
+import { signOutAndCleanup } from "@/lib/auth/client";
 import { switchAccount } from "@/lib/auth/membership-actions";
 import { cn } from "@/lib/utils";
 
@@ -103,14 +102,7 @@ export function MarketplaceHeader({ user }: MarketplaceHeaderProps) {
   ];
 
   function handleSignOut() {
-    document.cookie = `${ACTIVE_ACCOUNT_COOKIE}=; path=/; max-age=0`;
-    signOut({
-      fetchOptions: {
-        onSuccess: () => {
-          window.location.href = "/";
-        },
-      },
-    });
+    signOutAndCleanup();
   }
 
   async function handleSwitch(accountId: string) {

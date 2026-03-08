@@ -25,8 +25,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Link } from "@/i18n/navigation";
-import { ACTIVE_ACCOUNT_COOKIE } from "@/lib/auth/active-account-cookie";
-import { signOut } from "@/lib/auth/client";
+import { signOutAndCleanup } from "@/lib/auth/client";
 
 function getInitials(name: string): string {
   return name
@@ -53,14 +52,7 @@ export function NavUser({ user, profileHref, accountHref, canManageAccount }: Na
   const t = useTranslations("navigation");
 
   function handleSignOut() {
-    document.cookie = `${ACTIVE_ACCOUNT_COOKIE}=; path=/; max-age=0`;
-    signOut({
-      fetchOptions: {
-        onSuccess: () => {
-          window.location.href = "/";
-        },
-      },
-    });
+    signOutAndCleanup();
   }
 
   return (
