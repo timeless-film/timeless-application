@@ -15,6 +15,13 @@
       "when": 1772989290584,
       "tag": "0001_thin_maelstrom",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1772993600044,
+      "tag": "0002_safe_roxanne_simpson",
+      "breakpoints": true
     }
   ]
 }

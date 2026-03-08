@@ -1,0 +1,2 @@
+ALTER TABLE "films" ADD COLUMN "external_id" text;--> statement-breakpoint
+CREATE UNIQUE INDEX "films_account_external_id_idx" ON "films" USING btree ("account_id","external_id") WHERE "films"."external_id" IS NOT NULL;
