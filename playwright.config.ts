@@ -9,12 +9,13 @@ const baseURL = `http://localhost:${E2E_PORT}`;
 
 export default defineConfig({
   testDir: "./e2e",
+  globalSetup: process.env.CI ? "./e2e/global-setup.ts" : undefined,
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 1,
   workers: 1,
   // CI runners are slow — give each test enough time for registration + onboarding + assertions
-  timeout: process.env.CI ? 60_000 : 30_000,
+  timeout: process.env.CI ? 120_000 : 30_000,
   reporter: process.env.CI ? "github" : "html",
   use: {
     baseURL,

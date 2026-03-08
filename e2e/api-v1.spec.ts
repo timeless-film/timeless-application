@@ -218,33 +218,21 @@ test.describe("API v1 — Rooms", () => {
   test("DELETE /api/v1/cinemas/:id returns 409 for last cinema", async ({
     request,
   }) => {
-    // First, we need to archive all cinemas except one — but in practice,
-    // the original cinema is the only non-archived one for this account.
-    // Let's try to archive it and expect 409.
-    const response = await request.delete(`/api/v1/cinemas/${cinemaId}`, {
-      headers: { Authorization: `Bearer ${bearerToken}` },
-    });
-
-    // If only one cinema remains, should be 409
-    // (the POST test above created another cinema, so we might need to archive that first)
-    // Let's check: first get cinemas to see which ones exist
+    // Archive all cinemas except the original one so it becomes the last
     const listRes = await request.get("/api/v1/cinemas", {
       headers: { Authorization: `Bearer ${bearerToken}` },
     });
     const listBody = await listRes.json();
 
-    if (listBody.data.length > 1) {
-      // Archive non-original cinemas first
-      for (const c of listBody.data) {
-        if (c.id !== cinemaId) {
-          await request.delete(`/api/v1/cinemas/${c.id}`, {
-            headers: { Authorization: `Bearer ${bearerToken}` },
-          });
-        }
+    for (const c of listBody.data) {
+      if (c.id !== cinemaId) {
+        await request.delete(`/api/v1/cinemas/${c.id}`, {
+          headers: { Authorization: `Bearer ${bearerToken}` },
+        });
       }
     }
 
-    // Now try to archive the last cinema
+    // Now try to archive the last remaining cinema — should be rejected
     const lastDeleteRes = await request.delete(`/api/v1/cinemas/${cinemaId}`, {
       headers: { Authorization: `Bearer ${bearerToken}` },
     });

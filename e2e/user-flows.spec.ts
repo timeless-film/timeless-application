@@ -87,7 +87,9 @@ async function completeOnboarding(page: Page, companyName: string) {
 
   // ─── Step 1: Company information ─────────────────────────────────
   await expect(page.locator("#companyName")).toBeVisible({ timeout: 15000 });
-  await page.fill("#companyName", companyName);
+  // Use click + pressSequentially to ensure React onChange fires even during slow hydration
+  await page.locator("#companyName").click();
+  await page.locator("#companyName").pressSequentially(companyName, { delay: 30 });
   // Country defaults to FR — leave as is
 
   await page.getByRole("button", { name: /continue/i }).click();
@@ -95,9 +97,11 @@ async function completeOnboarding(page: Page, companyName: string) {
   // ─── Step 2: Add a cinema ────────────────────────────────────────
   // The add cinema form should be visible (auto-shown when no cinemas)
   await expect(page.locator("#cinemaName")).toBeVisible({ timeout: 15000 });
-  await page.fill("#cinemaName", `Cinema ${companyName}`);
+  await page.locator("#cinemaName").click();
+  await page.locator("#cinemaName").pressSequentially(`Cinema ${companyName}`, { delay: 30 });
   // Cinema country defaults to account country (FR)
-  await page.fill("#cinemaCity", "Paris");
+  await page.locator("#cinemaCity").click();
+  await page.locator("#cinemaCity").pressSequentially("Paris", { delay: 30 });
 
   await page.getByRole("button", { name: /add cinema/i }).click();
 
