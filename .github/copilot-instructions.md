@@ -230,5 +230,6 @@ pnpm db:studio        # Drizzle Studio
 ## Progress tracking
 
 - Epics: `docs/Epics/E*.md`. Roadmap: `docs/01 - Roadmap.md`.
-- Update epic files on ticket completion (`✅ Done`, `🔄 En cours`, `⬜ A faire`).
+- Update epic and ticket status continuously during development milestones, not only at completion (`✅ Done`, `🔄 En cours`, `⬜ A faire`).
+- For each ticket, keep a short checklist of expected deliverables and update it after each meaningful merge.
 - Update roadmap when a full epic is completed.

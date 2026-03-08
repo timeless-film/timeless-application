@@ -1,5 +1,14 @@
-import { relations } from "drizzle-orm";
-import { pgTable, text, timestamp, uuid, integer, jsonb, pgEnum } from "drizzle-orm/pg-core";
+import { relations, sql } from "drizzle-orm";
+import {
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+  integer,
+  jsonb,
+  pgEnum,
+  uniqueIndex,
+} from "drizzle-orm/pg-core";
 
 import { accounts } from "./accounts";
 
@@ -18,42 +27,51 @@ export const tmdbMatchStatusEnum = pgEnum("tmdb_match_status", [
 ]);
 
 // ─── Films ────────────────────────────────────────────────────────────────────
-export const films = pgTable("films", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  accountId: uuid("account_id") // Rights holder owner
-    .notNull()
-    .references(() => accounts.id, { onDelete: "cascade" }),
+export const films = pgTable(
+  "films",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    accountId: uuid("account_id") // Rights holder owner
+      .notNull()
+      .references(() => accounts.id, { onDelete: "cascade" }),
 
-  // Identity
-  title: text("title").notNull(),
-  originalTitle: text("original_title"),
-  status: filmStatusEnum("status").notNull().default("active"),
-  type: filmTypeEnum("type").notNull().default("direct"),
+    // Identity
+    title: text("title").notNull(),
+    originalTitle: text("original_title"),
+    externalId: text("external_id"), // Rights holder's own catalogue code (EAN, internal ref, etc.)
+    status: filmStatusEnum("status").notNull().default("active"),
+    type: filmTypeEnum("type").notNull().default("direct"),
 
-  // TMDB
-  tmdbId: integer("tmdb_id"),
-  tmdbMatchStatus: tmdbMatchStatusEnum("tmdb_match_status").default("pending"),
-  tmdbData: jsonb("tmdb_data"), // TMDB data snapshot
-  // Denormalized TMDB fields for search
-  synopsis: text("synopsis"),
-  synopsisEn: text("synopsis_en"),
-  duration: integer("duration"), // In minutes
-  releaseYear: integer("release_year"),
-  genres: text("genres").array(),
-  directors: text("directors").array(),
-  cast: text("cast").array(), // Top billed cast
-  countries: text("countries").array(), // Production countries
-  posterUrl: text("poster_url"),
-  backdropUrl: text("backdrop_url"),
-  tmdbRating: text("tmdb_rating"), // Stored as string to avoid float issues
+    // TMDB
+    tmdbId: integer("tmdb_id"),
+    tmdbMatchStatus: tmdbMatchStatusEnum("tmdb_match_status").default("pending"),
+    tmdbData: jsonb("tmdb_data"), // TMDB data snapshot
+    // Denormalized TMDB fields for search
+    synopsis: text("synopsis"),
+    synopsisEn: text("synopsis_en"),
+    duration: integer("duration"), // In minutes
+    releaseYear: integer("release_year"),
+    genres: text("genres").array(),
+    directors: text("directors").array(),
+    cast: text("cast").array(), // Top billed cast
+    countries: text("countries").array(), // Production countries
+    posterUrl: text("poster_url"),
+    backdropUrl: text("backdrop_url"),
+    tmdbRating: text("tmdb_rating"), // Stored as string to avoid float issues
 
-  // Import source
-  importSource: text("import_source").default("manual"), // "manual" | "csv"
-  importBatchId: text("import_batch_id"), // CSV import batch ID
+    // Import source
+    importSource: text("import_source").default("manual"), // "manual" | "csv" | "excel"
+    importBatchId: text("import_batch_id"), // Import batch ID
 
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("films_account_external_id_idx")
+      .on(table.accountId, table.externalId)
+      .where(sql`${table.externalId} IS NOT NULL`),
+  ]
+);
 
 // ─── Prices by geographic zone ────────────────────────────────────────────────
 export const filmPrices = pgTable("film_prices", {

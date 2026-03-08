@@ -476,5 +476,6 @@ Required in `.env.local`:
 ## Progress tracking
 
 - Epics and tickets: `docs/Epics/E*.md`. Roadmap: `docs/01 - Roadmap.md`.
-- **Always update** the relevant epic file when a ticket completes — use `✅ Done`, `🔄 En cours`, `⬜ A faire`.
+- **Always update** epic and ticket status continuously during development milestones — use `✅ Done`, `🔄 En cours`, `⬜ A faire`.
+- Keep a concise ticket checklist in epic docs and refresh it after each meaningful merge.
 - When a full epic is completed, update its status in `docs/01 - Roadmap.md`.

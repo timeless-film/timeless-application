@@ -79,11 +79,13 @@ export default async function RightsHolderLayout({ children }: { children: React
           accountHref="/account/information"
           canManageAccount={canManageAccount}
         />
-        <SidebarInset>
+        <SidebarInset className="overflow-hidden">
           <SiteHeader />
           {showBanner && <StripeConnectBanner canManage={canManageAccount} />}
-          <div className="flex flex-1 flex-col">
-            <div className="flex flex-1 flex-col gap-4 p-4 lg:p-6">{children}</div>
+          <div className="flex min-w-0 flex-1 flex-col">
+            <div className="flex min-w-0 flex-1 flex-col gap-4 overflow-hidden p-4 lg:p-6">
+              {children}
+            </div>
           </div>
         </SidebarInset>
       </SidebarProvider>

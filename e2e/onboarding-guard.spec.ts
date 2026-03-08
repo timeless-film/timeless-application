@@ -16,14 +16,7 @@ async function registerAndLogin(
   request: APIRequestContext,
   user: { name: string; email: string; password: string },
 ) {
-  const signupRes = await request.post("/api/auth/sign-up/email", {
-    data: {
-      name: user.name,
-      email: user.email,
-      password: user.password,
-    },
-    headers: { "Content-Type": "application/json" },
-  });
+  const signupRes = await signUpWithRetry(request, user);
   expect(signupRes.ok()).toBeTruthy();
 
   const sql = postgres(DB_URL, { max: 1 });
@@ -36,6 +29,32 @@ async function registerAndLogin(
   await page.fill("input[type='password']", user.password);
   await page.getByRole("button", { name: /sign in/i }).click();
   await page.waitForURL(/(?!.*\/login)/, { timeout: 15000 });
+}
+
+/**
+ * Better Auth endpoint can return a transient 404 on first cold request in dev.
+ * Retry once to reduce E2E flakiness.
+ */
+async function signUpWithRetry(
+  request: APIRequestContext,
+  user: { name: string; email: string; password: string },
+) {
+  const doSignUp = async () =>
+    request.post("/api/auth/sign-up/email", {
+      data: {
+        name: user.name,
+        email: user.email,
+        password: user.password,
+      },
+      headers: { "Content-Type": "application/json" },
+    });
+
+  const firstAttempt = await doSignUp();
+  if (firstAttempt.ok()) return firstAttempt;
+
+  // Warm up auth session endpoint then retry once.
+  await request.get("/api/auth/get-session");
+  return doSignUp();
 }
 
 /**
@@ -92,6 +111,7 @@ test.describe("Onboarding guard", () => {
     page,
     request,
   }) => {
+    const companyName = `Guard Co ${TEST_ID}`;
     const user = {
       name: "Guard Test User",
       email: `guard-${TEST_ID}@e2e-test.local`,
@@ -105,13 +125,15 @@ test.describe("Onboarding guard", () => {
     await expect(page).toHaveURL(/\/en\/no-account/, { timeout: 15000 });
 
     const userId = await getUserId(user.email);
-    await createAccountInDb(userId, `Guard Co ${TEST_ID}`);
+    await createAccountInDb(userId, companyName);
 
-    // Set the active_account_id cookie by visiting the page
-    // First reload to pick up the new account
+    // No active account cookie is set when creating account directly in DB.
+    // Visiting a protected route now redirects to /accounts where user picks an account.
     await page.goto("/en/catalog");
+    await expect(page).toHaveURL(/\/en\/accounts/, { timeout: 15000 });
+    await page.getByRole("button", { name: new RegExp(companyName, "i") }).click();
 
-    // Should redirect to onboarding since onboardingCompleted is false
+    // After account selection, exhibitor with incomplete onboarding is redirected.
     await expect(page).toHaveURL(/\/en\/onboarding/, { timeout: 15000 });
   });
 
@@ -127,14 +149,7 @@ test.describe("Onboarding guard", () => {
     };
 
     // Register owner via API only (don't need to login)
-    const signupRes = await request.post("/api/auth/sign-up/email", {
-      data: {
-        name: owner.name,
-        email: owner.email,
-        password: owner.password,
-      },
-      headers: { "Content-Type": "application/json" },
-    });
+    const signupRes = await signUpWithRetry(request, owner);
     expect(signupRes.ok()).toBeTruthy();
 
     const sql = postgres(DB_URL, { max: 1 });

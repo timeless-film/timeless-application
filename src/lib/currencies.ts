@@ -9,7 +9,7 @@
  * All currency codes supported by Stripe (135+ currencies).
  * Updated from Stripe documentation.
  */
-const STRIPE_CURRENCY_CODES = [
+export const STRIPE_CURRENCY_CODES = [
   "AED",
   "AFN",
   "ALL",

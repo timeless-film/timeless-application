@@ -451,14 +451,38 @@
   "films": {
     "title": "My catalog",
     "add": "Add a film",
-    "import": "Import CSV / Excel",
+    "edit": "Edit",
+    "importButton": "Import CSV / Excel",
+    "empty": "No films yet. Add your first film or import from a file.",
+    "archive": "Archive",
+    "archiveConfirm": "Are you sure you want to archive \"{title}\"? It will no longer appear in the catalog.",
+    "archiveSuccess": "Film archived successfully.",
+    "statusUpdateSuccess": "Film status updated.",
+    "unexpectedError": "An unexpected error occurred.",
+    "cancel": "Cancel",
+    "setActive": "Set as active",
+    "setInactive": "Set as inactive",
+    "tmdbStatus": {
+      "matched": "Auto-matched",
+      "pending": "Sync pending",
+      "noMatch": "No auto-match",
+      "manual": "Manual data"
+    },
+    "searchPlaceholder": "Search by title or reference…",
+    "noResults": "No films match your search.",
     "columns": {
       "title": "Title",
       "type": "Type",
       "status": "Status",
+      "price": "Price",
       "zones": "Price zones",
       "orders": "Orders",
       "actions": "Actions"
+    },
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next",
+      "info": "Page {page} of {total}"
     },
     "status": {
       "active": "Active",
@@ -470,41 +494,133 @@
       "validation": "Requires approval"
     },
     "form": {
+      "createTitle": "Add a film",
+      "editTitle": "Edit film",
       "title": "Title",
-      "searchTmdb": "Search on TMDB...",
+      "titleRequired": "Title is required.",
+      "externalId": "External reference",
+      "externalIdHint": "Your internal catalog ID (optional).",
+      "searchTmdb": "Search movie data...",
       "type": "Availability type",
       "status": "Status",
       "prices": "Prices by zone",
+      "pricesRequired": "At least one price zone is required.",
       "addZone": "Add a zone",
-      "countries": "Countries (comma-separated ISO codes)",
+      "removeZone": "Remove zone",
+      "countries": "Countries",
+      "countriesHint": "Select the countries for this zone.",
       "price": "Price",
       "currency": "Currency",
-      "tmdbMatch": "TMDB match",
+      "tmdbMatch": "About",
       "tmdbMatched": "Matched: {title} ({year})",
       "tmdbNoMatch": "No TMDB match found",
-      "tmdbManual": "Override manually"
+      "tmdbManual": "Override manually",
+      "tmdbSync": "Sync data",
+      "tmdbSyncSuccess": "Data synchronized successfully.",
+      "tmdbDisassociate": "Remove automatic match",
+      "tmdbDisassociated": "Automatic match removed.",
+      "tmdbManualSaved": "Manual data saved.",
+      "tmdbPending": "Automatic sync is pending. Click \"Sync data\" to trigger it.",
+      "tmdbNotMatched": "No automatic match. Click \"Sync data\" to search.",
+      "tmdbManualOriginalTitle": "Original title (manual)",
+      "tmdbManualPosterUrl": "Poster URL (manual)",
+      "tmdbManualSynopsis": "Synopsis (manual)",
+      "tmdbManualSynopsisEn": "Synopsis (English, manual)",
+      "tmdbManualDirectors": "Directors (comma-separated)",
+      "tmdbManualGenres": "Genres (comma-separated)",
+      "tmdbManualCast": "Cast (comma-separated)",
+      "tmdbManualReleaseYear": "Release year (manual)",
+      "tmdbManualDuration": "Duration in minutes (manual)",
+      "tmdbManualBackdropUrl": "Backdrop URL (manual)",
+      "tmdbSaveManual": "Save manual data",
+      "tmdbDirectors": "Director(s)",
+      "tmdbCast": "Cast",
+      "tmdbDuration": "{minutes} min",
+      "tmdbErrors": {
+        "UNAUTHORIZED": "You must be signed in.",
+        "FORBIDDEN": "You do not have permission for this action.",
+        "NOT_FOUND": "Film not found.",
+        "TMDB_UNAVAILABLE": "TMDB is temporarily unavailable. Try again later."
+      },
+      "save": "Save",
+      "saving": "Saving...",
+      "createSuccess": "Film created successfully.",
+      "updateSuccess": "Film updated successfully."
     },
     "import": {
       "title": "Import films from CSV / Excel",
       "description": "Upload a file to update your catalog in bulk.",
       "templateDownload": "Download template",
+      "templateDownloadCsv": "Download CSV template",
+      "templateDownloadExcel": "Download Excel template",
+      "step": {
+        "upload": "Upload file",
+        "mapping": "Map columns",
+        "preview": "Preview changes",
+        "confirm": "Confirm import"
+      },
+      "upload": {
+        "dragDrop": "Drag & drop a CSV or Excel file here, or click to browse",
+        "maxSize": "Max 10 MB, 5000 rows",
+        "tooLarge": "File exceeds the 10 MB limit.",
+        "tooManyRows": "File exceeds the 5000-row limit ({count} rows).",
+        "invalidFormat": "Only CSV and Excel (.xlsx) files are accepted."
+      },
+      "mapping": {
+        "autoDetected": "Auto-detected column mapping. Adjust if needed.",
+        "column": "File column",
+        "field": "Maps to",
+        "unmapped": "— Skip —",
+        "identifier": "Unique identifier",
+        "identifierRequired": "Select an identifier column to continue. It is required for reliable sync and avoids accidental merges.",
+        "identifierHint": "Designate which column serves as the unique film ID (recommended).",
+        "previewRows": "Preview (first 10 rows)"
+      },
+      "diff": {
+        "toCreate": "{count} film(s) to create",
+        "toUpdate": "{count} film(s) to update",
+        "toArchive": "{count} film(s) to archive",
+        "errors": "{count} row(s) with errors (skipped)",
+        "archiveWarning": "Archiving is irreversible. Archived films will no longer appear in the catalog.",
+        "noChanges": "No changes detected."
+      },
+      "confirmation": {
+        "typeConfirm": "Type CONFIRM to proceed with archiving",
+        "confirmPlaceholder": "CONFIRM",
+        "importing": "Importing...",
+        "autoEnrichLabel": "Automatically enrich imported films",
+        "autoEnrichHint": "When enabled, missing metadata columns are completed automatically after import."
+      },
       "columns": {
         "title": "title",
         "type": "type (direct | validation)",
         "countries": "countries (e.g. FR,BE,CH)",
-        "price": "price (in cents)",
+        "price": "price (in unit, e.g. 150)",
         "currency": "currency (EUR, USD…)",
         "status": "status (active | inactive)"
       },
       "preview": "Preview ({count} rows)",
       "errors": "{count} error(s) detected",
       "warnings": "{count} warning(s)",
+      "table": {
+        "title": "Title",
+        "type": "Type",
+        "zones": "Zones",
+        "errors": "Errors",
+        "warnings": "Warnings",
+        "lineColumn": "L{line} {column}: {code}"
+      },
       "confirm": "Import {count} film(s)",
       "result": {
         "created": "{count} film(s) created",
         "updated": "{count} film(s) updated",
-        "errors": "{count} error(s)"
-      }
+        "archived": "{count} film(s) archived",
+        "errors": "{count} error(s)",
+        "success": "Import completed successfully."
+      },
+      "next": "Next",
+      "back": "Back",
+      "cancel": "Cancel"
     },
     "validation": {
       "title": "Validation requests",
