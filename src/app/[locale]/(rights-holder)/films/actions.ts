@@ -438,6 +438,22 @@ export async function importFilmsAction(payload: ImportPayload) {
   let updated = 0;
   let archived = 0;
   let errorCount = 0;
+  const filmsToEnrich: Array<{
+    filmId: string;
+    title: string;
+    releaseYear?: number;
+    importedFields: {
+      synopsis: boolean;
+      synopsisEn: boolean;
+      duration: boolean;
+      releaseYear: boolean;
+      genres: boolean;
+      directors: boolean;
+      cast: boolean;
+      posterUrl: boolean;
+      backdropUrl: boolean;
+    };
+  }> = [];
   const existingFilms = await listAllFilmsForAccount(ctx.accountId);
 
   const hasImportedMetadata = (film: GroupedFilm) => {
@@ -453,6 +469,18 @@ export async function importFilmsAction(payload: ImportPayload) {
       film.backdropUrl !== undefined
     );
   };
+
+  const getImportedFieldFlags = (film: GroupedFilm) => ({
+    synopsis: film.synopsis !== undefined,
+    synopsisEn: film.synopsisEn !== undefined,
+    duration: film.duration !== undefined,
+    releaseYear: film.releaseYear !== undefined,
+    genres: film.genres !== undefined,
+    directors: film.directors !== undefined,
+    cast: film.cast !== undefined,
+    posterUrl: film.posterUrl !== undefined,
+    backdropUrl: film.backdropUrl !== undefined,
+  });
 
   await db.transaction(async () => {
     // ── Create new films ──
@@ -486,6 +514,14 @@ export async function importFilmsAction(payload: ImportPayload) {
           errorCount++;
         } else {
           created++;
+          if (result.film?.id) {
+            filmsToEnrich.push({
+              filmId: result.film.id,
+              title: film.title,
+              releaseYear: film.releaseYear ?? undefined,
+              importedFields: getImportedFieldFlags(film),
+            });
+          }
         }
       } catch {
         errorCount++;
@@ -542,6 +578,12 @@ export async function importFilmsAction(payload: ImportPayload) {
           errorCount++;
         } else {
           updated++;
+          filmsToEnrich.push({
+            filmId: existingFilm.id,
+            title: film.title,
+            releaseYear: film.releaseYear ?? undefined,
+            importedFields: getImportedFieldFlags(film),
+          });
         }
       } catch {
         errorCount++;
@@ -563,31 +605,46 @@ export async function importFilmsAction(payload: ImportPayload) {
     }
   });
 
-  // Trigger internal batch enrichment after the response is sent only when explicitly requested.
-  if (payload.autoEnrichImportedFilms && (created > 0 || updated > 0)) {
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-    const internalSecret = process.env.BETTER_AUTH_SECRET;
-
-    if (!internalSecret) {
-      console.error("[TMDB] Missing BETTER_AUTH_SECRET for internal enrich endpoint");
-      return { success: true as const, created, updated, archived, errors: errorCount };
-    }
-
+  if (payload.autoEnrichImportedFilms && filmsToEnrich.length > 0) {
     after(async () => {
-      try {
-        await fetch(`${appUrl}/api/internal/enrich-batch/${batchId}`, {
-          method: "POST",
-          headers: {
-            "x-internal-secret": internalSecret,
-            "content-type": "application/json",
-          },
-          body: JSON.stringify({
-            importedMetadataFields: payload.importedMetadataFields ?? [],
-          }),
-          cache: "no-store",
-        });
-      } catch (error) {
-        console.error("[TMDB] Failed to trigger batch enrichment route:", error);
+      for (const film of filmsToEnrich) {
+        try {
+          const tmdbData = await enrichFilmFromTmdb(film.title, film.releaseYear);
+
+          if (!tmdbData) {
+            await db
+              .update(films)
+              .set({ tmdbMatchStatus: "no_match", updatedAt: new Date() })
+              .where(eq(films.id, film.filmId));
+            continue;
+          }
+
+          const updatePayload: Partial<typeof films.$inferInsert> = {
+            tmdbId: tmdbData.tmdbId,
+            tmdbMatchStatus: "matched",
+            originalTitle: tmdbData.originalTitle,
+            countries: tmdbData.countries,
+            tmdbRating: tmdbData.tmdbRating,
+            updatedAt: new Date(),
+          };
+
+          // Only complete metadata fields that were not provided by import.
+          if (!film.importedFields.synopsis) updatePayload.synopsis = tmdbData.synopsis;
+          if (!film.importedFields.synopsisEn) updatePayload.synopsisEn = tmdbData.synopsisEn;
+          if (!film.importedFields.duration) updatePayload.duration = tmdbData.duration;
+          if (!film.importedFields.releaseYear) updatePayload.releaseYear = tmdbData.releaseYear;
+          if (!film.importedFields.genres) updatePayload.genres = tmdbData.genres;
+          if (!film.importedFields.directors) updatePayload.directors = tmdbData.directors;
+          if (!film.importedFields.cast) updatePayload.cast = tmdbData.cast;
+          if (!film.importedFields.posterUrl) updatePayload.posterUrl = tmdbData.posterUrl;
+          if (!film.importedFields.backdropUrl) {
+            updatePayload.backdropUrl = tmdbData.backdropUrl;
+          }
+
+          await db.update(films).set(updatePayload).where(eq(films.id, film.filmId));
+        } catch (error) {
+          console.error(`[TMDB] Failed to auto-enrich imported film ${film.filmId}:`, error);
+        }
       }
     });
   }
