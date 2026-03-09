@@ -1,0 +1,2 @@
+ALTER TABLE "requests" ADD COLUMN "created_by_user_id" text;--> statement-breakpoint
+ALTER TABLE "requests" ADD CONSTRAINT "requests_created_by_user_id_better_auth_users_id_fk" FOREIGN KEY ("created_by_user_id") REFERENCES "public"."better_auth_users"("id") ON DELETE no action ON UPDATE no action;

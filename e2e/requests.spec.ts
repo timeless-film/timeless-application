@@ -39,9 +39,10 @@ test.describe("Validation Requests", () => {
     exhibitorAccountId = exhibitor!.id;
 
     // Create exhibitor user
+    const uniqueSuffix = Date.now().toString(36) + Math.random().toString(36).substring(2, 7);
     const [user] = await sql`
       INSERT INTO better_auth_users (id, email, email_verified, name, created_at, updated_at)
-      VALUES (gen_random_uuid(), 'exhibitor-requests@test.com', true, 'Request Tester', NOW(), NOW())
+      VALUES (gen_random_uuid(), ${'exhibitor-requests-' + uniqueSuffix + '@test.com'}, true, 'Request Tester', NOW(), NOW())
       RETURNING id
     `;
 
@@ -65,7 +66,7 @@ test.describe("Validation Requests", () => {
     // Create catalog film (requires validation)
     const [film] = await sql`
       INSERT INTO films (account_id, title, type, status, release_year)
-      VALUES (${rightsHolderAccountId}, 'Catalog Test Film', 'catalog', 'active', 2010)
+      VALUES (${rightsHolderAccountId}, 'Catalog Test Film', 'validation', 'active', 2010)
       RETURNING id
     `;
     catalogFilmId = film!.id;

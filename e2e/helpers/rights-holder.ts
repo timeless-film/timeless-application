@@ -6,7 +6,7 @@ import postgres from "postgres";
 import type { APIRequestContext, Page } from "@playwright/test";
 
 const DB_URL =
-  process.env.DATABASE_URL ?? "postgresql://timeless:timeless@localhost:5432/timeless";
+  process.env.DATABASE_URL ?? "postgresql://timeless:timeless@localhost:5432/timeless_test";
 
 const BASE_URL = `http://localhost:${process.env.PLAYWRIGHT_PORT ?? 3099}`;
 

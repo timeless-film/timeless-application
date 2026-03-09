@@ -12,7 +12,7 @@ import { createHash, randomBytes } from "node:crypto";
  */
 
 const DATABASE_URL =
-  process.env.DATABASE_URL ?? "postgresql://timeless:timeless@localhost:5432/timeless";
+  process.env.DATABASE_URL ?? "postgresql://timeless:timeless@localhost:5432/timeless_test";
 const sql = postgres(DATABASE_URL);
 
 test.describe("Film Analytics (E05-004)", () => {

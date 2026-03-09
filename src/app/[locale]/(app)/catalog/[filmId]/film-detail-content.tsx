@@ -7,6 +7,7 @@ import { ImageWithFallback } from "@/components/shared/image-with-fallback";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatAmount } from "@/lib/pricing/format";
 
 import { FilmActionModal } from "./film-action-modal";
 
@@ -42,6 +43,7 @@ export function FilmDetailContent({
   preferredCurrency,
 }: FilmDetailContentProps) {
   const t = useTranslations("catalog.film");
+  const tStatus = useTranslations("requests.status");
   const locale = useLocale();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -188,7 +190,10 @@ export function FilmDetailContent({
                             {t("zone", { number: idx + 1 })}
                           </span>
                           <span className="text-lg font-semibold">
-                            {(price.price / 100).toFixed(2)} {price.currency}
+                            {formatAmount(price.price, price.currency, locale)}{" "}
+                            <span className="text-sm font-normal text-muted-foreground">
+                              {price.currency}
+                            </span>
                           </span>
                         </div>
                       ))}
@@ -221,7 +226,15 @@ export function FilmDetailContent({
                       <ul className="space-y-1 text-muted-foreground">
                         {existingRequests.map((requestItem) => (
                           <li key={requestItem.id}>
-                            {requestItem.status} - {requestItem.cinemaName} / {requestItem.roomName}
+                            {tStatus(
+                              requestItem.status as
+                                | "pending"
+                                | "approved"
+                                | "rejected"
+                                | "cancelled"
+                                | "paid"
+                            )}{" "}
+                            - {requestItem.cinemaName} / {requestItem.roomName}
                           </li>
                         ))}
                       </ul>

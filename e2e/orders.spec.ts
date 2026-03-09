@@ -142,6 +142,7 @@ test.describe("Orders history", () => {
         commission_rate,
         delivery_fees,
         rights_holder_amount,
+        timeless_amount,
         currency
       )
       VALUES (
@@ -159,6 +160,7 @@ test.describe("Orders history", () => {
         '0.10',
         0,
         10800,
+        4200,
         'EUR'
       )
     `;
@@ -213,6 +215,7 @@ test.describe("Orders history", () => {
         commission_rate,
         delivery_fees,
         rights_holder_amount,
+        timeless_amount,
         currency
       )
       VALUES (
@@ -230,6 +233,7 @@ test.describe("Orders history", () => {
         '0.10',
         0,
         10800,
+        4200,
         'EUR'
       )
     `;

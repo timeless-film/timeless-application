@@ -248,6 +248,7 @@ export async function createRequest(input: z.infer<typeof createRequestSchema>) 
     await db.insert(requests).values({
       exhibitorAccountId: activeAccountId,
       rightsHolderAccountId: film.accountId,
+      createdByUserId: session.user.id,
       filmId,
       cinemaId,
       roomId,

@@ -10,7 +10,7 @@ import type { APIRequestContext, Page } from "@playwright/test";
 const TEST_ID = Date.now().toString(36);
 
 const DB_URL =
-  process.env.DATABASE_URL ?? "postgresql://timeless:timeless@localhost:5432/timeless";
+  process.env.DATABASE_URL ?? "postgresql://timeless:timeless@localhost:5432/timeless_test";
 
 /**
  * Helper: register a user via the Better Auth API, verify their email

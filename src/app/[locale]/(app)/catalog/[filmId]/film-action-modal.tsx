@@ -1,5 +1,6 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -24,6 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { getCurrencyOptions } from "@/lib/currencies";
+import { formatAmount } from "@/lib/pricing/format";
 import {
   convertCurrencyWithFallback,
   getExchangeRates,
@@ -70,9 +72,11 @@ export function FilmActionModal({
   isDirect,
 }: FilmActionModalProps) {
   const locale = useLocale();
+  const queryClient = useQueryClient();
   const tModal = useTranslations("catalog.film.modal");
   const tSuccess = useTranslations("catalog.success");
   const tErrors = useTranslations("catalog.errors");
+  const tStatus = useTranslations("requests.status");
 
   // Form state
   const [selectedCinemaId, setSelectedCinemaId] = useState<string>("");
@@ -92,7 +96,7 @@ export function FilmActionModal({
   const bestPrice = film.matchingPrices?.[0];
   const nativeCurrency = bestPrice?.currency ?? "EUR";
   const nativeUnitPrice = bestPrice?.price ?? 0;
-  const total = ((displayUnitPrice ?? nativeUnitPrice) * screeningCount) / 100;
+  const totalCents = (displayUnitPrice ?? nativeUnitPrice) * screeningCount;
 
   const normalizedPreferredCurrency = preferredCurrency.toUpperCase();
   const availableCurrencies = getCurrencyOptions(locale);
@@ -237,6 +241,9 @@ export function FilmActionModal({
         setSubmissionError(translatedError);
         toast.error(translatedError);
       } else {
+        if (isDirect) {
+          queryClient.invalidateQueries({ queryKey: ["cart-items-count"] });
+        }
         toast.success(isDirect ? tSuccess("addedToCart") : tSuccess("requestSent"));
         onClose();
       }
@@ -383,7 +390,10 @@ export function FilmActionModal({
                 <div className="flex items-baseline justify-between">
                   <span className="font-semibold">{tModal("priceLabel")}</span>
                   <span className="text-xl font-bold">
-                    {total.toFixed(2)} {displayCurrency}
+                    {formatAmount(totalCents, displayCurrency, locale)}{" "}
+                    <span className="text-sm font-normal text-muted-foreground">
+                      {displayCurrency}
+                    </span>
                   </span>
                 </div>
                 <p className="mt-2 text-xs text-muted-foreground">
@@ -401,7 +411,15 @@ export function FilmActionModal({
                 <ul className="space-y-1 text-xs text-muted-foreground">
                   {existingRequests.map((requestItem) => (
                     <li key={requestItem.id}>
-                      {requestItem.status} - {requestItem.cinema.name} / {requestItem.room.name}
+                      {tStatus(
+                        requestItem.status as
+                          | "pending"
+                          | "approved"
+                          | "rejected"
+                          | "cancelled"
+                          | "paid"
+                      )}{" "}
+                      - {requestItem.cinema.name} / {requestItem.room.name}
                     </li>
                   ))}
                 </ul>

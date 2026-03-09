@@ -6,7 +6,7 @@ import type { APIRequestContext } from "@playwright/test";
 const TEST_ID = Date.now().toString(36);
 
 const DB_URL =
-  process.env.DATABASE_URL ?? "postgresql://timeless:timeless@localhost:5432/timeless";
+  process.env.DATABASE_URL ?? "postgresql://timeless:timeless@localhost:5432/timeless_test";
 
 // ---------------------------------------------------------------------------
 // Setup: create a user with a completed onboarding + API token, all via DB

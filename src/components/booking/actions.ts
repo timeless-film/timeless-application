@@ -36,7 +36,7 @@ async function getAuthenticatedAccountId() {
     return { error: "NO_ACTIVE_ACCOUNT" as const };
   }
 
-  return { accountId: activeAccount.accountId };
+  return { accountId: activeAccount.accountId, userId: session.user.id };
 }
 
 export async function getCartItems() {
@@ -168,6 +168,7 @@ export async function relaunchRequest(requestId: string) {
   const relaunched = await relaunchRequestForAccount({
     exhibitorAccountId: authResult.accountId,
     requestId,
+    userId: authResult.userId,
   });
 
   if (!relaunched) {

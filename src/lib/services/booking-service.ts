@@ -149,6 +149,7 @@ export async function listRequestsForAccount(params: {
         rightsHolderAccount: { columns: { id: true, companyName: true } },
         cinema: { columns: { id: true, name: true } },
         room: { columns: { id: true, name: true } },
+        createdByUser: { columns: { id: true, name: true } },
       },
       orderBy: [desc(requests.createdAt)],
       limit,
@@ -198,8 +199,9 @@ export async function cancelRequestForAccount(params: {
 export async function relaunchRequestForAccount(params: {
   exhibitorAccountId: string;
   requestId: string;
+  userId?: string;
 }) {
-  const { exhibitorAccountId, requestId } = params;
+  const { exhibitorAccountId, requestId, userId } = params;
 
   const current = await db.query.requests.findFirst({
     where: and(eq(requests.id, requestId), eq(requests.exhibitorAccountId, exhibitorAccountId)),
@@ -214,6 +216,7 @@ export async function relaunchRequestForAccount(params: {
     .values({
       exhibitorAccountId: current.exhibitorAccountId,
       rightsHolderAccountId: current.rightsHolderAccountId,
+      createdByUserId: userId ?? current.createdByUserId,
       filmId: current.filmId,
       cinemaId: current.cinemaId,
       roomId: current.roomId,

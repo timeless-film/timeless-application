@@ -1,5 +1,6 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import { Trash2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -34,6 +35,7 @@ interface CartPageContentProps {
 
 export function CartPageContent({ items }: CartPageContentProps) {
   const t = useTranslations("cart");
+  const queryClient = useQueryClient();
   const locale = useLocale();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -99,6 +101,7 @@ export function CartPageContent({ items }: CartPageContentProps) {
                       toast.error(result.error);
                       return;
                     }
+                    queryClient.invalidateQueries({ queryKey: ["cart-items-count"] });
                     router.refresh();
                   });
                 }}

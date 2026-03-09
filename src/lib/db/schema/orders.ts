@@ -2,6 +2,7 @@ import { relations } from "drizzle-orm";
 import { pgTable, text, timestamp, uuid, integer, pgEnum, date } from "drizzle-orm/pg-core";
 
 import { accounts } from "./accounts";
+import { betterAuthUsers } from "./auth";
 import { cinemas, rooms } from "./cinemas";
 import { films } from "./films";
 
@@ -49,6 +50,9 @@ export const requests = pgTable("requests", {
   roomId: uuid("room_id")
     .notNull()
     .references(() => rooms.id),
+
+  // Who created this request
+  createdByUserId: text("created_by_user_id").references(() => betterAuthUsers.id),
 
   // Request details
   screeningCount: integer("screening_count").notNull(),
@@ -201,6 +205,10 @@ export const requestsRelations = relations(requests, ({ one }) => ({
   film: one(films, { fields: [requests.filmId], references: [films.id] }),
   cinema: one(cinemas, { fields: [requests.cinemaId], references: [cinemas.id] }),
   room: one(rooms, { fields: [requests.roomId], references: [rooms.id] }),
+  createdByUser: one(betterAuthUsers, {
+    fields: [requests.createdByUserId],
+    references: [betterAuthUsers.id],
+  }),
 }));
 
 export const ordersRelations = relations(orders, ({ one, many }) => ({

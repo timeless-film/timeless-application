@@ -10,7 +10,7 @@ import { createHash, randomBytes } from "node:crypto";
  */
 
 const DATABASE_URL =
-  process.env.DATABASE_URL ?? "postgresql://timeless:timeless@localhost:5432/timeless";
+  process.env.DATABASE_URL ?? "postgresql://timeless:timeless@localhost:5432/timeless_test";
 const sql = postgres(DATABASE_URL);
 
 test.describe("Film Detail & Modal (E05-002)", () => {
@@ -162,7 +162,11 @@ test.describe("Film Detail & Modal (E05-002)", () => {
   });
 
   test.afterAll(async () => {
-    // Cleanup
+    // Cleanup: delete dependent records first
+    if (directFilmId) await sql`DELETE FROM cart_items WHERE film_id = ${directFilmId}`;
+    if (validationFilmId) await sql`DELETE FROM cart_items WHERE film_id = ${validationFilmId}`;
+    if (directFilmId) await sql`DELETE FROM requests WHERE film_id = ${directFilmId}`;
+    if (validationFilmId) await sql`DELETE FROM requests WHERE film_id = ${validationFilmId}`;
     if (directFilmId) await sql`DELETE FROM films WHERE id = ${directFilmId}`;
     if (validationFilmId) await sql`DELETE FROM films WHERE id = ${validationFilmId}`;
     if (roomId) await sql`DELETE FROM rooms WHERE id = ${roomId}`;
