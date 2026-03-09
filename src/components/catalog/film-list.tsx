@@ -5,6 +5,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Edit,
+  Eye,
+  EyeOff,
   Film,
   Loader2,
   MoreHorizontal,
@@ -383,11 +385,13 @@ export function FilmList({ initialFilms, initialTotal, currentUserRole }: FilmLi
                         </DropdownMenuItem>
                         {film.status === "active" && (
                           <DropdownMenuItem onClick={() => handleSetStatus(film, "inactive")}>
+                            <EyeOff className="mr-2 size-4" />
                             {t("setInactive")}
                           </DropdownMenuItem>
                         )}
                         {film.status === "inactive" && (
                           <DropdownMenuItem onClick={() => handleSetStatus(film, "active")}>
+                            <Eye className="mr-2 size-4" />
                             {t("setActive")}
                           </DropdownMenuItem>
                         )}

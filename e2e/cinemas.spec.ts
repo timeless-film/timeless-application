@@ -182,7 +182,8 @@ test.describe("Cinema management", () => {
 
     // Verify toast + cinema disappears
     await expect(page.getByText(/cinema archived/i)).toBeVisible({ timeout: 5000 });
-    await expect(page.getByText(`Archive Target ${TEST_ID}`)).not.toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole("button", { name: /^archive$/i })).not.toBeVisible({ timeout: 5000 });
+    await expect(page.getByText(`Archive Target ${TEST_ID}`, { exact: true })).not.toBeVisible({ timeout: 5000 });
   });
 
   test("cannot archive the last cinema", async ({ page, request }) => {
