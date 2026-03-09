@@ -46,6 +46,7 @@ interface FilmActionModalProps {
 interface Cinema {
   id: string;
   name: string;
+  country: string;
   rooms: Array<{ id: string; name: string }>;
 }
 
@@ -106,8 +107,14 @@ export function FilmActionModal({
     setDisplayCurrency(normalizedPreferredCurrency || "EUR");
   }, [isOpen, normalizedPreferredCurrency]);
 
+  // Filter cinemas to only those whose country is covered by a price zone
+  const compatibleCountries = new Set<string>(
+    (film.matchingPrices ?? []).flatMap((p) => p.countries)
+  );
+  const compatibleCinemas = cinemas.filter((c) => compatibleCountries.has(c.country));
+
   // Get available rooms for selected cinema
-  const selectedCinema = cinemas.find((c) => c.id === selectedCinemaId);
+  const selectedCinema = compatibleCinemas.find((c) => c.id === selectedCinemaId);
   const availableRooms = selectedCinema?.rooms ?? [];
 
   // Reset room when cinema changes
@@ -117,12 +124,12 @@ export function FilmActionModal({
     }
 
     const roomsForSelectedCinema =
-      cinemas.find((cinema) => cinema.id === selectedCinemaId)?.rooms ?? [];
+      compatibleCinemas.find((cinema) => cinema.id === selectedCinemaId)?.rooms ?? [];
 
     if (!roomsForSelectedCinema.some((room) => room.id === selectedRoomId)) {
       setSelectedRoomId("");
     }
-  }, [cinemas, selectedCinemaId, selectedRoomId]);
+  }, [compatibleCinemas, selectedCinemaId, selectedRoomId]);
 
   useEffect(() => {
     let isMounted = true;
@@ -214,7 +221,7 @@ export function FilmActionModal({
               <Label htmlFor="cinema">
                 {tModal("cinemaLabel")} <span className="text-destructive">*</span>
               </Label>
-              {cinemas.length === 0 ? (
+              {compatibleCinemas.length === 0 ? (
                 <div className="text-sm text-destructive">{tModal("noCinemas")}</div>
               ) : (
                 <Select value={selectedCinemaId} onValueChange={setSelectedCinemaId}>
@@ -222,7 +229,7 @@ export function FilmActionModal({
                     <SelectValue placeholder={tModal("cinemaPlaceholder")} />
                   </SelectTrigger>
                   <SelectContent>
-                    {cinemas.map((cinema) => (
+                    {compatibleCinemas.map((cinema) => (
                       <SelectItem key={cinema.id} value={cinema.id}>
                         {cinema.name}
                       </SelectItem>
@@ -343,7 +350,7 @@ export function FilmActionModal({
               disabled={
                 isSubmitting ||
                 !bestPrice ||
-                cinemas.length === 0 ||
+                compatibleCinemas.length === 0 ||
                 !selectedCinemaId ||
                 !selectedRoomId
               }

@@ -1,7 +1,7 @@
 # E04 — Catalogue & Import
 
 **Phase** : P1
-**Statut** : 🔄 En cours
+**Statut** : ✅ Terminé
 
 ---
 
@@ -17,38 +17,12 @@ Un film peut avoir des **prix différents selon les pays/zones**, avec des devis
 
 ---
 
-## Ce qui existe déjà
-
-| Composant | Statut | Détail |
-|-----------|--------|--------|
-| Schema DB `films` + `filmPrices` | ⚠️ Partiel | Enums, relations, `tmdbMatchStatus`, `importBatchId` — mais `externalId` manquant |
-| Intégration TMDB | ✅ Complète | `enrichFilmFromTmdb()`, `searchFilms()`, `normalizeTmdbData()` dans `src/lib/tmdb/index.ts` |
-| Traductions | ✅ Complètes | Toutes les clés films/catalogue définies dans `messages/*.json` |
-| Page stub `/films` | ⚠️ Squelette | Titre uniquement, pas de contenu |
-| Service film | ❌ Absent | `film-service.ts` à créer |
-| Server actions | ❌ Absents | À créer dans `src/app/[locale]/(rights-holder)/films/` |
-| Composants UI | ❌ Absents | À créer dans `src/components/films/` |
-| API REST v1 `/films` | ❌ Absente | Routes + docs à créer |
-| Lib CSV | ❌ Absente | `papaparse` à installer |
-| Lib Excel | ❌ Absente | `xlsx` (SheetJS) à installer |
-
----
-
 ## Dépendances
 
 - **E03** — Le compte ayant droit doit exister (créé en DB).
 - **E05** — Le catalogue exploitant (lecture) consomme les films créés ici.
 - **E07** — Le workflow de validation utilise le champ `type` (`direct` / `validation`).
 - **E08** — Les prix catalogues (en centimes) sont utilisés pour le calcul du prix affiché.
-
----
-
-## Hors scope E04
-
-- Recherche et filtrage côté exploitant (→ E05)
-- Workflow de validation des demandes (→ E07)
-- Notifications email lors d'ajout de film (→ E12)
-- Statistiques et analytics par film (→ E11)
 
 ---
 
@@ -84,19 +58,11 @@ filmPrices (N par film)
 - Cette contrainte ne s'applique que si `externalId IS NOT NULL` (les films créés manuellement sans identifiant n'y sont pas soumis)
 - Un pays ne peut apparaître que dans **une seule** zone de prix par film
 
-### Migration nécessaire
-
-Ajouter le champ `externalId` à la table `films` :
-```sql
-ALTER TABLE films ADD COLUMN external_id text;
-CREATE UNIQUE INDEX films_account_external_id_idx ON films (account_id, external_id) WHERE external_id IS NOT NULL;
-```
-
 ---
 
 ## Infrastructure commune (pré-requis transverse)
 
-> Ces tâches sont nécessaires avant ou pendant les tickets. Elles ne sont rattachées à aucun ticket en particulier.
+> Ces tâches nécessaires avant ou pendant les tickets. Elles ne sont rattachées à aucun ticket en particulier.
 
 | Tâche | Statut |
 |-------|--------|
@@ -377,8 +343,8 @@ Un ayant droit peut modifier ou archiver un film depuis sa fiche détail.
 - [x] Tous les champs sont modifiables depuis la fiche film
 - [x] Les zones de prix peuvent être ajoutées, modifiées et supprimées
 - [x] L'archivage (→ `retired`) est irréversible et demande une confirmation explicite
-- [ ] Un film `retired` n'apparaît plus dans la liste ni dans le catalogue exploitant
-- [ ] Les commandes passées sur un film `retired` restent accessibles dans l'historique
+- [x] Un film `retired` n'apparaît plus dans la liste ni dans le catalogue exploitant
+- [x] Les commandes passées sur un film `retired` restent accessibles dans l'historique (données préservées via FK, pas de cascade delete)
 
 ---
 
@@ -529,7 +495,7 @@ Interface de gestion des zones de prix sur la fiche film.
 - [x] Un film peut avoir plusieurs zones de prix avec devises différentes
 - [x] Un pays ne peut pas apparaître dans deux zones différentes (erreur de validation)
 - [x] Les prix sont saisis en unités monétaires et stockés en centimes
-- [ ] Un film sans zone pour un pays donné est masqué pour les cinémas de ce pays
+- [x] Un film sans zone pour un pays donné est masqué pour les cinémas de ce pays (SQL EXISTS + array overlap)
 - [x] Les zones peuvent être ajoutées, modifiées et supprimées depuis la fiche film
 
 ---
@@ -573,8 +539,8 @@ Gestion des transitions de statut d'un film.
 
 #### Critères d'acceptation
 
-- [ ] Un film `inactive` est masqué du catalogue exploitant mais visible dans la liste ayant droit
-- [ ] Un film `retired` est masqué partout
+- [x] Un film `inactive` est masqué du catalogue exploitant mais visible dans la liste ayant droit
+- [x] Un film `retired` est masqué partout (exclu de la liste ayant droit + du catalogue)
 - [x] Le passage à `retired` demande une confirmation et est irréversible
 - [x] Le changement de statut est accessible depuis la liste ET depuis la fiche film
 

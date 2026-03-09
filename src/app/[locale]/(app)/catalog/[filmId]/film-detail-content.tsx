@@ -17,7 +17,12 @@ import type { FilmWithAvailability } from "@/lib/services/catalog-service";
 interface FilmDetailContentProps {
   film: FilmWithAvailability;
   accountId: string;
-  cinemas: Array<{ id: string; name: string; rooms: Array<{ id: string; name: string }> }>;
+  cinemas: Array<{
+    id: string;
+    name: string;
+    country: string;
+    rooms: Array<{ id: string; name: string }>;
+  }>;
   preferredCurrency: string;
 }
 

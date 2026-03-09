@@ -97,6 +97,7 @@ export default async function FilmDetailPage({ params }: FilmDetailPageProps) {
   const modalCinemas = cinemas.map((cinema) => ({
     id: cinema.id,
     name: cinema.name,
+    country: cinema.country,
     rooms: cinema.rooms.map((room) => ({
       id: room.id,
       name: room.name,
