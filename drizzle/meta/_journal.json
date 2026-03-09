@@ -22,6 +22,20 @@
       "when": 1772993600044,
       "tag": "0002_safe_roxanne_simpson",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1773011724251,
+      "tag": "0003_regular_nico_minoru",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1773048927941,
+      "tag": "0004_blue_firebrand",
+      "breakpoints": true
     }
   ]
 }

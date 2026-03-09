@@ -1,13 +1,9 @@
 npx lint-staged
 
 # ── Drizzle migration check ───────────────────────────────────────────────────
-# We must check only what is STAGED (what will actually land in the commit).
-# Without this, the hook reads the full working tree and misses cases where
-# drizzle/ files are committed without their matching schema/*.ts changes.
-#
-# Strategy: stash unstaged changes → run generate against staged state only
-#           → restore stash. If a migration is needed, fail loudly so the
-#           developer can fix staging before retrying.
+# We check only what is STAGED (what will actually land in the commit).
+# Strategy: stash unstaged changes -> run generate on staged state -> restore stash.
+# If a migration is needed, stage drizzle/ automatically so the commit stays in sync.
 echo ""
 echo "Checking Drizzle schema (staged files only)..."
 
@@ -16,7 +12,7 @@ git stash push --keep-index --include-untracked --quiet -m "drizzle-pre-commit-c
 STASH_RESULT=$?
 
 # Run generate against staged state — no DB connection needed, placeholder URL is enough
-DATABASE_URL="postgresql://localhost/placeholder" npx drizzle-kit generate </dev/null 2>&1
+DATABASE_URL="postgresql://localhost/placeholder" pnpm exec drizzle-kit generate </dev/null 2>&1
 DRIZZLE_EXIT=$?
 
 # Restore working tree before any exit
@@ -26,9 +22,10 @@ fi
 
 if [ "$DRIZZLE_EXIT" -ne 0 ]; then
   echo ""
-  echo "⚠️  drizzle-kit generate failed — run 'pnpm db:generate' manually and commit the result."
-  # Non-blocking: don't fail on a tool error (e.g. interactive prompt on unusual rename)
-  exit 0
+  echo "❌ drizzle-kit generate failed."
+  echo "   Run: pnpm db:generate"
+  echo "   Then: git add drizzle/"
+  exit 1
 fi
 
 # Check if generate produced new or modified files in drizzle/
@@ -37,18 +34,11 @@ MODIFIED=$(git diff drizzle/ 2>/dev/null)
 
 if [ -n "$NEW_FILES" ] || [ -n "$MODIFIED" ]; then
   echo ""
-  echo "❌ Drizzle schema mismatch detected in staged files."
-  echo "   The staged schema and migration files are out of sync."
-  echo "   Fix: stage all related files together, then commit."
+  echo "⚠️  Drizzle migration files were generated automatically."
+  echo "   Staging updated drizzle/ files for this commit..."
   echo ""
-  echo "   Run: pnpm db:generate"
-  echo "   Then: git add src/lib/db/schema/ drizzle/"
-  echo "   Then: git commit"
-  echo ""
-  # Clean up the files generated during the check
-  git checkout -- drizzle/ 2>/dev/null
-  git ls-files --others --exclude-standard drizzle/ | xargs rm -f 2>/dev/null
-  exit 1
+  git add drizzle/
+  echo "✅ Added drizzle migration files to the commit."
 fi
 
 echo "✅ Drizzle migrations are up to date."

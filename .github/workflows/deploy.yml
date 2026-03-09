@@ -80,7 +80,7 @@ jobs:
         # NODE_TLS_REJECT_UNAUTHORIZED=0 is required because Scaleway Managed
         # PostgreSQL uses a self-signed certificate that drizzle-kit's pg driver
         # would otherwise reject (DEPTH_ZERO_SELF_SIGNED_CERT).
-        run: npx drizzle-kit migrate
+        run: pnpm exec drizzle-kit migrate
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           NODE_TLS_REJECT_UNAUTHORIZED: "0"

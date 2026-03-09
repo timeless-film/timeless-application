@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { platformSettings } from "@/lib/db/schema";
 
 export interface PricingParams {
   catalogPrice: number; // In cents
@@ -51,9 +52,20 @@ export function calculatePricing(params: PricingParams): PricingResult {
  * Server-side only.
  */
 export async function getPlatformPricingSettings() {
-  const settings = await db.query.platformSettings.findFirst({
+  let settings = await db.query.platformSettings.findFirst({
     where: (s, { eq }) => eq(s.id, "global"),
   });
+
+  if (!settings) {
+    try {
+      await db.insert(platformSettings).values({ id: "global" });
+      settings = await db.query.platformSettings.findFirst({
+        where: (s, { eq }) => eq(s.id, "global"),
+      });
+    } catch (error) {
+      console.error("Failed to initialize platform settings:", error);
+    }
+  }
 
   if (!settings) {
     throw new Error("Platform settings not found");

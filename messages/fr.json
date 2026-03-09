@@ -123,16 +123,42 @@
   },
   "catalog": {
     "title": "Catalogue",
+    "description": "Parcourez notre collection de films patrimoniaux et classiques",
     "searchPlaceholder": "Rechercher par titre, réalisateur, acteur...",
+    "resultsCount": "films",
+    "resultsOutOf": "sur",
+    "resultsPlatformTotal": "films référencés",
+    "noResults": "Aucun film ne correspond à vos critères",
+    "sortBy": "Trier par",
+    "sortTitle": "Titre",
+    "sortYear": "Année",
+    "sortPrice": "Prix",
+    "sortAsc": "Croissant",
+    "sortDesc": "Décroissant",
     "filters": {
+      "title": "Filtres",
+      "clearAll": "Tout effacer",
+      "activeFilters": "Filtres actifs",
+      "search": "Recherche",
+      "searchPlaceholder": "Titre, réalisateur, acteur...",
+      "filmType": "Type de film",
+      "typeAll": "Tous les films",
+      "typeDirect": "Réservation directe",
+      "availableInMyTerritories": "Afficher uniquement les films disponibles dans mes territoires",
+      "releaseYear": "Année de sortie",
+      "yearMin": "De",
+      "yearMax": "À",
+      "duration": "Durée (minutes)",
+      "durationMin": "Min",
+      "durationMax": "Max",
       "genre": "Genre",
+      "genresSelectPlaceholder": "Sélectionner des genres",
+      "genresSearchPlaceholder": "Rechercher des genres...",
+      "genresEmpty": "Aucun genre trouvé.",
       "year": "Année",
-      "duration": "Durée",
       "rightsHolder": "Ayant droit",
       "country": "Pays",
       "type": "Disponibilité",
-      "typeAll": "Tous les films",
-      "typeDirect": "Disponibles immédiatement",
       "typeValidation": "Sur demande"
     },
     "sort": {
@@ -142,19 +168,90 @@
       "price": "Prix"
     },
     "film": {
+      "typeBoth": "Direct + Sur demande",
+      "typeDirect": "Réservation directe",
+      "typeOnDemand": "Sur demande",
       "direct": "Disponible immédiatement",
       "validation": "Sur demande",
       "addToCart": "Ajouter au panier",
       "makeRequest": "Faire une demande",
+      "sendRequest": "Envoyer la demande",
       "noPrice": "Prix sur demande",
       "director": "Réalisateur",
       "cast": "Distribution",
+      "yearLabel": "Année",
+      "durationLabel": "Durée",
       "duration": "{duration} min",
       "year": "{year}",
       "genres": "Genres",
+      "countries": "Pays",
       "rightsHolder": "Ayant droit",
       "synopsis": "Synopsis",
-      "tmdbRating": "Note TMDB"
+      "tmdbRating": "Note TMDB",
+      "information": "Informations",
+      "pricing": "Tarification",
+      "singleZone": "Zone tarifaire unique",
+      "multipleZones": "{count} zones tarifaires disponibles",
+      "zone": "Zone {number}",
+      "noPricing": "Aucune tarification disponible",
+      "unavailable": "Indisponible pour vos cinémas",
+      "unavailableHint": "Ce film n'est pas disponible dans vos territoires",
+      "typeValidation": "Validation requise",
+      "card": {
+        "available": "Disponible",
+        "unavailable": "Indisponible",
+        "direct": "Direct",
+        "onDemand": "Sur demande",
+        "from": "À partir de {price}",
+        "excludingTax": "HT",
+        "notAvailable": "Non disponible dans votre territoire"
+      },
+      "modal": {
+        "addToCartDescription": "Ajouter ce film à votre panier",
+        "sendRequestDescription": "Envoyer une demande de réservation pour ce film",
+        "quantity": "Quantité (nombre de séances)",
+        "quantityHint": "Minimum 1 séance",
+        "unitPrice": "Prix unitaire",
+        "total": "Total",
+        "cinemaLabel": "Cinéma",
+        "cinemaPlaceholder": "Sélectionner un cinéma",
+        "roomLabel": "Salle de projection",
+        "roomPlaceholder": "Sélectionner une salle",
+        "screeningCountLabel": "Nombre de séances",
+        "screeningCountPlaceholder": "ex : 5",
+        "startDateLabel": "Date de début",
+        "startDatePlaceholder": "Sélectionner la date de début",
+        "endDateLabel": "Date de fin (optionnelle)",
+        "endDatePlaceholder": "Sélectionner la date de fin",
+        "priceLabel": "Prix total",
+        "displayCurrencyLabel": "Devise d'affichage",
+        "cancel": "Annuler",
+        "addToCart": "Ajouter au panier",
+        "sendRequest": "Envoyer une demande de validation",
+        "submitting": "En cours...",
+        "noCinemas": "Vous devez d'abord créer un cinéma dans votre compte pour réserver des films.",
+        "noRooms": "Le cinéma sélectionné n'a pas de salles de projection. Veuillez en ajouter une d'abord.",
+        "finalPaymentNote": "Le paiement final reste en {currency}.",
+        "indicativeRateDate": "Date indicative du taux : {date}."
+      }
+    },
+    "success": {
+      "addedToCart": "Film ajouté au panier",
+      "requestSent": "Demande de validation envoyée à l'ayant droit"
+    },
+    "errors": {
+      "UNAUTHORIZED": "Vous devez être connecté",
+      "NO_ACTIVE_ACCOUNT": "Aucun compte actif",
+      "INVALID_INPUT": "Données invalides",
+      "FILM_NOT_FOUND": "Film introuvable",
+      "FILM_NOT_DIRECT": "Ce film nécessite une validation",
+      "ALREADY_IN_CART": "Ce film est déjà dans votre panier pour ces dates",
+      "ALREADY_REQUESTED": "Vous avez déjà une demande en attente pour ce film et ces dates",
+      "DATABASE_ERROR": "Une erreur s'est produite. Veuillez réessayer."
+    },
+    "error": {
+      "title": "Erreur de chargement",
+      "generic": "Impossible de charger le catalogue. Veuillez réessayer."
     }
   },
   "cart": {
@@ -1093,5 +1190,31 @@
   "rightsHolderDashboard": {
     "title": "Tableau de bord",
     "placeholder": "Votre tableau de bord sera disponible prochainement."
+  },
+  "analytics": {
+    "title": "Analytiques",
+    "description": "Consultez les métriques de performance de votre catalogue",
+    "kpi": {
+      "views": "Vues des films",
+      "viewsDescription": "Total des vues sur les pages de détail",
+      "cartAdditions": "Ajouts au panier",
+      "cartAdditionsDescription": "Films ajoutés aux paniers des exploitants",
+      "requests": "Demandes envoyées",
+      "requestsDescription": "Demandes de réservation soumises",
+      "revenue": "Revenus",
+      "revenueDescription": "Revenus totaux des commandes payées"
+    },
+    "topFilms": {
+      "title": "Films les plus vus",
+      "description": "Vos films les plus populaires ce mois-ci",
+      "empty": "Aucune vue de film pour le moment",
+      "views": "vues"
+    },
+    "topSearches": {
+      "title": "Recherches populaires",
+      "description": "Ce que les exploitants recherchent",
+      "empty": "Aucune donnée de recherche pour le moment",
+      "searches": "recherches"
+    }
   }
 }

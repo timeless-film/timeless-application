@@ -50,7 +50,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
       <div className="flex min-h-screen flex-col">
         <MarketplaceHeader user={user} />
         <main className="flex-1">{children}</main>
-        <footer className="border-t bg-muted/40">
+        <footer className="">
           <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-6 text-sm text-muted-foreground lg:px-6">
             <p>&copy; {new Date().getFullYear()} Timeless Cinema</p>
           </div>

@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import postgres from "postgres";
+import { randomBytes } from "node:crypto";
 
 import type { APIRequestContext, Page } from "@playwright/test";
 
@@ -13,7 +14,7 @@ const DB_URL =
 // ---------------------------------------------------------------------------
 
 function uniqueEmail(prefix: string) {
-  const suffix = Math.random().toString(36).substring(2, 7);
+  const suffix = randomBytes(6).toString("hex");
   return `${prefix}-${TEST_ID}-${suffix}@e2e-test.local`;
 }
 
@@ -22,18 +23,38 @@ async function registerAndLogin(
   request: APIRequestContext,
   user: { name: string; email: string; password: string },
 ) {
-  const signupRes = await request.post("/api/auth/sign-up/email", {
-    data: {
-      name: user.name,
-      email: user.email,
-      password: user.password,
-    },
-    headers: { "Content-Type": "application/json" },
-  });
-  expect(signupRes.ok()).toBeTruthy();
+  let signupEmail = user.email;
+  let signupSucceeded = false;
+
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    const signupRes = await request.post("/api/auth/sign-up/email", {
+      data: {
+        name: user.name,
+        email: signupEmail,
+        password: user.password,
+      },
+      headers: { "Content-Type": "application/json" },
+    });
+
+    if (signupRes.ok()) {
+      signupSucceeded = true;
+      break;
+    }
+
+    if (signupRes.status() === 404 || signupRes.status() === 409) {
+      signupEmail = uniqueEmail(user.name.toLowerCase().replace(/\s+/g, "-"));
+      continue;
+    }
+
+    const responseBody = await signupRes.text();
+    throw new Error(`Unexpected signup failure (${signupRes.status()}): ${responseBody}`);
+  }
+
+  expect(signupSucceeded).toBeTruthy();
+  user.email = signupEmail;
 
   const sql = postgres(DB_URL, { max: 1 });
-  await sql`UPDATE better_auth_users SET email_verified = true WHERE email = ${user.email}`;
+  await sql`UPDATE better_auth_users SET email_verified = true WHERE email = ${signupEmail}`;
   await sql.end();
 
   await page.goto("/en/login");

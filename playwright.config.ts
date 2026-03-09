@@ -7,9 +7,17 @@ import { defineConfig, devices } from "@playwright/test";
 const E2E_PORT = Number(process.env.PLAYWRIGHT_PORT ?? 3099);
 const baseURL = `http://localhost:${E2E_PORT}`;
 
+/**
+ * Test database URL — set via .env.test (loaded by dotenv in package.json scripts)
+ * or via DATABASE_URL env var. Falls back to the CI default.
+ */
+const testDatabaseUrl =
+  process.env.DATABASE_URL ??
+  "postgresql://timeless:timeless@localhost:5432/timeless_test";
+
 export default defineConfig({
   testDir: "./e2e",
-  globalSetup: process.env.CI ? "./e2e/global-setup.ts" : undefined,
+  globalSetup: "./e2e/global-setup.ts",
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 1,
@@ -38,6 +46,7 @@ export default defineConfig({
     env: {
       ...process.env,
       PORT: String(E2E_PORT),
+      DATABASE_URL: testDatabaseUrl,
       NEXT_PUBLIC_APP_URL: baseURL,
       RESEND_API_KEY: "", // Disable real email sending during E2E tests
     },

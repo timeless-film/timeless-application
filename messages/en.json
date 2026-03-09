@@ -123,16 +123,42 @@
   },
   "catalog": {
     "title": "Catalog",
+    "description": "Browse our collection of classic and heritage films",
     "searchPlaceholder": "Search by title, director, cast...",
+    "resultsCount": "films",
+    "resultsOutOf": "out of",
+    "resultsPlatformTotal": "films referenced",
+    "noResults": "No films found matching your criteria",
+    "sortBy": "Sort by",
+    "sortTitle": "Title",
+    "sortYear": "Year",
+    "sortPrice": "Price",
+    "sortAsc": "Ascending",
+    "sortDesc": "Descending",
     "filters": {
+      "title": "Filters",
+      "clearAll": "Clear all",
+      "activeFilters": "Active filters",
+      "search": "Search",
+      "searchPlaceholder": "Title, director, cast...",
+      "filmType": "Film type",
+      "typeAll": "All films",
+      "typeDirect": "Direct booking",
+      "availableInMyTerritories": "Show only films available in my territories",
+      "releaseYear": "Release year",
+      "yearMin": "From",
+      "yearMax": "To",
+      "duration": "Duration (minutes)",
+      "durationMin": "Min",
+      "durationMax": "Max",
       "genre": "Genre",
+      "genresSelectPlaceholder": "Select genres",
+      "genresSearchPlaceholder": "Search genres...",
+      "genresEmpty": "No genres found.",
       "year": "Year",
-      "duration": "Duration",
       "rightsHolder": "Rights holder",
       "country": "Country",
       "type": "Availability",
-      "typeAll": "All films",
-      "typeDirect": "Available now",
       "typeValidation": "On request"
     },
     "sort": {
@@ -142,19 +168,90 @@
       "price": "Price"
     },
     "film": {
+      "typeBoth": "Direct + On demand",
+      "typeDirect": "Direct booking",
+      "typeOnDemand": "On demand",
       "direct": "Available now",
       "validation": "On request",
       "addToCart": "Add to cart",
       "makeRequest": "Make a request",
+      "sendRequest": "Send request",
       "noPrice": "Price on request",
       "director": "Director",
       "cast": "Cast",
+      "yearLabel": "Year",
+      "durationLabel": "Duration",
       "duration": "{duration} min",
       "year": "{year}",
       "genres": "Genres",
+      "countries": "Countries",
       "rightsHolder": "Rights holder",
       "synopsis": "Synopsis",
-      "tmdbRating": "TMDB rating"
+      "tmdbRating": "TMDB rating",
+      "information": "Information",
+      "pricing": "Pricing",
+      "singleZone": "Single pricing zone",
+      "multipleZones": "{count} pricing zones available",
+      "zone": "Zone {number}",
+      "noPricing": "No pricing available",
+      "unavailable": "Unavailable for your cinemas",
+      "unavailableHint": "This film is not available in your territories",
+      "typeValidation": "Validation required",
+      "card": {
+        "available": "Available",
+        "unavailable": "Unavailable",
+        "direct": "Direct",
+        "onDemand": "On demand",
+        "from": "From {price}",
+        "excludingTax": "excl. tax",
+        "notAvailable": "Not available in your territory"
+      },
+      "modal": {
+        "addToCartDescription": "Add this film to your cart",
+        "sendRequestDescription": "Send a booking request for this film",
+        "quantity": "Quantity (number of screenings)",
+        "quantityHint": "Minimum 1 screening",
+        "unitPrice": "Unit price",
+        "total": "Total",
+        "cinemaLabel": "Cinema",
+        "cinemaPlaceholder": "Select a cinema",
+        "roomLabel": "Screening room",
+        "roomPlaceholder": "Select a room",
+        "screeningCountLabel": "Number of screenings",
+        "screeningCountPlaceholder": "e.g. 5",
+        "startDateLabel": "Start date",
+        "startDatePlaceholder": "Select start date",
+        "endDateLabel": "End date (optional)",
+        "endDatePlaceholder": "Select end date",
+        "priceLabel": "Total price",
+        "displayCurrencyLabel": "Display currency",
+        "cancel": "Cancel",
+        "addToCart": "Add to cart",
+        "sendRequest": "Send validation request",
+        "submitting": "Submitting...",
+        "noCinemas": "You must first create a cinema in your account to book films.",
+        "noRooms": "The selected cinema has no screening rooms. Please add one first.",
+        "finalPaymentNote": "Final payment remains in {currency}.",
+        "indicativeRateDate": "Indicative rate date: {date}."
+      }
+    },
+    "success": {
+      "addedToCart": "Film added to cart",
+      "requestSent": "Validation request sent to rights holder"
+    },
+    "errors": {
+      "UNAUTHORIZED": "You must be logged in",
+      "NO_ACTIVE_ACCOUNT": "No active account",
+      "INVALID_INPUT": "Invalid input data",
+      "FILM_NOT_FOUND": "Film not found",
+      "FILM_NOT_DIRECT": "This film requires validation",
+      "ALREADY_IN_CART": "This film is already in your cart for these dates",
+      "ALREADY_REQUESTED": "You already have a pending request for this film and these dates",
+      "DATABASE_ERROR": "An error occurred. Please try again."
+    },
+    "error": {
+      "title": "Error loading catalog",
+      "generic": "Failed to load catalog. Please try again."
     }
   },
   "cart": {
@@ -1093,5 +1190,31 @@
   "rightsHolderDashboard": {
     "title": "Dashboard",
     "placeholder": "Your dashboard will be available soon."
+    },
+    "analytics": {
+      "title": "Analytics",
+      "description": "View performance metrics for your catalog",
+      "kpi": {
+        "views": "Film Views",
+        "viewsDescription": "Total film detail page views",
+        "cartAdditions": "Cart Additions",
+        "cartAdditionsDescription": "Films added to exhibitor carts",
+        "requests": "Requests Sent",
+        "requestsDescription": "Booking requests submitted",
+        "revenue": "Revenue",
+        "revenueDescription": "Total revenue from paid orders"
+      },
+      "topFilms": {
+        "title": "Most Viewed Films",
+        "description": "Your most popular films this month",
+        "empty": "No film views yet",
+        "views": "views"
+      },
+      "topSearches": {
+        "title": "Top Search Queries",
+        "description": "What exhibitors are searching for",
+        "empty": "No search data yet",
+        "searches": "searches"
+      }
   }
 }

@@ -1,0 +1,362 @@
+"use client";
+
+import { useLocale, useTranslations } from "next-intl";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+
+import { addToCart, createRequest } from "@/components/catalog/actions";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { getCurrencyOptions } from "@/lib/currencies";
+import {
+  convertCurrencyWithFallback,
+  getExchangeRates,
+} from "@/lib/services/exchange-rate-service";
+
+import type { FilmWithAvailability } from "@/lib/services/catalog-service";
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface FilmActionModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  film: FilmWithAvailability;
+  accountId: string;
+  cinemas: Cinema[];
+  preferredCurrency: string;
+  isDirect: boolean; // true = add to cart, false = send request
+}
+
+interface Cinema {
+  id: string;
+  name: string;
+  rooms: Array<{ id: string; name: string }>;
+}
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
+export function FilmActionModal({
+  isOpen,
+  onClose,
+  film,
+  accountId: _accountId,
+  cinemas,
+  preferredCurrency,
+  isDirect,
+}: FilmActionModalProps) {
+  const locale = useLocale();
+  const tModal = useTranslations("catalog.film.modal");
+  const tSuccess = useTranslations("catalog.success");
+  const tErrors = useTranslations("catalog.errors");
+
+  // Form state
+  const [selectedCinemaId, setSelectedCinemaId] = useState<string>("");
+  const [selectedRoomId, setSelectedRoomId] = useState<string>("");
+  const [screeningCount, setScreeningCount] = useState(1);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [displayCurrency, setDisplayCurrency] = useState("EUR");
+  const [displayUnitPrice, setDisplayUnitPrice] = useState<number | null>(null);
+  const [exchangeRateDate, setExchangeRateDate] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionError, setSubmissionError] = useState<string | null>(null);
+
+  // Get best price (first matching price)
+  const bestPrice = film.matchingPrices?.[0];
+  const nativeCurrency = bestPrice?.currency ?? "EUR";
+  const nativeUnitPrice = bestPrice?.price ?? 0;
+  const total = ((displayUnitPrice ?? nativeUnitPrice) * screeningCount) / 100;
+
+  const normalizedPreferredCurrency = preferredCurrency.toUpperCase();
+  const availableCurrencies = getCurrencyOptions(locale);
+
+  // Reset form when modal opens/closes
+  useEffect(() => {
+    if (!isOpen) {
+      setSelectedCinemaId("");
+      setSelectedRoomId("");
+      setScreeningCount(1);
+      setStartDate("");
+      setEndDate("");
+      setSubmissionError(null);
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    setDisplayCurrency(normalizedPreferredCurrency || "EUR");
+  }, [isOpen, normalizedPreferredCurrency]);
+
+  // Get available rooms for selected cinema
+  const selectedCinema = cinemas.find((c) => c.id === selectedCinemaId);
+  const availableRooms = selectedCinema?.rooms ?? [];
+
+  // Reset room when cinema changes
+  useEffect(() => {
+    if (!selectedCinemaId) {
+      return;
+    }
+
+    const roomsForSelectedCinema =
+      cinemas.find((cinema) => cinema.id === selectedCinemaId)?.rooms ?? [];
+
+    if (!roomsForSelectedCinema.some((room) => room.id === selectedRoomId)) {
+      setSelectedRoomId("");
+    }
+  }, [cinemas, selectedCinemaId, selectedRoomId]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function updateIndicativePrice() {
+      if (!bestPrice) {
+        return;
+      }
+
+      if (displayCurrency === nativeCurrency) {
+        if (!isMounted) {
+          return;
+        }
+
+        setDisplayUnitPrice(nativeUnitPrice);
+        setExchangeRateDate(null);
+        return;
+      }
+
+      const converted = await convertCurrencyWithFallback(
+        nativeUnitPrice,
+        nativeCurrency,
+        displayCurrency
+      );
+      const rates = await getExchangeRates();
+
+      if (!isMounted) {
+        return;
+      }
+
+      setDisplayUnitPrice(converted);
+      setExchangeRateDate(rates?.date ?? null);
+    }
+
+    void updateIndicativePrice();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [bestPrice, displayCurrency, nativeCurrency, nativeUnitPrice]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    const data = {
+      filmId: film.id,
+      cinemaId: selectedCinemaId,
+      roomId: selectedRoomId,
+      screeningCount,
+      startDate,
+      endDate,
+    };
+
+    try {
+      setSubmissionError(null);
+      const result = isDirect ? await addToCart(data) : await createRequest(data);
+
+      if ("error" in result) {
+        const translatedError = tErrors(result.error as Parameters<typeof tErrors>[0]);
+        setSubmissionError(translatedError);
+        toast.error(translatedError);
+      } else {
+        toast.success(isDirect ? tSuccess("addedToCart") : tSuccess("requestSent"));
+        onClose();
+      }
+    } catch (error) {
+      console.error("Failed to submit:", error);
+      toast.error(tErrors("DATABASE_ERROR"));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[500px]">
+        <form onSubmit={handleSubmit}>
+          <DialogHeader>
+            <DialogTitle>{film.title}</DialogTitle>
+            <DialogDescription>
+              {isDirect ? tModal("addToCart") : tModal("sendRequest")}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            {/* Cinema selector */}
+            <div className="space-y-2">
+              <Label htmlFor="cinema">
+                {tModal("cinemaLabel")} <span className="text-destructive">*</span>
+              </Label>
+              {cinemas.length === 0 ? (
+                <div className="text-sm text-destructive">{tModal("noCinemas")}</div>
+              ) : (
+                <Select value={selectedCinemaId} onValueChange={setSelectedCinemaId}>
+                  <SelectTrigger id="cinema">
+                    <SelectValue placeholder={tModal("cinemaPlaceholder")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {cinemas.map((cinema) => (
+                      <SelectItem key={cinema.id} value={cinema.id}>
+                        {cinema.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+
+            {/* Room selector */}
+            <div className="space-y-2">
+              <Label htmlFor="room">
+                {tModal("roomLabel")} <span className="text-destructive">*</span>
+              </Label>
+              {selectedCinemaId && availableRooms.length === 0 ? (
+                <div className="text-sm text-destructive">{tModal("noRooms")}</div>
+              ) : (
+                <Select
+                  value={selectedRoomId}
+                  onValueChange={setSelectedRoomId}
+                  disabled={!selectedCinemaId}
+                >
+                  <SelectTrigger id="room">
+                    <SelectValue placeholder={tModal("roomPlaceholder")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableRooms.map((room) => (
+                      <SelectItem key={room.id} value={room.id}>
+                        {room.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+
+            {/* Screening count */}
+            <div className="space-y-2">
+              <Label htmlFor="screeningCount">
+                {tModal("screeningCountLabel")} <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="screeningCount"
+                type="number"
+                min={1}
+                value={screeningCount}
+                onChange={(e) => setScreeningCount(Math.max(1, parseInt(e.target.value) || 1))}
+                placeholder={tModal("screeningCountPlaceholder")}
+                required
+              />
+            </div>
+
+            {/* Start date */}
+            <div className="space-y-2">
+              <Label htmlFor="startDate">{tModal("startDateLabel")}</Label>
+              <Input
+                id="startDate"
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+              />
+            </div>
+
+            {/* End date */}
+            <div className="space-y-2">
+              <Label htmlFor="endDate">{tModal("endDateLabel")}</Label>
+              <Input
+                id="endDate"
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                min={startDate || undefined}
+              />
+            </div>
+
+            {/* Total */}
+            {bestPrice && (
+              <div className="rounded-lg border bg-muted/50 p-4">
+                <div className="mb-3 space-y-2">
+                  <Label htmlFor="displayCurrency">{tModal("displayCurrencyLabel")}</Label>
+                  <Select value={displayCurrency} onValueChange={setDisplayCurrency}>
+                    <SelectTrigger id="displayCurrency">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableCurrencies.map((currency) => (
+                        <SelectItem key={currency.value} value={currency.value}>
+                          {currency.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-baseline justify-between">
+                  <span className="font-semibold">{tModal("priceLabel")}</span>
+                  <span className="text-xl font-bold">
+                    {total.toFixed(2)} {displayCurrency}
+                  </span>
+                </div>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  {tModal("finalPaymentNote", { currency: nativeCurrency })}
+                  {exchangeRateDate
+                    ? ` ${tModal("indicativeRateDate", { date: exchangeRateDate })}`
+                    : ""}
+                </p>
+              </div>
+            )}
+
+            {submissionError && <p className="text-sm text-destructive">{submissionError}</p>}
+          </div>
+
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
+              {tModal("cancel")}
+            </Button>
+            <Button
+              type="submit"
+              disabled={
+                isSubmitting ||
+                !bestPrice ||
+                cinemas.length === 0 ||
+                !selectedCinemaId ||
+                !selectedRoomId
+              }
+            >
+              {isSubmitting
+                ? tModal("submitting")
+                : isDirect
+                  ? tModal("addToCart")
+                  : tModal("sendRequest")}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}

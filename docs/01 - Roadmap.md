@@ -20,7 +20,7 @@
 | [[E02 - Exploitants]] | Comptes exploitants de cinéma | P0 | 6 | ✅ Done |
 | [[E03 - Ayants Droits]] | Comptes ayants droits | P0 | 3 | ✅ Done |
 | [[E04 - Catalogue & Import]] | Import CSV, CRUD, enrichissement TMDB | P1 | 8 |
-| [[E05 - Recherche & Catalogue]] | Page catalogue, filtres, fiche film | P1 | 4 |
+| [[E05 - Recherche & Catalogue]] | Page catalogue, filtres, fiche film | P1 | 4 | ✅ Done |
 | [[E06 - Panier & Demandes]] | Panier, demandes de réservation, expiration | P2 | 7 |
 | [[E07 - Workflow Validation]] | Validation par l'ayant droit | P2 | 5 |
 | [[E08 - Paiement Stripe]] | Stripe Checkout, TVA, commissions, splits | P2–P3 | 7 |

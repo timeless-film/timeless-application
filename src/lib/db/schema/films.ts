@@ -1,13 +1,14 @@
 import { relations, sql } from "drizzle-orm";
 import {
+  index,
   pgTable,
   text,
   timestamp,
+  uniqueIndex,
   uuid,
   integer,
   jsonb,
   pgEnum,
-  uniqueIndex,
 } from "drizzle-orm/pg-core";
 
 import { accounts } from "./accounts";
@@ -70,21 +71,36 @@ export const films = pgTable(
     uniqueIndex("films_account_external_id_idx")
       .on(table.accountId, table.externalId)
       .where(sql`${table.externalId} IS NOT NULL`),
+    // Performance indexes for catalog queries
+    index("films_status_idx").on(table.status),
+    index("films_type_idx").on(table.type),
+    index("films_release_year_idx").on(table.releaseYear),
+    index("films_title_idx").on(table.title),
+    // Composite index for common catalog filters (status + type + year)
+    index("films_catalog_query_idx").on(table.status, table.type, table.releaseYear),
   ]
 );
 
 // ─── Prices by geographic zone ────────────────────────────────────────────────
-export const filmPrices = pgTable("film_prices", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  filmId: uuid("film_id")
-    .notNull()
-    .references(() => films.id, { onDelete: "cascade" }),
-  countries: text("countries").array().notNull(), // e.g. ["FR", "BE", "CH"]
-  price: integer("price").notNull(), // In cents (e.g. 15000 = 150.00)
-  currency: text("currency").notNull(), // ISO code: "EUR", "USD", etc.
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+export const filmPrices = pgTable(
+  "film_prices",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    filmId: uuid("film_id")
+      .notNull()
+      .references(() => films.id, { onDelete: "cascade" }),
+    countries: text("countries").array().notNull(), // e.g. ["FR", "BE", "CH"]
+    price: integer("price").notNull(), // In cents (e.g. 15000 = 150.00)
+    currency: text("currency").notNull(), // ISO code: "EUR", "USD", etc.
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    // GIN index for array containment queries (territory availability)
+    index("film_prices_countries_idx").using("gin", table.countries),
+    index("film_prices_film_id_idx").on(table.filmId),
+  ]
+);
 
 // ─── Relations ────────────────────────────────────────────────────────────────
 export const filmsRelations = relations(films, ({ one, many }) => ({

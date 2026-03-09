@@ -2,6 +2,8 @@ import { createHash, randomBytes } from "crypto";
 
 import { eq } from "drizzle-orm";
 
+import { auth } from "@/lib/auth";
+import { ACTIVE_ACCOUNT_COOKIE, parseActiveAccountCookie } from "@/lib/auth/active-account-cookie";
 import { db } from "@/lib/db";
 import { apiTokens } from "@/lib/db/schema";
 
@@ -86,4 +88,47 @@ export async function verifyBearerToken(request: NextRequest): Promise<VerifyRes
     });
 
   return { success: true, accountId: token.accountId };
+}
+
+/**
+ * Verify API authentication (Bearer token OR session cookie).
+ * Tries Bearer token first (for external API clients), then session (for Next.js client-side).
+ * Returns accountId if authenticated, or failure.
+ */
+export async function verifyApiAuth(request: NextRequest): Promise<VerifyResult> {
+  // Try Bearer token first
+  const authHeader = request.headers.get("authorization");
+  if (authHeader) {
+    const bearerResult = await verifyBearerToken(request);
+    if (bearerResult.success) {
+      return bearerResult;
+    }
+  }
+
+  // Try session cookie (Better Auth) + active account cookie
+  try {
+    const session = await auth.api.getSession({
+      headers: request.headers,
+    });
+
+    if (!session?.user?.id) {
+      return { success: false };
+    }
+
+    // Get active account ID from cookie
+    const activeAccountCookie = request.cookies.get(ACTIVE_ACCOUNT_COOKIE);
+    if (!activeAccountCookie?.value) {
+      return { success: false };
+    }
+
+    const parsed = parseActiveAccountCookie(activeAccountCookie.value);
+    if (!parsed) {
+      return { success: false };
+    }
+
+    return { success: true, accountId: parsed.accountId };
+  } catch (error) {
+    console.error("Failed to verify session:", error);
+    return { success: false };
+  }
 }
