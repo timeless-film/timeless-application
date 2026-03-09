@@ -35,8 +35,8 @@ yarn-error.log*
 .env.local
 .env.*.local
 
-# Drizzle migrations — SQL files + journal are committed; snapshots are regeneratable
-/drizzle/meta/*_snapshot.json
+# Drizzle migrations — SQL files + journal + snapshots must all be committed
+# Snapshots are required by drizzle-kit generate to detect schema changes
 
 # vercel
 .vercel
