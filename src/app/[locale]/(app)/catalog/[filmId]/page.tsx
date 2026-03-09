@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { ACTIVE_ACCOUNT_COOKIE, parseActiveAccountCookie } from "@/lib/auth/active-account-cookie";
 import { db } from "@/lib/db";
+import { getFilmRequestsSummary } from "@/lib/services/booking-service";
 import { getFilmForExhibitor } from "@/lib/services/catalog-service";
 import { listCinemasForAccount } from "@/lib/services/cinema-service";
 
@@ -94,6 +95,10 @@ export default async function FilmDetailPage({ params }: FilmDetailPageProps) {
   }
 
   const cinemas = await listCinemasForAccount(accountId);
+  const requestSummary = await getFilmRequestsSummary({
+    exhibitorAccountId: accountId,
+    filmId,
+  });
   const modalCinemas = cinemas.map((cinema) => ({
     id: cinema.id,
     name: cinema.name,
@@ -101,6 +106,7 @@ export default async function FilmDetailPage({ params }: FilmDetailPageProps) {
     rooms: cinema.rooms.map((room) => ({
       id: room.id,
       name: room.name,
+      capacity: room.capacity,
     })),
   }));
 
@@ -109,6 +115,12 @@ export default async function FilmDetailPage({ params }: FilmDetailPageProps) {
       film={film}
       accountId={accountId}
       cinemas={modalCinemas}
+      existingRequests={requestSummary.map((item) => ({
+        id: item.id,
+        status: item.status,
+        cinemaName: item.cinema.name,
+        roomName: item.room.name,
+      }))}
       preferredCurrency={account?.preferredCurrency ?? "EUR"}
     />
   );

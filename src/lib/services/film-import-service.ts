@@ -400,15 +400,18 @@ export function groupRowsByFilm(rows: ParsedFilmRow[]): GroupedFilm[] {
       existing.errors.push(...row.errors);
       existing.warnings.push(...row.warnings);
       existing.lineNumbers.push(row.lineNumber);
-      if (row.synopsis !== undefined) existing.synopsis = row.synopsis;
-      if (row.synopsisEn !== undefined) existing.synopsisEn = row.synopsisEn;
-      if (row.duration !== undefined) existing.duration = row.duration;
-      if (row.releaseYear !== undefined) existing.releaseYear = row.releaseYear;
-      if (row.directors !== undefined) existing.directors = row.directors;
-      if (row.genres !== undefined) existing.genres = row.genres;
-      if (row.cast !== undefined) existing.cast = row.cast;
-      if (row.posterUrl !== undefined) existing.posterUrl = row.posterUrl;
-      if (row.backdropUrl !== undefined) existing.backdropUrl = row.backdropUrl;
+      // Update metadata only if new value is non-null/non-empty AND current value is empty/undefined
+      if (row.synopsis && !existing.synopsis) existing.synopsis = row.synopsis;
+      if (row.synopsisEn && !existing.synopsisEn) existing.synopsisEn = row.synopsisEn;
+      if (row.duration !== undefined && row.duration !== null && !existing.duration)
+        existing.duration = row.duration;
+      if (row.releaseYear !== undefined && row.releaseYear !== null && !existing.releaseYear)
+        existing.releaseYear = row.releaseYear;
+      if (row.directors && !existing.directors) existing.directors = row.directors;
+      if (row.genres && !existing.genres) existing.genres = row.genres;
+      if (row.cast && !existing.cast) existing.cast = row.cast;
+      if (row.posterUrl && !existing.posterUrl) existing.posterUrl = row.posterUrl;
+      if (row.backdropUrl && !existing.backdropUrl) existing.backdropUrl = row.backdropUrl;
     } else {
       groups.set(key, {
         identifier: key,

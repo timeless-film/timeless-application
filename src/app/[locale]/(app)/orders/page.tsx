@@ -1,5 +1,8 @@
 import { getTranslations } from "next-intl/server";
 
+import { getOrders } from "@/components/booking/actions";
+import { OrdersPageContent } from "@/components/booking/orders-page-content";
+
 import type { Metadata } from "next";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -11,11 +14,13 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function OrdersPage() {
   const t = await getTranslations("orders");
+  const result = await getOrders({ page: 1, limit: 20 });
+  const orders = "success" in result ? result.data : [];
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 px-4 py-8 lg:px-6">
       <h1 className="font-heading text-3xl">{t("title")}</h1>
-      <p className="text-muted-foreground">{t("columns.film")}</p>
+      <OrdersPageContent orders={orders} />
     </div>
   );
 }

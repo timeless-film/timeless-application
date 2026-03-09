@@ -1,6 +1,6 @@
 "use server";
 
-import { and, eq, or } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { z } from "zod";
 
@@ -9,6 +9,7 @@ import { getActiveAccountCookie } from "@/lib/auth/membership";
 import { db } from "@/lib/db";
 import { cartItems, cinemas, films, requests, rooms } from "@/lib/db/schema";
 import { calculatePricing, getPlatformPricingSettings, resolveCommissionRate } from "@/lib/pricing";
+import { getFilmRequestsSummary } from "@/lib/services/booking-service";
 
 // ─── Validation ───────────────────────────────────────────────────────────────
 
@@ -43,10 +44,13 @@ const createRequestSchema = z.object({
   screeningCount: z.number().int().min(1),
   startDate: optionalIsoDateSchema,
   endDate: optionalIsoDateSchema,
+  note: z.string().max(1000).optional(),
 });
 
-function getTodayIsoDate(): string {
-  return new Date().toISOString().slice(0, 10);
+function getTomorrowIsoDateUtc(): string {
+  const date = new Date();
+  date.setUTCDate(date.getUTCDate() + 1);
+  return date.toISOString().slice(0, 10);
 }
 
 // ─── Add to cart (type: "direct") ─────────────────────────────────────────────
@@ -70,11 +74,18 @@ export async function addToCart(input: z.infer<typeof addToCartSchema>) {
     return { error: "INVALID_INPUT" as const };
   }
 
-  const { filmId, cinemaId, roomId, screeningCount } = parsed.data;
-  const startDate = parsed.data.startDate ?? getTodayIsoDate();
-  const endDate = parsed.data.endDate ?? startDate;
+  const { filmId, cinemaId, roomId, screeningCount, startDate, endDate } = parsed.data;
+  const minStartDate = getTomorrowIsoDateUtc();
 
-  if (endDate < startDate) {
+  if (endDate && !startDate) {
+    return { error: "INVALID_INPUT" as const };
+  }
+
+  if (startDate && startDate < minStartDate) {
+    return { error: "INVALID_INPUT" as const };
+  }
+
+  if (startDate && endDate && endDate < startDate) {
     return { error: "INVALID_INPUT" as const };
   }
 
@@ -118,40 +129,7 @@ export async function addToCart(input: z.infer<typeof addToCartSchema>) {
     return { error: "FILM_NOT_FOUND" as const };
   }
 
-  // 4. Check for duplicates (same film + cinema + room + dates)
-  const existingCartItem = await db.query.cartItems.findFirst({
-    where: and(
-      eq(cartItems.exhibitorAccountId, activeAccountId),
-      eq(cartItems.filmId, filmId),
-      eq(cartItems.cinemaId, cinemaId),
-      eq(cartItems.roomId, roomId),
-      eq(cartItems.startDate, startDate),
-      eq(cartItems.endDate, endDate)
-    ),
-  });
-
-  if (existingCartItem) {
-    return { error: "ALREADY_IN_CART" as const };
-  }
-
-  // Also check if a similar request exists (pending or validated)
-  const existingRequest = await db.query.requests.findFirst({
-    where: and(
-      eq(requests.exhibitorAccountId, activeAccountId),
-      eq(requests.filmId, filmId),
-      eq(requests.cinemaId, cinemaId),
-      eq(requests.roomId, roomId),
-      eq(requests.startDate, startDate),
-      eq(requests.endDate, endDate),
-      or(eq(requests.status, "pending"), eq(requests.status, "validated"))
-    ),
-  });
-
-  if (existingRequest) {
-    return { error: "ALREADY_REQUESTED" as const };
-  }
-
-  // 5. Insert cart item
+  // 4. Insert cart item
   try {
     await db.insert(cartItems).values({
       exhibitorAccountId: activeAccountId,
@@ -191,15 +169,22 @@ export async function createRequest(input: z.infer<typeof createRequestSchema>) 
     return { error: "INVALID_INPUT" as const };
   }
 
-  const { filmId, cinemaId, roomId, screeningCount } = parsed.data;
-  const startDate = parsed.data.startDate ?? getTodayIsoDate();
-  const endDate = parsed.data.endDate ?? startDate;
+  const { filmId, cinemaId, roomId, screeningCount, startDate, endDate, note } = parsed.data;
+  const minStartDate = getTomorrowIsoDateUtc();
 
-  if (endDate < startDate) {
+  if (endDate && !startDate) {
     return { error: "INVALID_INPUT" as const };
   }
 
-  // 3. Verify film exists and is available (direct or validation)
+  if (startDate && startDate < minStartDate) {
+    return { error: "INVALID_INPUT" as const };
+  }
+
+  if (startDate && endDate && endDate < startDate) {
+    return { error: "INVALID_INPUT" as const };
+  }
+
+  // 3. Verify film exists and is available for validation requests
   const film = await db.query.films.findFirst({
     where: eq(films.id, filmId),
     with: {
@@ -210,6 +195,10 @@ export async function createRequest(input: z.infer<typeof createRequestSchema>) 
 
   if (!film || !film.account || film.status !== "active") {
     return { error: "FILM_NOT_FOUND" as const };
+  }
+
+  if (film.type !== "validation") {
+    return { error: "FILM_NOT_DIRECT" as const };
   }
 
   // 3b. Verify cinema ownership + room ownership
@@ -235,42 +224,7 @@ export async function createRequest(input: z.infer<typeof createRequestSchema>) 
     return { error: "FILM_NOT_FOUND" as const };
   }
 
-  // 4. Check for duplicates
-  const existingRequest = await db.query.requests.findFirst({
-    where: and(
-      eq(requests.exhibitorAccountId, activeAccountId),
-      eq(requests.filmId, filmId),
-      eq(requests.cinemaId, cinemaId),
-      eq(requests.roomId, roomId),
-      eq(requests.startDate, startDate),
-      eq(requests.endDate, endDate),
-      or(eq(requests.status, "pending"), eq(requests.status, "validated"))
-    ),
-  });
-
-  if (existingRequest) {
-    return { error: "ALREADY_REQUESTED" as const };
-  }
-
-  // Also check cart (if type is "direct")
-  if (film.type === "direct") {
-    const existingCartItem = await db.query.cartItems.findFirst({
-      where: and(
-        eq(cartItems.exhibitorAccountId, activeAccountId),
-        eq(cartItems.filmId, filmId),
-        eq(cartItems.cinemaId, cinemaId),
-        eq(cartItems.roomId, roomId),
-        eq(cartItems.startDate, startDate),
-        eq(cartItems.endDate, endDate)
-      ),
-    });
-
-    if (existingCartItem) {
-      return { error: "ALREADY_IN_CART" as const };
-    }
-  }
-
-  // 5. Get pricing settings, compute totals, and insert request
+  // 4. Get pricing settings, compute totals, and insert request
   try {
     const settings = await getPlatformPricingSettings();
     const commissionRate = resolveCommissionRate(
@@ -278,20 +232,18 @@ export async function createRequest(input: z.infer<typeof createRequestSchema>) 
       settings.defaultCommissionRate
     );
 
+    const matchingPrice =
+      film.prices.find((priceZone) => priceZone.countries.includes(cinema.country)) ??
+      film.prices[0] ??
+      null;
+
     const pricing = calculatePricing({
-      catalogPrice: film.prices[0]?.price ?? 0,
-      currency: film.prices[0]?.currency ?? "EUR",
+      catalogPrice: matchingPrice?.price ?? 0,
+      currency: matchingPrice?.currency ?? "EUR",
       platformMarginRate: settings.platformMarginRate,
       deliveryFees: settings.deliveryFees,
       commissionRate,
     });
-
-    // Calculate expiration date (30 days or X days before start date)
-    const expiresAt = calculateExpirationDate(
-      startDate,
-      settings.requestExpirationDays,
-      settings.requestUrgencyDaysBeforeStart
-    );
 
     await db.insert(requests).values({
       exhibitorAccountId: activeAccountId,
@@ -302,6 +254,7 @@ export async function createRequest(input: z.infer<typeof createRequestSchema>) 
       screeningCount,
       startDate,
       endDate,
+      note,
       catalogPrice: pricing.catalogPrice,
       currency: pricing.currency,
       platformMarginRate: pricing.platformMarginRate.toString(),
@@ -310,7 +263,7 @@ export async function createRequest(input: z.infer<typeof createRequestSchema>) 
       displayedPrice: pricing.displayedPrice,
       rightsHolderAmount: pricing.rightsHolderAmount,
       timelessAmount: pricing.timelessAmount,
-      expiresAt,
+      status: "pending",
     });
 
     return { success: true as const };
@@ -320,24 +273,26 @@ export async function createRequest(input: z.infer<typeof createRequestSchema>) 
   }
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+export async function getFilmRequestSummary(input: { filmId: string }) {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session?.user) {
+    return { error: "UNAUTHORIZED" as const };
+  }
 
-function calculateExpirationDate(
-  startDate: string,
-  expirationDays: number,
-  urgencyDaysBeforeStart: number
-): Date {
-  const start = new Date(startDate);
-  const today = new Date();
+  const activeAccount = await getActiveAccountCookie();
+  if (!activeAccount?.accountId) {
+    return { error: "NO_ACTIVE_ACCOUNT" as const };
+  }
 
-  // Calculate date X days before start
-  const urgencyDate = new Date(start);
-  urgencyDate.setDate(urgencyDate.getDate() - urgencyDaysBeforeStart);
+  const filmIdResult = z.string().uuid().safeParse(input.filmId);
+  if (!filmIdResult.success) {
+    return { error: "INVALID_INPUT" as const };
+  }
 
-  // Calculate date Y days from today
-  const standardExpiration = new Date(today);
-  standardExpiration.setDate(standardExpiration.getDate() + expirationDays);
+  const summary = await getFilmRequestsSummary({
+    exhibitorAccountId: activeAccount.accountId,
+    filmId: filmIdResult.data,
+  });
 
-  // Return the earliest of the two
-  return urgencyDate < standardExpiration ? urgencyDate : standardExpiration;
+  return { success: true as const, data: summary };
 }

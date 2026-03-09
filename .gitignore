@@ -46,6 +46,7 @@ yarn-error.log*
 /playwright-report/
 /blob-report/
 /coverage/
+/data
 
 # typescript
 *.tsbuildinfo

@@ -36,6 +36,20 @@
       "when": 1773048927941,
       "tag": "0004_blue_firebrand",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1773066000000,
+      "tag": "0005_e06_requests_cart_alignment",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1773094758465,
+      "tag": "0006_solid_monster_badoon",
+      "breakpoints": true
     }
   ]
 }

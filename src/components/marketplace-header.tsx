@@ -35,6 +35,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { useCartItemsCount } from "@/hooks/use-cart-items-count";
 import { Link } from "@/i18n/navigation";
 import { signOutAndCleanup } from "@/lib/auth/client";
 import { switchAccount } from "@/lib/auth/membership-actions";
@@ -86,6 +87,7 @@ export function MarketplaceHeader({ user }: MarketplaceHeaderProps) {
     hasMultipleAccounts,
     setActiveAccountId,
   } = useAccountContext();
+  const { data: cartCount = 0 } = useCartItemsCount();
   const canManageAccount = activeMembership?.role === "owner" || activeMembership?.role === "admin";
 
   const mainNav: NavLink[] = [
@@ -210,6 +212,11 @@ export function MarketplaceHeader({ user }: MarketplaceHeaderProps) {
           <Button variant="ghost" size="icon" asChild className="relative">
             <Link href="/cart">
               <ShoppingCartIcon className="h-5 w-5" />
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-semibold rounded-full h-5 w-5 flex items-center justify-center">
+                  {cartCount}
+                </span>
+              )}
               <span className="sr-only">{t("cart")}</span>
             </Link>
           </Button>

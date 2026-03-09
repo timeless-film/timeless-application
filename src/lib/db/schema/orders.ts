@@ -7,9 +7,12 @@ import { films } from "./films";
 
 export const requestStatusEnum = pgEnum("request_status", [
   "pending", // Awaiting validation by rights holder
-  "validated", // Accepted, awaiting payment
-  "refused", // Refused
-  "expired", // Expired (30 days or 7 days before start date)
+  "approved", // Accepted, awaiting payment
+  "rejected", // Rejected by rights holder
+  "cancelled", // Cancelled by exhibitor
+  "validated", // DEPRECATED - use approved
+  "refused", // DEPRECATED - use rejected
+  "expired", // DEPRECATED (E13 - auto expiration)
   "paid", // Paid
 ]);
 
@@ -49,8 +52,9 @@ export const requests = pgTable("requests", {
 
   // Request details
   screeningCount: integer("screening_count").notNull(),
-  startDate: date("start_date").notNull(),
-  endDate: date("end_date").notNull(),
+  startDate: date("start_date"),
+  endDate: date("end_date"),
+  note: text("note"),
 
   // Price snapshotted at request time
   catalogPrice: integer("catalog_price").notNull(), // In cents
@@ -65,10 +69,15 @@ export const requests = pgTable("requests", {
   // Workflow
   status: requestStatusEnum("status").notNull().default("pending"),
   validationToken: text("validation_token"), // JWT token for accept/refuse from email
-  refusalReason: text("refusal_reason"),
-  validatedAt: timestamp("validated_at"),
-  refusedAt: timestamp("refused_at"),
-  expiresAt: timestamp("expires_at").notNull(),
+  refusalReason: text("refusal_reason"), // DEPRECATED - use rejectionReason
+  rejectionReason: text("rejection_reason"),
+  cancellationReason: text("cancellation_reason"),
+  approvedAt: timestamp("approved_at"),
+  rejectedAt: timestamp("rejected_at"),
+  cancelledAt: timestamp("cancelled_at"),
+  validatedAt: timestamp("validated_at"), // DEPRECATED - use approvedAt
+  refusedAt: timestamp("refused_at"), // DEPRECATED - use rejectedAt
+  expiresAt: timestamp("expires_at"), // Future use (E13)
 
   // Payment (if validated → paid)
   stripePaymentLinkId: text("stripe_payment_link_id"),
@@ -172,8 +181,8 @@ export const cartItems = pgTable("cart_items", {
     .notNull()
     .references(() => rooms.id),
   screeningCount: integer("screening_count").notNull(),
-  startDate: date("start_date").notNull(),
-  endDate: date("end_date").notNull(),
+  startDate: date("start_date"),
+  endDate: date("end_date"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

@@ -225,6 +225,9 @@
         "endDatePlaceholder": "Select end date",
         "priceLabel": "Total price",
         "displayCurrencyLabel": "Display currency",
+        "noteLabel": "Note (optional)",
+        "notePlaceholder": "Add context for the rights holder",
+        "existingRequestsTitle": "Existing requests for this film",
         "cancel": "Cancel",
         "addToCart": "Add to cart",
         "sendRequest": "Send validation request",
@@ -247,6 +250,13 @@
       "FILM_NOT_DIRECT": "This film requires validation",
       "ALREADY_IN_CART": "This film is already in your cart for these dates",
       "ALREADY_REQUESTED": "You already have a pending request for this film and these dates",
+      "CART_EMPTY": "Your cart is empty",
+      "FILM_NOT_AVAILABLE": "This film is no longer available",
+      "TERRITORY_NOT_AVAILABLE": "This film is not available in your region",
+      "CINEMA_NOT_FOUND": "The selected cinema is no longer available",
+      "ROOM_NOT_FOUND": "The selected screen is no longer available",
+      "PRICE_CHANGED": "Prices have changed. Please review your cart.",
+      "INVALID_OWNERSHIP": "This cinema does not belong to your account",
       "DATABASE_ERROR": "An error occurred. Please try again."
     },
     "error": {
@@ -258,6 +268,8 @@
     "title": "Cart",
     "empty": "Your cart is empty.",
     "browseCatalog": "Browse the catalog",
+    "noPoster": "No poster",
+    "priceUnavailable": "Price unavailable",
     "item": {
       "cinema": "Cinema",
       "room": "Screen",
@@ -273,6 +285,9 @@
       "tax": "VAT",
       "total": "Total",
       "checkout": "Proceed to payment",
+      "paymentNotAvailable": "Payment is not available yet. Please recalculate and try again.",
+      "recalculate": "Recalculate",
+      "recalculated": "Prices recalculated.",
       "multiCurrency": "Prices in multiple currencies"
     },
     "modal": {
@@ -294,9 +309,9 @@
     "title": "My requests",
     "tabs": {
       "pending": "Pending",
-      "validated": "Validated",
-      "refused": "Refused",
-      "expired": "Expired",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "cancelled": "Cancelled",
       "paid": "Paid"
     },
     "columns": {
@@ -310,9 +325,9 @@
     },
     "status": {
       "pending": "Awaiting validation",
-      "validated": "Validated — payment required",
-      "refused": "Refused",
-      "expired": "Expired",
+      "approved": "Approved — payment required",
+      "rejected": "Rejected",
+      "cancelled": "Cancelled",
       "paid": "Paid"
     },
     "actions": {

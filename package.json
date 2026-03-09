@@ -20,6 +20,7 @@
     "db:migrate": "dotenv -e .env.local -- drizzle-kit migrate",
     "db:push": "dotenv -e .env.local -- drizzle-kit push",
     "db:studio": "dotenv -e .env.local -- drizzle-kit studio",
+    "scripts:generate-films": "dotenv -e .env.local -- tsx scripts/generate-classic-films-excel.ts",
     "prepare": "husky"
   },
   "lint-staged": {

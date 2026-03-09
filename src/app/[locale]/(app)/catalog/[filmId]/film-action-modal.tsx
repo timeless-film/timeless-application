@@ -4,7 +4,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-import { addToCart, createRequest } from "@/components/catalog/actions";
+import { addToCart, createRequest, getFilmRequestSummary } from "@/components/catalog/actions";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -47,7 +47,15 @@ interface Cinema {
   id: string;
   name: string;
   country: string;
-  rooms: Array<{ id: string; name: string }>;
+  rooms: Array<{ id: string; name: string; capacity: number }>;
+}
+
+interface ExistingRequestSummary {
+  id: string;
+  status: string;
+  cinema: { name: string };
+  room: { name: string };
+  createdAt: Date;
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -72,11 +80,13 @@ export function FilmActionModal({
   const [screeningCount, setScreeningCount] = useState(1);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [note, setNote] = useState("");
   const [displayCurrency, setDisplayCurrency] = useState("EUR");
   const [displayUnitPrice, setDisplayUnitPrice] = useState<number | null>(null);
   const [exchangeRateDate, setExchangeRateDate] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionError, setSubmissionError] = useState<string | null>(null);
+  const [existingRequests, setExistingRequests] = useState<ExistingRequestSummary[]>([]);
 
   // Get best price (first matching price)
   const bestPrice = film.matchingPrices?.[0];
@@ -95,9 +105,42 @@ export function FilmActionModal({
       setScreeningCount(1);
       setStartDate("");
       setEndDate("");
+      setNote("");
       setSubmissionError(null);
+      setExistingRequests([]);
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadExistingRequests() {
+      if (!isOpen) {
+        return;
+      }
+
+      const result = await getFilmRequestSummary({ filmId: film.id });
+      if (!isMounted || "error" in result) {
+        return;
+      }
+
+      setExistingRequests(
+        result.data.map((item) => ({
+          id: item.id,
+          status: item.status,
+          cinema: { name: item.cinema.name },
+          room: { name: item.room.name },
+          createdAt: item.createdAt,
+        }))
+      );
+    }
+
+    void loadExistingRequests();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [film.id, isOpen]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -182,6 +225,7 @@ export function FilmActionModal({
       screeningCount,
       startDate,
       endDate,
+      note,
     };
 
     try {
@@ -258,13 +302,26 @@ export function FilmActionModal({
                   <SelectContent>
                     {availableRooms.map((room) => (
                       <SelectItem key={room.id} value={room.id}>
-                        {room.name}
+                        {room.name} ({room.capacity})
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               )}
             </div>
+
+            {!isDirect ? (
+              <div className="space-y-2">
+                <Label htmlFor="requestNote">{tModal("noteLabel")}</Label>
+                <Input
+                  id="requestNote"
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  placeholder={tModal("notePlaceholder")}
+                  maxLength={1000}
+                />
+              </div>
+            ) : null}
 
             {/* Screening count */}
             <div className="space-y-2">
@@ -337,6 +394,19 @@ export function FilmActionModal({
                 </p>
               </div>
             )}
+
+            {existingRequests.length > 0 ? (
+              <div className="rounded-lg border bg-muted/50 p-4">
+                <p className="mb-2 text-sm font-medium">{tModal("existingRequestsTitle")}</p>
+                <ul className="space-y-1 text-xs text-muted-foreground">
+                  {existingRequests.map((requestItem) => (
+                    <li key={requestItem.id}>
+                      {requestItem.status} - {requestItem.cinema.name} / {requestItem.room.name}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
 
             {submissionError && <p className="text-sm text-destructive">{submissionError}</p>}
           </div>

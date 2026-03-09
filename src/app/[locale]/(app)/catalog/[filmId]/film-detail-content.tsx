@@ -17,11 +17,17 @@ import type { FilmWithAvailability } from "@/lib/services/catalog-service";
 interface FilmDetailContentProps {
   film: FilmWithAvailability;
   accountId: string;
+  existingRequests: Array<{
+    id: string;
+    status: string;
+    cinemaName: string;
+    roomName: string;
+  }>;
   cinemas: Array<{
     id: string;
     name: string;
     country: string;
-    rooms: Array<{ id: string; name: string }>;
+    rooms: Array<{ id: string; name: string; capacity: number }>;
   }>;
   preferredCurrency: string;
 }
@@ -31,6 +37,7 @@ interface FilmDetailContentProps {
 export function FilmDetailContent({
   film,
   accountId,
+  existingRequests,
   cinemas,
   preferredCurrency,
 }: FilmDetailContentProps) {
@@ -205,6 +212,21 @@ export function FilmDetailContent({
                       {t("unavailableHint")}
                     </p>
                   )}
+
+                  {existingRequests.length > 0 ? (
+                    <div className="rounded-md border border-border/60 bg-muted/35 p-2.5 text-xs">
+                      <p className="mb-1 font-medium text-foreground">
+                        {t("modal.existingRequestsTitle")}
+                      </p>
+                      <ul className="space-y-1 text-muted-foreground">
+                        {existingRequests.map((requestItem) => (
+                          <li key={requestItem.id}>
+                            {requestItem.status} - {requestItem.cinemaName} / {requestItem.roomName}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
                 </CardContent>
               </Card>
             </aside>

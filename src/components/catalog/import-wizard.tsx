@@ -1066,7 +1066,7 @@ export function ImportWizard({ existingFilms }: ImportWizardProps) {
                               return (
                                 <TableHead
                                   key={header}
-                                  className={`min-w-[220px] px-3 py-2 align-top ${
+                                  className={`min-w-[180px] max-w-[200px] px-3 py-2 align-top ${
                                     isIdentifier
                                       ? "bg-primary/5"
                                       : isSkipped
@@ -1076,7 +1076,7 @@ export function ImportWizard({ existingFilms }: ImportWizardProps) {
                                 >
                                   <div className="space-y-1.5">
                                     <div className="flex items-center justify-between gap-2">
-                                      <p className="font-mono text-xs">{header}</p>
+                                      <p className="font-mono text-xs truncate">{header}</p>
                                       {isIdentifier && (
                                         <span className="bg-primary/15 text-primary rounded px-1.5 py-0.5 text-[10px] font-medium">
                                           ID
@@ -1118,7 +1118,7 @@ export function ImportWizard({ existingFilms }: ImportWizardProps) {
                                 return (
                                   <TableCell
                                     key={header}
-                                    className={`text-xs ${
+                                    className={`max-w-[200px] truncate text-xs ${
                                       isSkipped ? "bg-muted/35 text-muted-foreground" : ""
                                     }`}
                                   >
@@ -1400,45 +1400,53 @@ function DiffSection({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>{t("table.title")}</TableHead>
-              <TableHead>{t("table.type")}</TableHead>
-              <TableHead>{t("table.zones")}</TableHead>
-              {variant === "error" && <TableHead>{t("table.errors")}</TableHead>}
-              {variant === "warning" && <TableHead>{t("table.warnings")}</TableHead>}
+              <TableHead className="max-w-[200px]">{t("table.title")}</TableHead>
+              <TableHead className="max-w-[200px]">{t("table.type")}</TableHead>
+              <TableHead className="max-w-[200px]">{t("table.zones")}</TableHead>
+              {variant === "error" && (
+                <TableHead className="max-w-[200px]">{t("table.errors")}</TableHead>
+              )}
+              {variant === "warning" && (
+                <TableHead className="max-w-[200px]">{t("table.warnings")}</TableHead>
+              )}
             </TableRow>
           </TableHeader>
           <TableBody>
             {films.map((film, i) => (
               <TableRow key={i}>
-                <TableCell className="font-medium">{film.title}</TableCell>
-                <TableCell>
+                <TableCell className="max-w-[200px] truncate font-medium">{film.title}</TableCell>
+                <TableCell className="max-w-[200px]">
                   <Badge variant="outline">{film.type}</Badge>
                 </TableCell>
-                <TableCell>{film.prices.length}</TableCell>
+                <TableCell className="max-w-[200px]">{film.prices.length}</TableCell>
                 {variant === "error" && (
-                  <TableCell>
-                    {film.errors.map((err, j) => (
-                      <Badge key={j} variant="destructive" className="mr-1 mb-1">
-                        {t("table.lineColumn", {
-                          line: err.lineNumber,
-                          column: err.column,
-                          code: err.code,
-                        })}
-                      </Badge>
-                    ))}
+                  <TableCell className="max-w-[200px]">
+                    <div className="flex flex-wrap gap-1">
+                      {film.errors.map((err, j) => (
+                        <Badge key={j} variant="destructive">
+                          {t("table.lineColumn", {
+                            line: err.lineNumber,
+                            column: err.column,
+                            code: err.code,
+                          })}
+                        </Badge>
+                      ))}
+                    </div>
                   </TableCell>
                 )}
                 {variant === "warning" && (
-                  <TableCell>
-                    {film.warnings.map((warning, j) => (
-                      <Badge key={j} variant="secondary" className="mr-1 mb-1">
-                        {t("table.lineColumn", {
-                          line: warning.lineNumber,
-                          column: warning.column,
-                          code: warning.code,
-                        })}
-                      </Badge>
-                    ))}
+                  <TableCell className="max-w-[200px]">
+                    <div className="flex flex-wrap gap-1">
+                      {film.warnings.map((warning, j) => (
+                        <Badge key={j} variant="secondary">
+                          {t("table.lineColumn", {
+                            line: warning.lineNumber,
+                            column: warning.column,
+                            code: warning.code,
+                          })}
+                        </Badge>
+                      ))}
+                    </div>
                   </TableCell>
                 )}
               </TableRow>

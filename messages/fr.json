@@ -225,6 +225,9 @@
         "endDatePlaceholder": "Sélectionner la date de fin",
         "priceLabel": "Prix total",
         "displayCurrencyLabel": "Devise d'affichage",
+        "noteLabel": "Note (optionnelle)",
+        "notePlaceholder": "Ajouter un contexte pour l'ayant droit",
+        "existingRequestsTitle": "Demandes existantes pour ce film",
         "cancel": "Annuler",
         "addToCart": "Ajouter au panier",
         "sendRequest": "Envoyer une demande de validation",
@@ -247,6 +250,13 @@
       "FILM_NOT_DIRECT": "Ce film nécessite une validation",
       "ALREADY_IN_CART": "Ce film est déjà dans votre panier pour ces dates",
       "ALREADY_REQUESTED": "Vous avez déjà une demande en attente pour ce film et ces dates",
+      "CART_EMPTY": "Votre panier est vide",
+      "FILM_NOT_AVAILABLE": "Ce film n'est plus disponible",
+      "TERRITORY_NOT_AVAILABLE": "Ce film n'est pas disponible dans votre région",
+      "CINEMA_NOT_FOUND": "Le cinéma sélectionné n'est plus disponible",
+      "ROOM_NOT_FOUND": "La salle sélectionnée n'est plus disponible",
+      "PRICE_CHANGED": "Les prix ont changé. Veuillez vérifier votre panier.",
+      "INVALID_OWNERSHIP": "Ce cinéma n'appartient pas à votre compte",
       "DATABASE_ERROR": "Une erreur s'est produite. Veuillez réessayer."
     },
     "error": {
@@ -258,6 +268,8 @@
     "title": "Panier",
     "empty": "Votre panier est vide.",
     "browseCatalog": "Parcourir le catalogue",
+    "noPoster": "Pas d'affiche",
+    "priceUnavailable": "Prix non disponible",
     "item": {
       "cinema": "Cinéma",
       "room": "Salle",
@@ -273,6 +285,9 @@
       "tax": "TVA",
       "total": "Total",
       "checkout": "Procéder au paiement",
+      "paymentNotAvailable": "Le paiement n'est pas encore disponible. Veuillez recalculer puis réessayer.",
+      "recalculate": "Recalculer",
+      "recalculated": "Prix recalculés.",
       "multiCurrency": "Prix en plusieurs devises"
     },
     "modal": {
@@ -294,9 +309,9 @@
     "title": "Mes demandes",
     "tabs": {
       "pending": "En attente",
-      "validated": "Validées",
-      "refused": "Refusées",
-      "expired": "Expirées",
+      "approved": "Approuvées",
+      "rejected": "Rejetées",
+      "cancelled": "Annulées",
       "paid": "Payées"
     },
     "columns": {
@@ -310,9 +325,9 @@
     },
     "status": {
       "pending": "En attente de validation",
-      "validated": "Validée — paiement requis",
-      "refused": "Refusée",
-      "expired": "Expirée",
+      "approved": "Approuvée — paiement requis",
+      "rejected": "Rejetée",
+      "cancelled": "Annulée",
       "paid": "Payée"
     },
     "actions": {
