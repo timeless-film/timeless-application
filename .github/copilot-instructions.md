@@ -145,9 +145,10 @@ Next.js UI → server action → service function ← API route ← External cli
 
 - **shadcn/ui** in `src/components/ui/` — don't edit manually. Use `cn()` for class merging.
 - **Server Components by default**. `"use client"` only for hooks/interactivity.
-- **sonner** toasts for success/error. Inline errors below form fields.
+- **sonner** toasts for success/error (non-field errors only). Field errors shown inline.
 - Required fields: `<span className="text-destructive">*</span>`.
 - Auth pages: render `<AlreadyConnected />` if user is signed in.
+- **Field-level validation errors**: server actions return `{ error: "CODE", field: "fieldName" }` for field-specific errors. Display error below the field with `<p className="text-sm text-destructive">`, mark the field with `aria-invalid` + `border-destructive`. Clear error on field change.
 
 ### shadcn/ui testing gotchas
 

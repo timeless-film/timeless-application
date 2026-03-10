@@ -78,15 +78,15 @@ export async function addToCart(input: z.infer<typeof addToCartSchema>) {
   const minStartDate = getTomorrowIsoDateUtc();
 
   if (endDate && !startDate) {
-    return { error: "INVALID_INPUT" as const };
+    return { error: "END_DATE_WITHOUT_START" as const, field: "startDate" as const };
   }
 
   if (startDate && startDate < minStartDate) {
-    return { error: "INVALID_INPUT" as const };
+    return { error: "START_DATE_IN_PAST" as const, field: "startDate" as const };
   }
 
   if (startDate && endDate && endDate < startDate) {
-    return { error: "INVALID_INPUT" as const };
+    return { error: "END_DATE_BEFORE_START" as const, field: "endDate" as const };
   }
 
   // 3. Verify film exists and is available for direct booking
@@ -173,15 +173,15 @@ export async function createRequest(input: z.infer<typeof createRequestSchema>) 
   const minStartDate = getTomorrowIsoDateUtc();
 
   if (endDate && !startDate) {
-    return { error: "INVALID_INPUT" as const };
+    return { error: "END_DATE_WITHOUT_START" as const, field: "startDate" as const };
   }
 
   if (startDate && startDate < minStartDate) {
-    return { error: "INVALID_INPUT" as const };
+    return { error: "START_DATE_IN_PAST" as const, field: "startDate" as const };
   }
 
   if (startDate && endDate && endDate < startDate) {
-    return { error: "INVALID_INPUT" as const };
+    return { error: "END_DATE_BEFORE_START" as const, field: "endDate" as const };
   }
 
   // 3. Verify film exists and is available for validation requests

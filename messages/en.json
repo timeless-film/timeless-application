@@ -257,6 +257,9 @@
       "ROOM_NOT_FOUND": "The selected screen is no longer available",
       "PRICE_CHANGED": "Prices have changed. Please review your cart.",
       "INVALID_OWNERSHIP": "This cinema does not belong to your account",
+      "END_DATE_WITHOUT_START": "Please select a start date before setting an end date",
+      "START_DATE_IN_PAST": "Start date must be at least tomorrow",
+      "END_DATE_BEFORE_START": "End date must be after the start date",
       "DATABASE_ERROR": "An error occurred. Please try again."
     },
     "error": {

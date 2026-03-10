@@ -327,11 +327,20 @@ List all cinemas for the authenticated account.
 ### Forms & feedback
 
 - **sonner** toasts for success/error. `<Toaster />` is in root layout.
-- **Inline errors** below fields AND `toast.error()` for all user-facing errors.
 - Required fields: red asterisk `<span className="text-destructive">*</span>`.
 - Password fields: hint below (`text-xs text-muted-foreground`).
 - Confirm password: real-time mismatch feedback.
 - Auth pages: if already signed in, render `<AlreadyConnected />`.
+
+### Form validation errors
+
+- **Field-level errors are mandatory**: every validation error must indicate which field is invalid. Never show only a generic form-level error when the problem is a specific field.
+- **Server action return shape**: when validation fails on a specific field, return `{ error: "ERROR_CODE", field: "fieldName" }`. Generic errors (auth, DB) return `{ error: "ERROR_CODE" }` without `field`.
+- **Error codes are specific**: use descriptive codes (`START_DATE_IN_PAST`, `END_DATE_BEFORE_START`) not generic ones (`INVALID_INPUT`). Each code maps to a translated message in `messages/*.json`.
+- **Visual error state**: fields in error must have `aria-invalid={true}` and `className="border-destructive"` for a red border.
+- **Inline error message**: display a `<p className="text-sm text-destructive">` below the field with the translated error.
+- **Clear on change**: when the user modifies the errored field, clear its error immediately.
+- **Toast for non-field errors only**: use `toast.error()` for errors not tied to a specific field (auth, network, generic). Field errors are shown inline only — no toast.
 
 ---
 

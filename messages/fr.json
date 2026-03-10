@@ -257,6 +257,9 @@
       "ROOM_NOT_FOUND": "La salle sélectionnée n'est plus disponible",
       "PRICE_CHANGED": "Les prix ont changé. Veuillez vérifier votre panier.",
       "INVALID_OWNERSHIP": "Ce cinéma n'appartient pas à votre compte",
+      "END_DATE_WITHOUT_START": "Veuillez sélectionner une date de début avant de définir une date de fin",
+      "START_DATE_IN_PAST": "La date de début doit être au moins demain",
+      "END_DATE_BEFORE_START": "La date de fin doit être postérieure à la date de début",
       "DATABASE_ERROR": "Une erreur s'est produite. Veuillez réessayer."
     },
     "error": {

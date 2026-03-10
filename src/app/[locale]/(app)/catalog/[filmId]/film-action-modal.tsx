@@ -1,6 +1,7 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -72,6 +73,7 @@ export function FilmActionModal({
   isDirect,
 }: FilmActionModalProps) {
   const locale = useLocale();
+  const router = useRouter();
   const queryClient = useQueryClient();
   const tModal = useTranslations("catalog.film.modal");
   const tSuccess = useTranslations("catalog.success");
@@ -90,7 +92,17 @@ export function FilmActionModal({
   const [exchangeRateDate, setExchangeRateDate] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionError, setSubmissionError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [existingRequests, setExistingRequests] = useState<ExistingRequestSummary[]>([]);
+
+  const clearFieldError = (field: string) => {
+    setFieldErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  };
 
   // Get best price (first matching price)
   const bestPrice = film.matchingPrices?.[0];
@@ -111,6 +123,7 @@ export function FilmActionModal({
       setEndDate("");
       setNote("");
       setSubmissionError(null);
+      setFieldErrors({});
       setExistingRequests([]);
     }
   }, [isOpen]);
@@ -234,18 +247,25 @@ export function FilmActionModal({
 
     try {
       setSubmissionError(null);
+      setFieldErrors({});
       const result = isDirect ? await addToCart(data) : await createRequest(data);
 
       if ("error" in result) {
         const translatedError = tErrors(result.error as Parameters<typeof tErrors>[0]);
-        setSubmissionError(translatedError);
-        toast.error(translatedError);
+
+        if ("field" in result && result.field) {
+          setFieldErrors({ [result.field]: translatedError });
+        } else {
+          setSubmissionError(translatedError);
+          toast.error(translatedError);
+        }
       } else {
         if (isDirect) {
           queryClient.invalidateQueries({ queryKey: ["cart-items-count"] });
         }
         toast.success(isDirect ? tSuccess("addedToCart") : tSuccess("requestSent"));
         onClose();
+        router.refresh();
       }
     } catch (error) {
       console.error("Failed to submit:", error);
@@ -353,8 +373,16 @@ export function FilmActionModal({
                 id="startDate"
                 type="date"
                 value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
+                onChange={(e) => {
+                  setStartDate(e.target.value);
+                  clearFieldError("startDate");
+                }}
+                aria-invalid={!!fieldErrors.startDate}
+                className={fieldErrors.startDate ? "border-destructive" : ""}
               />
+              {fieldErrors.startDate && (
+                <p className="text-sm text-destructive">{fieldErrors.startDate}</p>
+              )}
             </div>
 
             {/* End date */}
@@ -364,9 +392,17 @@ export function FilmActionModal({
                 id="endDate"
                 type="date"
                 value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
+                onChange={(e) => {
+                  setEndDate(e.target.value);
+                  clearFieldError("endDate");
+                }}
                 min={startDate || undefined}
+                aria-invalid={!!fieldErrors.endDate}
+                className={fieldErrors.endDate ? "border-destructive" : ""}
               />
+              {fieldErrors.endDate && (
+                <p className="text-sm text-destructive">{fieldErrors.endDate}</p>
+              )}
             </div>
 
             {/* Total */}

@@ -1,6 +1,6 @@
 "use client";
 
-import { BadgeCheck, CreditCard, ExternalLink } from "lucide-react";
+import { BadgeCheck, CreditCard, ExternalLink, Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -19,10 +19,12 @@ interface StripeConnectTabProps {
 
 export function StripeConnectTab({ status }: StripeConnectTabProps) {
   const t = useTranslations("stripeConnect");
-  const [isLoading, setIsLoading] = useState(false);
+  const [loadingAction, setLoadingAction] = useState<"onboarding" | "dashboard" | "detach" | null>(
+    null
+  );
 
   async function handleStartOnboarding() {
-    setIsLoading(true);
+    setLoadingAction("onboarding");
     try {
       const baseUrl = window.location.origin;
       const locale = window.location.pathname.split("/")[1] ?? "en";
@@ -40,12 +42,12 @@ export function StripeConnectTab({ status }: StripeConnectTabProps) {
     } catch {
       toast.error(t("error.UNKNOWN"));
     } finally {
-      setIsLoading(false);
+      setLoadingAction(null);
     }
   }
 
   async function handleOpenDashboard() {
-    setIsLoading(true);
+    setLoadingAction("dashboard");
     try {
       const result = await createStripeConnectDashboardLink();
 
@@ -58,7 +60,7 @@ export function StripeConnectTab({ status }: StripeConnectTabProps) {
     } catch {
       toast.error(t("error.UNKNOWN"));
     } finally {
-      setIsLoading(false);
+      setLoadingAction(null);
     }
   }
 
@@ -68,7 +70,7 @@ export function StripeConnectTab({ status }: StripeConnectTabProps) {
       return;
     }
 
-    setIsLoading(true);
+    setLoadingAction("detach");
     try {
       const result = await detachStripeConnectAccount();
 
@@ -82,7 +84,7 @@ export function StripeConnectTab({ status }: StripeConnectTabProps) {
     } catch {
       toast.error(t("error.UNKNOWN"));
     } finally {
-      setIsLoading(false);
+      setLoadingAction(null);
     }
   }
 
@@ -97,11 +99,15 @@ export function StripeConnectTab({ status }: StripeConnectTabProps) {
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button variant="outline" onClick={handleOpenDashboard} disabled={isLoading}>
+          <Button variant="outline" onClick={handleOpenDashboard} disabled={loadingAction !== null}>
+            {loadingAction === "dashboard" ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : null}
             <ExternalLink className="mr-2 h-4 w-4" />
             {t("configured.dashboardLink")}
           </Button>
-          <Button variant="outline" onClick={handleDetach} disabled={isLoading}>
+          <Button variant="outline" onClick={handleDetach} disabled={loadingAction !== null}>
+            {loadingAction === "detach" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
             {t("reset.cta")}
           </Button>
         </div>
@@ -126,11 +132,15 @@ export function StripeConnectTab({ status }: StripeConnectTabProps) {
         </div>
       </div>
       <div className="flex flex-wrap gap-2">
-        <Button onClick={handleStartOnboarding} disabled={isLoading}>
+        <Button onClick={handleStartOnboarding} disabled={loadingAction !== null}>
+          {loadingAction === "onboarding" ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : null}
           {isIncomplete ? t("incomplete.cta") : t("notConfigured.cta")}
         </Button>
         {isIncomplete ? (
-          <Button variant="outline" onClick={handleDetach} disabled={isLoading}>
+          <Button variant="outline" onClick={handleDetach} disabled={loadingAction !== null}>
+            {loadingAction === "detach" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
             {t("reset.cta")}
           </Button>
         ) : null}
