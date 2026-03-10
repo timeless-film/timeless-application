@@ -396,6 +396,27 @@ List all cinemas for the authenticated account.
 - Playwright uses **port 3099** (not 3000). Configured in `playwright.config.ts`.
 - Never run E2E on port 3000. Never manually set `PLAYWRIGHT_BASE_URL`.
 
+### E2E — UI tests are the standard
+
+- **UI tests by default**: all feature tests must exercise the real UI (navigate pages, fill forms, click buttons, assert visible text). Pure DB or direct-fetch tests are forbidden for features — they test nothing meaningful.
+- **API tests for API endpoints only**: `e2e/api-v1.spec.ts`, `e2e/catalog.spec.ts`, `e2e/film-*.spec.ts`, `e2e/cart.spec.ts` use `request` fixture to test REST API routes. This is correct — API endpoints have no UI.
+- **Never test features with raw DB queries or API calls when there is a UI**. If a page exists for a feature, the E2E test must use `page` to navigate and interact with it.
+
+### E2E — shared helpers
+
+- **Exhibitor setup**: import `setupExhibitor`, `registerAndLogin`, `completeOnboarding`, `uniqueEmail` from `e2e/helpers/exhibitor.ts`. Never duplicate these functions in test files.
+- **Rights holder setup**: import from `e2e/helpers/rights-holder.ts`.
+- **Unique emails**: always use `uniqueEmail(prefix)` (crypto `randomBytes`) for test accounts. Never hardcode emails — parallel test runs will collide.
+- **Test isolation**: use `TEST_ID = Date.now().toString(36)` for unique company/cinema names within a file.
+
+### E2E — assertion quality
+
+- **No `waitForTimeout()`**: never use hard sleeps. Use `toBeVisible({ timeout })`, `waitForURL()`, `waitForResponse()`, or Playwright auto-waiting.
+- **Precise assertions**: use `toBe(200)` not `toBeLessThan(500)`. Use `toBe(true)` not `toBeTruthy()` for `Array.isArray()`. Use `toBe(400)` not `[200, 400].toContain(status)`.
+- **Test names must match behavior**: if a test calls an API, don't name it "Modal shows…". Name it "Cart API rejects…".
+- **No duplicate tests**: before adding a test, check it doesn't already exist in another file. Redirect tests live in `auth.spec.ts`, not scattered across files.
+- **No `test.skip`**: either fix the test or delete it. Skipped tests are dead code.
+
 ### E2E best practices
 
 - **DB access**: use `postgres` npm package, never `psql` CLI.

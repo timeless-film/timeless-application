@@ -194,6 +194,18 @@ Next.js UI → server action → service function ← API route ← External cli
 - Unit: `*.test.ts` collocated in `__tests__/`. E2E: `e2e/*.spec.ts`.
 - After any change: `pnpm typecheck && pnpm lint && pnpm test`.
 
+### E2E — UI tests are the standard
+
+- **UI tests by default**: feature tests must exercise the real UI (`page` fixture). Pure DB or direct-fetch tests are forbidden for features.
+- **API tests for API endpoints only**: use `request` fixture for REST API routes (`api-v1.spec.ts`, `catalog.spec.ts`, etc.).
+- **Shared helpers**: import `setupExhibitor` / `uniqueEmail` from `e2e/helpers/exhibitor.ts`. Never duplicate setup code.
+- **Unique emails**: always use `uniqueEmail(prefix)`. Never hardcode emails.
+- **No `waitForTimeout()`**: use `toBeVisible({ timeout })`, `waitForURL()`, or Playwright auto-waiting.
+- **Precise assertions**: `toBe(200)` not `toBeLessThan(500)`. `toBe(true)` not `toBeTruthy()` for non-booleans.
+- **No duplicates**: check existing tests before adding. Redirect tests live in `auth.spec.ts`.
+- **No `test.skip`**: fix the test or delete it.
+- **Test names = behavior**: name tests for what they actually verify.
+
 ### E2E
 
 - Port **3099** (never 3000). Configured in `playwright.config.ts`.

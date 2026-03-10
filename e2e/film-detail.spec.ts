@@ -262,10 +262,10 @@ test.describe("Film Detail & Modal (E05-002)", () => {
   });
 
   // ────────────────────────────────────────────────────────────────────────────
-  // Modal State & Validation Tests
+  // Cart API Validation Tests
   // ────────────────────────────────────────────────────────────────────────────
 
-  test("Modal requires cinema selection", async ({ request }) => {
+  test("Cart item creation requires cinema selection", async ({ request }) => {
     // Attempting to create cart item without cinema should fail validation
     const response = await request.post("/api/v1/cart/items", {
       headers: { Authorization: `Bearer ${exhibitorToken}` },
@@ -281,7 +281,7 @@ test.describe("Film Detail & Modal (E05-002)", () => {
     expect([400, 422]).toContain(response.status());
   });
 
-  test("Modal requires room selection", async ({ request }) => {
+  test("Cart item creation requires room selection", async ({ request }) => {
     const response = await request.post("/api/v1/cart/items", {
       headers: { Authorization: `Bearer ${exhibitorToken}` },
       data: {
@@ -295,7 +295,7 @@ test.describe("Film Detail & Modal (E05-002)", () => {
     expect([400, 422]).toContain(response.status());
   });
 
-  test("Modal requires quantity >= 1", async ({ request }) => {
+  test("Cart item creation requires quantity >= 1", async ({ request }) => {
     const response = await request.post("/api/v1/cart/items", {
       headers: { Authorization: `Bearer ${exhibitorToken}` },
       data: {
@@ -309,7 +309,7 @@ test.describe("Film Detail & Modal (E05-002)", () => {
     expect([400, 422]).toContain(response.status());
   });
 
-  test("Modal accepts optional start and end dates", async ({ request }) => {
+  test("Cart item creation accepts optional start and end dates", async ({ request }) => {
     const response = await request.post("/api/v1/cart/items", {
       headers: { Authorization: `Bearer ${exhibitorToken}` },
       data: {
@@ -326,7 +326,7 @@ test.describe("Film Detail & Modal (E05-002)", () => {
     expect([201, 200, 400]).toContain(response.status());
   });
 
-  test("Modal rejects end date before start date", async ({ request }) => {
+  test("Cart item creation rejects end date before start date", async ({ request }) => {
     const response = await request.post("/api/v1/cart/items", {
       headers: { Authorization: `Bearer ${exhibitorToken}` },
       data: {
@@ -437,7 +437,7 @@ test.describe("Film Detail & Modal (E05-002)", () => {
   // Duplicate Detection Tests
   // ────────────────────────────────────────────────────────────────────────────
 
-  test("Modal allows duplicate item in cart (E06 decision)", async ({ request }) => {
+  test("Cart allows duplicate items (E06 decision)", async ({ request }) => {
     // First, add item to cart
     const addResponse = await request.post("/api/v1/cart/items", {
       headers: { Authorization: `Bearer ${exhibitorToken}` },
@@ -466,7 +466,7 @@ test.describe("Film Detail & Modal (E05-002)", () => {
     expect(duplicateResponse.status()).toBe(201);
   });
 
-  test("Modal shows existing pending requests for same film", async ({ request }) => {
+  test("Requests summary shows existing pending requests for film", async ({ request }) => {
     // Create a pending request
     const requestResponse = await request.post("/api/v1/requests", {
       headers: { Authorization: `Bearer ${exhibitorToken}` },
@@ -495,20 +495,6 @@ test.describe("Film Detail & Modal (E05-002)", () => {
   // Unavailable Film Tests
   // ────────────────────────────────────────────────────────────────────────────
 
-  test.skip("Modal action disabled when film unavailable for territory", async ({ request }) => {
-    // validationFilmId has only FR zones, exhibitor is US
-    const response = await request.get(`/api/v1/catalog/${validationFilmId}`, {
-      headers: { Authorization: `Bearer ${exhibitorToken}` },
-    });
-
-    expect(response.status()).toBe(200);
-    const body = await response.json();
-    const film = body.data;
-
-    // Film should be marked unavailable
-    expect(film.isAvailableInTerritory).toBe(false);
-  });
-
   test("Direct booking blocked if film unavailable", async ({ request }) => {
     const response = await request.post("/api/v1/cart/items", {
       headers: { Authorization: `Bearer ${exhibitorToken}` },
@@ -522,23 +508,6 @@ test.describe("Film Detail & Modal (E05-002)", () => {
 
     // Should reject or warn
     expect([400, 403]).toContain(response.status());
-  });
-
-  // ────────────────────────────────────────────────────────────────────────────
-  // Currency Display in Modal
-  // ────────────────────────────────────────────────────────────────────────────
-
-  test.skip("Modal displays price in available currency", async ({ request }) => {
-    const response = await request.get(`/api/v1/catalog/${directFilmId}`, {
-      headers: { Authorization: `Bearer ${exhibitorToken}` },
-    });
-
-    expect(response.status()).toBe(200);
-    const body = await response.json();
-    const film = body.data;
-
-    // Price should be in USD
-    expect(film.matchingPrices[0]?.currency).toBe("USD");
   });
 
   // ────────────────────────────────────────────────────────────────────────────

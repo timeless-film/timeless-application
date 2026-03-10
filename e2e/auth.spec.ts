@@ -103,6 +103,9 @@ test.describe("Login form validation", () => {
 
     // The form should still be on the login page (HTML5 validation prevents submit)
     await expect(page).toHaveURL(/\/en\/login/);
+    // Email field should be marked as invalid by browser validation
+    const emailInput = page.locator("input[type='email']");
+    await expect(emailInput).toBeVisible();
   });
 
   test("shows error on invalid credentials", async ({ page }) => {
@@ -117,8 +120,10 @@ test.describe("Login form validation", () => {
     const submitBtn = page.getByRole("button", { name: /sign in/i });
     await submitBtn.click();
 
-    // Should stay on login page — error message may appear as toast or inline
-    await page.waitForTimeout(3000);
+    // Should stay on login page with error message (toast or inline)
+    await expect(
+      page.getByRole("paragraph").filter({ hasText: "Invalid email or password." }),
+    ).toBeVisible({ timeout: 10000 });
     await expect(page).toHaveURL(/\/en\/login/);
   });
 });
@@ -142,9 +147,8 @@ test.describe("Register form validation", () => {
     await passwordInputs.first().fill("StrongPass123!");
     await passwordInputs.nth(1).fill("DifferentPass456!");
 
-    // Trigger blur to show mismatch — wait for real-time validation
+    // Trigger blur to show mismatch
     await passwordInputs.nth(1).blur();
-    await page.waitForTimeout(500);
 
     // Check for mismatch warning - uses translation key "Passwords do not match."
     const mismatchError = page.getByText(/do not match|mismatch|ne correspondent pas/i);

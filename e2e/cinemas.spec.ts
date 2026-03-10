@@ -1,92 +1,15 @@
 import { expect, test } from "@playwright/test";
-import postgres from "postgres";
 
-import type { APIRequestContext, Page } from "@playwright/test";
+import { setupExhibitor } from "./helpers/exhibitor";
 
 const TEST_ID = Date.now().toString(36);
-
-const DB_URL =
-  process.env.DATABASE_URL ?? "postgresql://timeless:timeless@localhost:5432/timeless_test";
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-function uniqueEmail(prefix: string) {
-  const suffix = Math.random().toString(36).substring(2, 7);
-  return `${prefix}-${TEST_ID}-${suffix}@e2e-test.local`;
-}
-
-async function registerAndLogin(
-  page: Page,
-  request: APIRequestContext,
-  user: { name: string; email: string; password: string },
-) {
-  const signupRes = await request.post("/api/auth/sign-up/email", {
-    data: {
-      name: user.name,
-      email: user.email,
-      password: user.password,
-    },
-    headers: { "Content-Type": "application/json" },
-  });
-  expect(signupRes.ok()).toBeTruthy();
-
-  const sql = postgres(DB_URL, { max: 1 });
-  await sql`UPDATE better_auth_users SET email_verified = true WHERE email = ${user.email}`;
-  await sql.end();
-
-  await page.goto("/en/login");
-  await expect(page.locator("input[type='email']")).toBeVisible({ timeout: 15000 });
-  await page.fill("input[type='email']", user.email);
-  await page.fill("input[type='password']", user.password);
-  await page.getByRole("button", { name: /sign in/i }).click();
-  await page.waitForURL(/(?!.*\/login)/, { timeout: 15000 });
-}
-
-async function completeOnboarding(page: Page, companyName: string) {
-  await expect(page).toHaveURL(/\/en\/no-account/, { timeout: 15000 });
-  await page.getByRole("link", { name: /create an account/i }).click();
-  await expect(page).toHaveURL(/\/en\/onboarding/, { timeout: 15000 });
-
-  // Step 1
-  await expect(page.locator("#companyName")).toBeVisible({ timeout: 15000 });
-  // Use click + pressSequentially to ensure React onChange fires even during slow hydration
-  await page.locator("#companyName").click();
-  await page.locator("#companyName").pressSequentially(companyName, { delay: 30 });
-  await page.getByRole("button", { name: /continue/i }).click();
-
-  // Step 2
-  await expect(page.locator("#cinemaName")).toBeVisible({ timeout: 15000 });
-  await page.locator("#cinemaName").click();
-  await page.locator("#cinemaName").pressSequentially(`Cinema ${companyName}`, { delay: 30 });
-  await page.locator("#cinemaCity").click();
-  await page.locator("#cinemaCity").pressSequentially("Paris", { delay: 30 });
-  await page.getByRole("button", { name: /add cinema/i }).click();
-  await expect(page.getByText(`Cinema ${companyName}`)).toBeVisible({ timeout: 10000 });
-  await page.getByRole("button", { name: /continue/i }).click();
-
-  // Step 3 — skip
-  await expect(page.getByText(/invite your team/i)).toBeVisible({ timeout: 15000 });
-  await page.getByRole("button", { name: /skip this step/i }).click();
-  await expect(page).toHaveURL(/\/en\/catalog/, { timeout: 30000 });
-}
-
-async function setupUser(page: Page, request: APIRequestContext, prefix: string) {
-  const email = uniqueEmail(prefix);
-  const companyName = `${prefix} Co ${TEST_ID}`;
-  const user = { name: `${prefix} User`, email, password: "StrongPass123!" };
-  await registerAndLogin(page, request, user);
-  await completeOnboarding(page, companyName);
-  return { companyName, cinemaName: `Cinema ${companyName}` };
-}
 
 // ---------------------------------------------------------------------------
 // Cinema management tests
 // ---------------------------------------------------------------------------
 test.describe("Cinema management", () => {
   test("cinema created in onboarding appears in /account/cinemas", async ({ page, request }) => {
-    const { cinemaName } = await setupUser(page, request, "cinema-list");
+    const { cinemaName } = await setupExhibitor(page, request, "cinema-list");
 
     await page.goto("/en/account/cinemas");
     await expect(page.getByText(cinemaName)).toBeVisible({ timeout: 15000 });
@@ -94,7 +17,7 @@ test.describe("Cinema management", () => {
   });
 
   test("can edit a cinema name", async ({ page, request }) => {
-    const { cinemaName } = await setupUser(page, request, "cinema-edit");
+    const { cinemaName } = await setupExhibitor(page, request, "cinema-edit");
 
     await page.goto("/en/account/cinemas");
     await expect(page.getByText(cinemaName)).toBeVisible({ timeout: 15000 });
@@ -117,7 +40,7 @@ test.describe("Cinema management", () => {
   });
 
   test("can add a second cinema", async ({ page, request }) => {
-    const { cinemaName } = await setupUser(page, request, "cinema-add");
+    const { cinemaName } = await setupExhibitor(page, request, "cinema-add");
 
     await page.goto("/en/account/cinemas");
     await expect(page.getByText(cinemaName)).toBeVisible({ timeout: 15000 });
@@ -139,7 +62,7 @@ test.describe("Cinema management", () => {
   });
 
   test("default screen is created with new cinema", async ({ page, request }) => {
-    await setupUser(page, request, "cinema-defroom");
+    await setupExhibitor(page, request, "cinema-defroom");
 
     await page.goto("/en/account/cinemas");
 
@@ -159,7 +82,7 @@ test.describe("Cinema management", () => {
   });
 
   test("can archive a cinema (not the last one)", async ({ page, request }) => {
-    await setupUser(page, request, "cinema-archive");
+    await setupExhibitor(page, request, "cinema-archive");
 
     await page.goto("/en/account/cinemas");
 
@@ -187,7 +110,7 @@ test.describe("Cinema management", () => {
   });
 
   test("cannot archive the last cinema", async ({ page, request }) => {
-    const { cinemaName } = await setupUser(page, request, "cinema-last");
+    const { cinemaName } = await setupExhibitor(page, request, "cinema-last");
 
     await page.goto("/en/account/cinemas");
     await expect(page.getByText(cinemaName)).toBeVisible({ timeout: 15000 });
@@ -214,7 +137,7 @@ test.describe("Cinema management", () => {
 // ---------------------------------------------------------------------------
 test.describe("Screen management", () => {
   test("can add a screen via dialog", async ({ page, request }) => {
-    const { cinemaName } = await setupUser(page, request, "screen-add");
+    const { cinemaName } = await setupExhibitor(page, request, "screen-add");
 
     await page.goto("/en/account/cinemas");
     await expect(page.getByText(cinemaName)).toBeVisible({ timeout: 15000 });
@@ -241,7 +164,7 @@ test.describe("Screen management", () => {
   });
 
   test("can edit a screen via dialog", async ({ page, request }) => {
-    const { cinemaName } = await setupUser(page, request, "screen-edit");
+    const { cinemaName } = await setupExhibitor(page, request, "screen-edit");
 
     await page.goto("/en/account/cinemas");
     await expect(page.getByText(cinemaName)).toBeVisible({ timeout: 15000 });
@@ -270,7 +193,7 @@ test.describe("Screen management", () => {
   });
 
   test("auto-increments screen name when left empty", async ({ page, request }) => {
-    const { cinemaName } = await setupUser(page, request, "screen-auto");
+    const { cinemaName } = await setupExhibitor(page, request, "screen-auto");
 
     await page.goto("/en/account/cinemas");
     await expect(page.getByText(cinemaName)).toBeVisible({ timeout: 15000 });
@@ -292,7 +215,7 @@ test.describe("Screen management", () => {
   });
 
   test("cannot archive the last screen", async ({ page, request }) => {
-    const { cinemaName } = await setupUser(page, request, "screen-last");
+    const { cinemaName } = await setupExhibitor(page, request, "screen-last");
 
     await page.goto("/en/account/cinemas");
     await expect(page.getByText(cinemaName)).toBeVisible({ timeout: 15000 });

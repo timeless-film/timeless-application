@@ -42,7 +42,7 @@ test("supports multiple price zones", async ({ request }) => {
 
   expect(pricesRes.status()).toBe(200);
   const body = await pricesRes.json();
-  expect(Array.isArray(body.data)).toBeTruthy();
+  expect(Array.isArray(body.data)).toBe(true);
   expect(body.data.length).toBeGreaterThanOrEqual(2);
 });
 

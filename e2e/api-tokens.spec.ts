@@ -1,120 +1,22 @@
 import { expect, test } from "@playwright/test";
-import postgres from "postgres";
-import { randomBytes } from "node:crypto";
 
-import type { APIRequestContext, Page } from "@playwright/test";
+import { setupExhibitor } from "./helpers/exhibitor";
 
 const TEST_ID = Date.now().toString(36);
-
-const DB_URL =
-  process.env.DATABASE_URL ?? "postgresql://timeless:timeless@localhost:5432/timeless_test";
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-function uniqueEmail(prefix: string) {
-  const suffix = randomBytes(6).toString("hex");
-  return `${prefix}-${TEST_ID}-${suffix}@e2e-test.local`;
-}
-
-async function registerAndLogin(
-  page: Page,
-  request: APIRequestContext,
-  user: { name: string; email: string; password: string },
-) {
-  let signupEmail = user.email;
-  let signupSucceeded = false;
-
-  for (let attempt = 0; attempt < 4; attempt += 1) {
-    const signupRes = await request.post("/api/auth/sign-up/email", {
-      data: {
-        name: user.name,
-        email: signupEmail,
-        password: user.password,
-      },
-      headers: { "Content-Type": "application/json" },
-    });
-
-    if (signupRes.ok()) {
-      signupSucceeded = true;
-      break;
-    }
-
-    if (signupRes.status() === 404 || signupRes.status() === 409) {
-      signupEmail = uniqueEmail(user.name.toLowerCase().replace(/\s+/g, "-"));
-      continue;
-    }
-
-    const responseBody = await signupRes.text();
-    throw new Error(`Unexpected signup failure (${signupRes.status()}): ${responseBody}`);
-  }
-
-  expect(signupSucceeded).toBeTruthy();
-  user.email = signupEmail;
-
-  const sql = postgres(DB_URL, { max: 1 });
-  await sql`UPDATE better_auth_users SET email_verified = true WHERE email = ${signupEmail}`;
-  await sql.end();
-
-  await page.goto("/en/login");
-  await expect(page.locator("input[type='email']")).toBeVisible({ timeout: 15000 });
-  await page.fill("input[type='email']", user.email);
-  await page.fill("input[type='password']", user.password);
-  await page.getByRole("button", { name: /sign in/i }).click();
-  await page.waitForURL(/(?!.*\/login)/, { timeout: 15000 });
-}
-
-async function completeOnboarding(page: Page, companyName: string) {
-  await expect(page).toHaveURL(/\/en\/no-account/, { timeout: 15000 });
-  await page.getByRole("link", { name: /create an account/i }).click();
-  await expect(page).toHaveURL(/\/en\/onboarding/, { timeout: 15000 });
-
-  // Step 1
-  await expect(page.locator("#companyName")).toBeVisible({ timeout: 15000 });
-  // Use click + pressSequentially to ensure React onChange fires even during slow hydration
-  await page.locator("#companyName").click();
-  await page.locator("#companyName").pressSequentially(companyName, { delay: 30 });
-  await page.getByRole("button", { name: /continue/i }).click();
-
-  // Step 2
-  await expect(page.locator("#cinemaName")).toBeVisible({ timeout: 15000 });
-  await page.locator("#cinemaName").click();
-  await page.locator("#cinemaName").pressSequentially(`Cinema ${companyName}`, { delay: 30 });
-  await page.locator("#cinemaCity").click();
-  await page.locator("#cinemaCity").pressSequentially("Paris", { delay: 30 });
-  await page.getByRole("button", { name: /add cinema/i }).click();
-  await expect(page.getByText(`Cinema ${companyName}`)).toBeVisible({ timeout: 10000 });
-  await page.getByRole("button", { name: /continue/i }).click();
-
-  // Step 3 — skip
-  await expect(page.getByText(/invite your team/i)).toBeVisible({ timeout: 15000 });
-  await page.getByRole("button", { name: /skip this step/i }).click();
-  await expect(page).toHaveURL(/\/en\/catalog/, { timeout: 30000 });
-}
-
-async function setupUser(page: Page, request: APIRequestContext, prefix: string) {
-  const email = uniqueEmail(prefix);
-  const companyName = `${prefix} Co ${TEST_ID}`;
-  const user = { name: `${prefix} User`, email, password: "StrongPass123!" };
-  await registerAndLogin(page, request, user);
-  await completeOnboarding(page, companyName);
-  return { companyName };
-}
 
 // ---------------------------------------------------------------------------
 // API tokens tests
 // ---------------------------------------------------------------------------
 test.describe("API tokens", () => {
   test("API tab is visible for owner", async ({ page, request }) => {
-    await setupUser(page, request, "apitoken-tab");
+    await setupExhibitor(page, request, "apitoken-tab");
 
     await page.goto("/en/account/information");
     await expect(page.getByText(/^api$/i)).toBeVisible({ timeout: 15000 });
   });
 
   test("can create a token and see it once", async ({ page, request }) => {
-    await setupUser(page, request, "apitoken-create");
+    await setupExhibitor(page, request, "apitoken-create");
 
     await page.goto("/en/account/api");
 
@@ -148,7 +50,7 @@ test.describe("API tokens", () => {
   });
 
   test("can revoke a token", async ({ page, request }) => {
-    await setupUser(page, request, "apitoken-revoke");
+    await setupExhibitor(page, request, "apitoken-revoke");
 
     await page.goto("/en/account/api");
 
@@ -178,7 +80,7 @@ test.describe("API tokens", () => {
   });
 
   test("bearer token works for API calls", async ({ page, request }) => {
-    await setupUser(page, request, "apitoken-bearer");
+    await setupExhibitor(page, request, "apitoken-bearer");
 
     await page.goto("/en/account/api");
 
@@ -205,7 +107,7 @@ test.describe("API tokens", () => {
     expect(response.status()).toBe(200);
     const body = await response.json();
     expect(body.data).toBeDefined();
-    expect(Array.isArray(body.data)).toBeTruthy();
+    expect(Array.isArray(body.data)).toBe(true);
     expect(body.data.length).toBeGreaterThan(0);
   });
 

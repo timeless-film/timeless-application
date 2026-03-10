@@ -1,11 +1,6 @@
 import { expect, test } from "@playwright/test";
 
 test.describe("Account management (unauthenticated)", () => {
-  test("redirects /account/information to login", async ({ page }) => {
-    await page.goto("/en/account/information");
-    await expect(page).toHaveURL(/\/en\/login/);
-  });
-
   test("redirects /account/members to login", async ({ page }) => {
     await page.goto("/en/account/members");
     await expect(page).toHaveURL(/\/en\/login/);
@@ -15,21 +10,14 @@ test.describe("Account management (unauthenticated)", () => {
     await page.goto("/en/account/cinemas");
     await expect(page).toHaveURL(/\/en\/login/);
   });
-
-  test("redirects /account/profile to login", async ({ page }) => {
-    await page.goto("/en/account/profile");
-    await expect(page).toHaveURL(/\/en\/login/);
-  });
 });
 
 test.describe("API routes (unauthenticated)", () => {
-  test("auth API routes are accessible without session", async ({ request }) => {
-    // The auth API should respond (even if with an error status) — not redirect
+  test("auth session endpoint returns 404 without valid session", async ({ request }) => {
     const response = await request.get("/api/auth/session", {
       headers: { Accept: "application/json" },
     });
-    // Better Auth session endpoint should return a response (not 5xx)
-    expect(response.status()).toBeLessThan(500);
+    expect(response.status()).toBe(404);
   });
 });
 

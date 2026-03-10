@@ -1,61 +1,12 @@
 import { expect, test } from "@playwright/test";
 import postgres from "postgres";
 
-import type { APIRequestContext, Page } from "@playwright/test";
+import { registerAndLogin } from "./helpers/exhibitor";
 
 const TEST_ID = Date.now().toString(36);
 
 const DB_URL =
   process.env.DATABASE_URL ?? "postgresql://timeless:timeless@localhost:5432/timeless_test";
-
-/**
- * Register a user via API, verify email in DB, log in via UI.
- */
-async function registerAndLogin(
-  page: Page,
-  request: APIRequestContext,
-  user: { name: string; email: string; password: string },
-) {
-  const signupRes = await signUpWithRetry(request, user);
-  expect(signupRes.ok()).toBeTruthy();
-
-  const sql = postgres(DB_URL, { max: 1 });
-  await sql`UPDATE better_auth_users SET email_verified = true WHERE email = ${user.email}`;
-  await sql.end();
-
-  await page.goto("/en/login");
-  await expect(page.locator("input[type='email']")).toBeVisible({ timeout: 15000 });
-  await page.fill("input[type='email']", user.email);
-  await page.fill("input[type='password']", user.password);
-  await page.getByRole("button", { name: /sign in/i }).click();
-  await page.waitForURL(/(?!.*\/login)/, { timeout: 15000 });
-}
-
-/**
- * Better Auth endpoint can return a transient 404 on first cold request in dev.
- * Retry once to reduce E2E flakiness.
- */
-async function signUpWithRetry(
-  request: APIRequestContext,
-  user: { name: string; email: string; password: string },
-) {
-  const doSignUp = async () =>
-    request.post("/api/auth/sign-up/email", {
-      data: {
-        name: user.name,
-        email: user.email,
-        password: user.password,
-      },
-      headers: { "Content-Type": "application/json" },
-    });
-
-  const firstAttempt = await doSignUp();
-  if (firstAttempt.ok()) return firstAttempt;
-
-  // Warm up auth session endpoint then retry once.
-  await request.get("/api/auth/get-session");
-  return doSignUp();
-}
 
 /**
  * Create an account + membership directly in DB for a user,
@@ -149,7 +100,13 @@ test.describe("Onboarding guard", () => {
     };
 
     // Register owner via API only (don't need to login)
-    const signupRes = await signUpWithRetry(request, owner);
+    const signupRes = await request.post("/api/auth/sign-up/email", {
+      data: {
+        name: owner.name,
+        email: owner.email,
+        password: owner.password,
+      },
+    });
     expect(signupRes.ok()).toBeTruthy();
 
     const sql = postgres(DB_URL, { max: 1 });

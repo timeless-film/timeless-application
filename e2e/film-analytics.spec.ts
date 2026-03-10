@@ -200,7 +200,7 @@ test.describe("Film Analytics (E05-004)", () => {
   // Analytics Dashboard KPIs
   // ────────────────────────────────────────────────────────────────────────────
 
-  test("Analytics page returns global KPIs", async ({ request }) => {
+  test("Analytics page returns all global KPIs", async ({ request }) => {
     const response = await request.get("/api/v1/films/analytics", {
       headers: { Authorization: `Bearer ${rightsHolderToken}` },
     });
@@ -208,60 +208,12 @@ test.describe("Film Analytics (E05-004)", () => {
     expect(response.status()).toBe(200);
     const body = await response.json();
 
-    // Should have KPI data
+    // All KPI fields must be defined and numeric
     expect(body.data.kpis).toBeDefined();
-    expect(body.data.kpis.totalViews).toBeDefined();
-    expect(body.data.kpis.totalAddsToCart).toBeDefined();
-    expect(body.data.kpis.totalRequests).toBeDefined();
-    expect(body.data.kpis.totalRevenue).toBeDefined();
-  });
-
-  test("Analytics shows total revenue from orders", async ({ request }) => {
-    const response = await request.get("/api/v1/films/analytics", {
-      headers: { Authorization: `Bearer ${rightsHolderToken}` },
-    });
-
-    expect(response.status()).toBe(200);
-    const body = await response.json();
-
-    // Should include revenue KPI
-    expect(body.data.kpis.totalRevenue).toBeGreaterThanOrEqual(0);
-  });
-
-  test("Analytics shows count of film views", async ({ request }) => {
-    const response = await request.get("/api/v1/films/analytics", {
-      headers: { Authorization: `Bearer ${rightsHolderToken}` },
-    });
-
-    expect(response.status()).toBe(200);
-    const body = await response.json();
-
-    // Should track views
     expect(typeof body.data.kpis.totalViews).toBe("number");
-  });
-
-  test("Analytics shows cart additions count", async ({ request }) => {
-    const response = await request.get("/api/v1/films/analytics", {
-      headers: { Authorization: `Bearer ${rightsHolderToken}` },
-    });
-
-    expect(response.status()).toBe(200);
-    const body = await response.json();
-
-    // Should track adds to cart
     expect(typeof body.data.kpis.totalAddsToCart).toBe("number");
-  });
-
-  test("Analytics shows request count", async ({ request }) => {
-    const response = await request.get("/api/v1/films/analytics", {
-      headers: { Authorization: `Bearer ${rightsHolderToken}` },
-    });
-
-    expect(response.status()).toBe(200);
-    const body = await response.json();
-
-    // Should track requests
     expect(typeof body.data.kpis.totalRequests).toBe("number");
+    expect(body.data.kpis.totalRevenue).toBeGreaterThanOrEqual(0);
   });
 
   // ────────────────────────────────────────────────────────────────────────────

@@ -1,52 +1,8 @@
 import { expect, test } from "@playwright/test";
-import postgres from "postgres";
 
-import type { APIRequestContext, Page } from "@playwright/test";
+import { registerAndLogin, completeOnboarding } from "./helpers/exhibitor";
 
-/**
- * Unique test ID to avoid collisions between runs.
- * Each test file execution gets its own ID.
- */
 const TEST_ID = Date.now().toString(36);
-
-const DB_URL =
-  process.env.DATABASE_URL ?? "postgresql://timeless:timeless@localhost:5432/timeless_test";
-
-/**
- * Helper: register a user via the Better Auth API, verify their email
- * directly in the DB, then log them in through the UI.
- */
-async function registerAndLogin(
-  page: Page,
-  request: APIRequestContext,
-  user: { name: string; email: string; password: string },
-) {
-  // 1. Register via API (request fixture uses baseURL from playwright config)
-  const signupRes = await request.post("/api/auth/sign-up/email", {
-    data: {
-      name: user.name,
-      email: user.email,
-      password: user.password,
-    },
-    headers: { "Content-Type": "application/json" },
-  });
-  expect(signupRes.ok()).toBeTruthy();
-
-  // 2. Verify email directly in DB using the postgres npm package
-  const sql = postgres(DB_URL, { max: 1 });
-  await sql`UPDATE better_auth_users SET email_verified = true WHERE email = ${user.email}`;
-  await sql.end();
-
-  // 3. Log in via UI
-  await page.goto("/en/login");
-  await expect(page.locator("input[type='email']")).toBeVisible({ timeout: 15000 });
-  await page.fill("input[type='email']", user.email);
-  await page.fill("input[type='password']", user.password);
-  await page.getByRole("button", { name: /sign in/i }).click();
-
-  // 4. Wait for redirect away from login
-  await page.waitForURL(/(?!.*\/login)/, { timeout: 15000 });
-}
 
 // ---------------------------------------------------------------------------
 // 1. Registration flow
@@ -75,49 +31,6 @@ test.describe("Registration flow", () => {
 // ---------------------------------------------------------------------------
 // 2. Onboarding flow — register, verify email, login, complete onboarding
 // ---------------------------------------------------------------------------
-// Helper: complete the onboarding flow (no-account → onboarding → catalog)
-// ---------------------------------------------------------------------------
-async function completeOnboarding(page: Page, companyName: string) {
-  // After login, user with no account lands on /no-account
-  await expect(page).toHaveURL(/\/en\/no-account/, { timeout: 15000 });
-
-  // Click "Create an account" to go to onboarding
-  await page.getByRole("link", { name: /create an account/i }).click();
-  await expect(page).toHaveURL(/\/en\/onboarding/, { timeout: 15000 });
-
-  // ─── Step 1: Company information ─────────────────────────────────
-  await expect(page.locator("#companyName")).toBeVisible({ timeout: 15000 });
-  // Use click + pressSequentially to ensure React onChange fires even during slow hydration
-  await page.locator("#companyName").click();
-  await page.locator("#companyName").pressSequentially(companyName, { delay: 30 });
-  // Country defaults to FR — leave as is
-
-  await page.getByRole("button", { name: /continue/i }).click();
-
-  // ─── Step 2: Add a cinema ────────────────────────────────────────
-  // The add cinema form should be visible (auto-shown when no cinemas)
-  await expect(page.locator("#cinemaName")).toBeVisible({ timeout: 15000 });
-  await page.locator("#cinemaName").click();
-  await page.locator("#cinemaName").pressSequentially(`Cinema ${companyName}`, { delay: 30 });
-  // Cinema country defaults to account country (FR)
-  await page.locator("#cinemaCity").click();
-  await page.locator("#cinemaCity").pressSequentially("Paris", { delay: 30 });
-
-  await page.getByRole("button", { name: /add cinema/i }).click();
-
-  // Wait for cinema to appear in the list
-  await expect(page.getByText(`Cinema ${companyName}`)).toBeVisible({ timeout: 10000 });
-
-  // Click Continue to go to step 3
-  await page.getByRole("button", { name: /continue/i }).click();
-
-  // ─── Step 3: Skip invitations ────────────────────────────────────
-  await expect(page.getByText(/invite your team/i)).toBeVisible({ timeout: 15000 });
-  await page.getByRole("button", { name: /skip this step/i }).click();
-
-  // Wait for redirect to catalog
-  await expect(page).toHaveURL(/\/en\/catalog/, { timeout: 30000 });
-}
 
 // ---------------------------------------------------------------------------
 test.describe("Onboarding flow", () => {

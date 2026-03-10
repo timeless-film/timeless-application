@@ -1,7 +1,3 @@
-/**
- * E2E tests for Cart functionality (E06).
- * Tests: add to cart, remove items, checkout validation, persistence.
- */
 import { expect, test } from "@playwright/test";
 import postgres from "postgres";
 import { createHash, randomBytes } from "node:crypto";
@@ -38,10 +34,11 @@ test.describe("Cart functionality", () => {
     `;
     exhibitorAccountId = exhibitor!.id;
 
-    // Create exhibitor user
+    // Create exhibitor user with unique email
+    const uniqueSuffix = Date.now().toString(36) + randomBytes(4).toString("hex");
     const [user] = await sql`
       INSERT INTO better_auth_users (id, email, email_verified, name, created_at, updated_at)
-      VALUES (gen_random_uuid(), 'exhibitor-cart@test.com', true, 'Cart Tester', NOW(), NOW())
+      VALUES (gen_random_uuid(), ${'exhibitor-cart-' + uniqueSuffix + '@e2e-test.local'}, true, 'Cart Tester', NOW(), NOW())
       RETURNING id
     `;
 

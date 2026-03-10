@@ -90,13 +90,13 @@ test.describe("API v1 — Cinemas", () => {
 
     const body = await response.json();
     expect(body.data).toBeDefined();
-    expect(Array.isArray(body.data)).toBeTruthy();
+    expect(Array.isArray(body.data)).toBe(true);
     expect(body.data.length).toBeGreaterThanOrEqual(1);
 
     const cinema = body.data[0];
     expect(cinema.name).toContain("API Cinema");
     expect(cinema.rooms).toBeDefined();
-    expect(Array.isArray(cinema.rooms)).toBeTruthy();
+    expect(Array.isArray(cinema.rooms)).toBe(true);
   });
 
   test("POST /api/v1/cinemas creates a cinema", async ({ request }) => {
@@ -164,7 +164,7 @@ test.describe("API v1 — Rooms", () => {
 
     const body = await response.json();
     expect(body.data).toBeDefined();
-    expect(Array.isArray(body.data)).toBeTruthy();
+    expect(Array.isArray(body.data)).toBe(true);
     expect(body.data.length).toBeGreaterThanOrEqual(1);
   });
 

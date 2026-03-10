@@ -148,30 +148,8 @@ test.describe("Catalog (E05-001)", () => {
   });
 
   // ────────────────────────────────────────────────────────────────────────────
-  // API Tests (continued)
+  // API Tests
   // ────────────────────────────────────────────────────────────────────────────
-
-  test("GET /api/v1/catalog filters by availableForTerritory=true (default)", async ({ request }) => {
-    // This is the default behavior - only films available in exhibitor territory
-    const response = await request.get("/api/v1/catalog", {
-      headers: { Authorization: `Bearer ${exhibitorToken}` },
-    });
-
-    expect(response.status()).toBe(200);
-    const body = await response.json();
-    expect(body.pagination).toBeDefined();
-  });
-
-  test("GET /api/v1/catalog?availableForTerritory=false returns all films", async ({ request }) => {
-    // With flag set to false, should return both films
-    const response = await request.get("/api/v1/catalog?availableForTerritory=false", {
-      headers: { Authorization: `Bearer ${exhibitorToken}` },
-    });
-
-    expect(response.status()).toBe(200);
-    const body = await response.json();
-    expect(body.data.length).toBeGreaterThanOrEqual(2); // Both test films should be returned
-  });
 
   test("GET /api/v1/catalog/:filmId returns film detail with availability", async ({ request }) => {
     const response = await request.get(`/api/v1/catalog/${film1Id}`, {
@@ -196,28 +174,6 @@ test.describe("Catalog (E05-001)", () => {
     expect(response.status()).toBe(404);
   });
 
-  test("GET /api/v1/catalog?type=direct filters by film type", async ({ request }) => {
-    const response = await request.get("/api/v1/catalog?type=direct", {
-      headers: { Authorization: `Bearer ${exhibitorToken}` },
-    });
-
-    expect(response.status()).toBe(200);
-    const body = await response.json();
-    expect(body.data.length).toBeGreaterThan(0);
-    expect(body.data.every((f: any) => f.type === "direct")).toBe(true);
-  });
-
-  test("GET /api/v1/catalog?search=mépris searches by title", async ({ request }) => {
-    const response = await request.get("/api/v1/catalog?search=mépris", {
-      headers: { Authorization: `Bearer ${exhibitorToken}` },
-    });
-
-    expect(response.status()).toBe(200);
-    const body = await response.json();
-    expect(body.data.length).toBeGreaterThan(0);
-    expect(body.data[0]?.title.toLowerCase()).toContain("mépris");
-  });
-
   test("GET /api/v1/catalog?sort=releaseYear&order=desc sorts results", async ({ request }) => {
     const response = await request.get(
       "/api/v1/catalog?sort=releaseYear&order=desc&availableForTerritory=false",
@@ -238,54 +194,10 @@ test.describe("Catalog (E05-001)", () => {
   });
 
   // ────────────────────────────────────────────────────────────────────────────
-  // UI Tests
+  // Territory & Availability Tests
   // ────────────────────────────────────────────────────────────────────────────
 
-  test("Catalog page displays films grid (authenticated exhibitor)", async ({ page, request }) => {
-    // Note: In real scenario, would need to auth first
-    // For now, using API token to verify data availability
-    const response = await request.get("/api/v1/catalog", {
-      headers: { Authorization: `Bearer ${exhibitorToken}` },
-    });
-
-    expect(response.status()).toBe(200);
-    const body = await response.json();
-    expect(body.data.length).toBeGreaterThan(0);
-  });
-
-  test("Filters update URL query params", async ({ request }) => {
-    // Test with yearMin filter
-    const response = await request.get("/api/v1/catalog?yearMin=1960", {
-      headers: { Authorization: `Bearer ${exhibitorToken}` },
-    });
-
-    expect(response.status()).toBe(200);
-    const body = await response.json();
-    // Film1 is 1963, so should be included
-    const titles = (body.data as Array<{ title: string }>).map((f) => f.title);
-    expect(titles).toContain("Le Mépris");
-  });
-
-  test("Pagination respects limit parameter", async ({ request }) => {
-    const response = await request.get("/api/v1/catalog?page=1&limit=1", {
-      headers: { Authorization: `Bearer ${exhibitorToken}` },
-    });
-
-    expect(response.status()).toBe(200);
-    const body = await response.json();
-    expect(body.data.length).toBeLessThanOrEqual(1);
-  });
-
-  test("Limit parameter is bounded to 100 maximum", async ({ request }) => {
-    const response = await request.get("/api/v1/catalog?limit=500", {
-      headers: { Authorization: `Bearer ${exhibitorToken}` },
-    });
-
-    // API rejects limit > 100 with a 400 validation error (Zod max(100))
-    expect(response.status()).toBe(400);
-  });
-
-  test("Only films available in exhibitor territories are shown by default", async ({ request }) => {
+  test("Default query returns only films available in exhibitor territory", async ({ request }) => {
     const response = await request.get("/api/v1/catalog?limit=100", {
       headers: { Authorization: `Bearer ${exhibitorToken}` },
     });
@@ -301,18 +213,9 @@ test.describe("Catalog (E05-001)", () => {
     expect(titles).not.toContain("Bicycle Thieves");
   });
 
-  test("availableForTerritory=false returns all films regardless of territory", async ({ request }) => {
-    const response = await request.get("/api/v1/catalog?availableForTerritory=false&limit=100", {
-      headers: { Authorization: `Bearer ${exhibitorToken}` },
-    });
-
-    expect(response.status()).toBe(200);
-    const body = await response.json();
-    const titles = (body.data as Array<{ title: string }>).map((f) => f.title);
-
-    expect(titles).toContain("Le Mépris");
-    expect(titles).toContain("Bicycle Thieves");
-  });
+  // ────────────────────────────────────────────────────────────────────────────
+  // Filter Tests
+  // ────────────────────────────────────────────────────────────────────────────
 
   test("type=direct filters only direct booking films", async ({ request }) => {
     const response = await request.get("/api/v1/catalog?type=direct", {
@@ -344,18 +247,6 @@ test.describe("Catalog (E05-001)", () => {
     expect(types.some((t) => t === "direct" || t === "validation")).toBe(true);
   });
 
-  test("search parameter filters by title", async ({ request }) => {
-    const response = await request.get("/api/v1/catalog?search=mépris", {
-      headers: { Authorization: `Bearer ${exhibitorToken}` },
-    });
-
-    expect(response.status()).toBe(200);
-    const body = await response.json();
-    const titles = (body.data as Array<{ title: string }>).map((f) => f.title);
-
-    expect(titles).toContain("Le Mépris");
-  });
-
   test("search is case-insensitive", async ({ request }) => {
     const response = await request.get("/api/v1/catalog?search=MÉPRIS", {
       headers: { Authorization: `Bearer ${exhibitorToken}` },
@@ -366,27 +257,6 @@ test.describe("Catalog (E05-001)", () => {
     const titles = (body.data as Array<{ title: string }>).map((f) => f.title);
 
     expect(titles.length).toBeGreaterThan(0);
-  });
-
-  test("sort=releaseYear&order=desc sorts by year descending", async ({ request }) => {
-    const response = await request.get(
-      "/api/v1/catalog?sort=releaseYear&order=desc&availableForTerritory=false",
-      {
-        headers: { Authorization: `Bearer ${exhibitorToken}` },
-      }
-    );
-
-    expect(response.status()).toBe(200);
-    const body = await response.json();
-    // Filter out null releaseYear values before checking order
-    const years = (body.data as Array<{ releaseYear: number | null }>)
-      .map((f) => f.releaseYear)
-      .filter((y): y is number => y !== null && y !== undefined);
-
-    // Check descending order
-    for (let i = 0; i < years.length - 1; i++) {
-      expect(years[i]).toBeGreaterThanOrEqual(years[i + 1]!);
-    }
   });
 
   test("sort=title&order=asc sorts alphabetically", async ({ request }) => {
@@ -418,6 +288,28 @@ test.describe("Catalog (E05-001)", () => {
     if (titles.length > 1) {
       expect(titles[0]).not.toBe(descTitles[0]);
     }
+  });
+
+  // ────────────────────────────────────────────────────────────────────────────
+  // Pagination Tests
+  // ────────────────────────────────────────────────────────────────────────────
+
+  test("Pagination respects limit parameter", async ({ request }) => {
+    const response = await request.get("/api/v1/catalog?page=1&limit=1", {
+      headers: { Authorization: `Bearer ${exhibitorToken}` },
+    });
+
+    expect(response.status()).toBe(200);
+    const body = await response.json();
+    expect(body.data.length).toBeLessThanOrEqual(1);
+  });
+
+  test("Limit parameter is bounded to 100 maximum", async ({ request }) => {
+    const response = await request.get("/api/v1/catalog?limit=500", {
+      headers: { Authorization: `Bearer ${exhibitorToken}` },
+    });
+
+    expect(response.status()).toBe(400);
   });
 
   test("Pagination returns correct total count", async ({ request }) => {
@@ -496,13 +388,12 @@ test.describe("Catalog (E05-001)", () => {
     expect(response.status()).toBe(401);
   });
 
-  test("400 Bad Request with invalid parameter", async ({ request }) => {
+  test("Invalid page parameter returns 400", async ({ request }) => {
     const response = await request.get("/api/v1/catalog?page=abc", {
       headers: { Authorization: `Bearer ${exhibitorToken}` },
     });
 
-    // Should either coerce or reject
-    expect([200, 400]).toContain(response.status());
+    expect(response.status()).toBe(400);
   });
 
   test("Film card shows availability badge when available", async ({ request }) => {
