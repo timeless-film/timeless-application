@@ -1,6 +1,30 @@
 npx lint-staged
 
-# ── Drizzle migration check ───────────────────────────────────────────────────
+# ── Drizzle migration integrity check ─────────────────────────────────────────
+# Verify that every migration in the journal has a matching snapshot file.
+# Missing snapshots cause drizzle-kit generate to produce duplicate migrations.
+echo ""
+echo "Checking Drizzle snapshot integrity..."
+
+JOURNAL="drizzle/meta/_journal.json"
+if [ -f "$JOURNAL" ]; then
+  MISSING_SNAPSHOTS=""
+  for idx in $(node -e "const j=require('./$JOURNAL'); j.entries.forEach(e => console.log(e.idx.toString().padStart(4,'0')))"); do
+    if [ ! -f "drizzle/meta/${idx}_snapshot.json" ]; then
+      MISSING_SNAPSHOTS="${MISSING_SNAPSHOTS} ${idx}"
+    fi
+  done
+
+  if [ -n "$MISSING_SNAPSHOTS" ]; then
+    echo ""
+    echo "❌ Missing Drizzle snapshot file(s):${MISSING_SNAPSHOTS}"
+    echo "   Every migration in drizzle/meta/_journal.json must have a matching snapshot."
+    echo "   Use 'pnpm db:generate' to create migrations — never add them manually."
+    exit 1
+  fi
+fi
+
+# ── Drizzle migration drift check ─────────────────────────────────────────────
 # We check only what is STAGED (what will actually land in the commit).
 # Strategy: stash unstaged changes -> run generate on staged state -> restore stash.
 # If a migration is needed, stage drizzle/ automatically so the commit stays in sync.

@@ -36,6 +36,22 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Check Drizzle snapshot integrity
+        run: |
+          JOURNAL="drizzle/meta/_journal.json"
+          MISSING=""
+          for idx in $(node -e "const j=require('./$JOURNAL'); j.entries.forEach(e => console.log(e.idx.toString().padStart(4,'0')))"); do
+            if [ ! -f "drizzle/meta/${idx}_snapshot.json" ]; then
+              MISSING="${MISSING} ${idx}"
+            fi
+          done
+          if [ -n "$MISSING" ]; then
+            echo "❌ Missing Drizzle snapshot file(s):${MISSING}"
+            echo "   Every migration in _journal.json must have a matching snapshot."
+            exit 1
+          fi
+          echo "✅ Drizzle snapshots are complete."
+
       - name: Check Drizzle migrations
         # drizzle-kit generate reads schema files + snapshots — no DB connection needed.
         # A placeholder DATABASE_URL satisfies the config loader.

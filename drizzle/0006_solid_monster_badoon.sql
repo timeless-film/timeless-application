@@ -1,14 +1,2 @@
-ALTER TYPE "public"."request_status" ADD VALUE 'approved' BEFORE 'validated';--> statement-breakpoint
-ALTER TYPE "public"."request_status" ADD VALUE 'rejected' BEFORE 'validated';--> statement-breakpoint
-ALTER TYPE "public"."request_status" ADD VALUE 'cancelled' BEFORE 'validated';--> statement-breakpoint
-ALTER TABLE "cart_items" ALTER COLUMN "start_date" DROP NOT NULL;--> statement-breakpoint
-ALTER TABLE "cart_items" ALTER COLUMN "end_date" DROP NOT NULL;--> statement-breakpoint
-ALTER TABLE "requests" ALTER COLUMN "start_date" DROP NOT NULL;--> statement-breakpoint
-ALTER TABLE "requests" ALTER COLUMN "end_date" DROP NOT NULL;--> statement-breakpoint
-ALTER TABLE "requests" ALTER COLUMN "expires_at" DROP NOT NULL;--> statement-breakpoint
-ALTER TABLE "requests" ADD COLUMN "note" text;--> statement-breakpoint
-ALTER TABLE "requests" ADD COLUMN "rejection_reason" text;--> statement-breakpoint
-ALTER TABLE "requests" ADD COLUMN "cancellation_reason" text;--> statement-breakpoint
-ALTER TABLE "requests" ADD COLUMN "approved_at" timestamp;--> statement-breakpoint
-ALTER TABLE "requests" ADD COLUMN "rejected_at" timestamp;--> statement-breakpoint
-ALTER TABLE "requests" ADD COLUMN "cancelled_at" timestamp;
+-- No-op: all changes in this migration were already applied by 0005_e06_requests_cart_alignment.sql
+-- Kept as empty migration to preserve journal ordering.
