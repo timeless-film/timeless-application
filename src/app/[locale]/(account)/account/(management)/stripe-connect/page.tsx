@@ -1,8 +1,11 @@
+import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
 import { StripeConnectTab } from "@/components/account/stripe-connect-tab";
 import { getCurrentMembership } from "@/lib/auth/membership";
+import { db } from "@/lib/db";
+import { accounts } from "@/lib/db/schema";
 import { stripe } from "@/lib/stripe";
 
 import type { Metadata } from "next";
@@ -31,9 +34,15 @@ export default async function StripeConnectPage() {
     if (ctx.account.stripeConnectOnboardingComplete) {
       status = "complete";
     } else {
-      // Check current Stripe status in case webhook hasn't fired yet
+      // Fallback sync in case the webhook hasn't updated the local flag yet.
       const stripeAccount = await stripe.accounts.retrieve(ctx.account.stripeConnectAccountId);
-      if (stripeAccount.details_submitted && stripeAccount.charges_enabled) {
+      const isComplete = stripeAccount.details_submitted && stripeAccount.charges_enabled;
+
+      if (isComplete) {
+        await db
+          .update(accounts)
+          .set({ stripeConnectOnboardingComplete: true, updatedAt: new Date() })
+          .where(eq(accounts.id, ctx.account.id));
         status = "complete";
       } else {
         status = "incomplete";

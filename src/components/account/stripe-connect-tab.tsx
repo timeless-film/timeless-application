@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 
 import {
+  detachStripeConnectAccount,
   createStripeConnectDashboardLink,
   startStripeConnectOnboarding,
 } from "./stripe-connect-actions";
@@ -61,6 +62,30 @@ export function StripeConnectTab({ status }: StripeConnectTabProps) {
     }
   }
 
+  async function handleDetach() {
+    const confirmed = window.confirm(t("reset.confirmation"));
+    if (!confirmed) {
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const result = await detachStripeConnectAccount();
+
+      if ("error" in result) {
+        toast.error(t(`error.${result.error}`));
+        return;
+      }
+
+      toast.success(t("reset.success"));
+      window.location.reload();
+    } catch {
+      toast.error(t("error.UNKNOWN"));
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
   if (status === "complete") {
     return (
       <div className="space-y-4">
@@ -71,10 +96,16 @@ export function StripeConnectTab({ status }: StripeConnectTabProps) {
             <p className="text-sm text-muted-foreground">{t("configured.description")}</p>
           </div>
         </div>
-        <Button variant="outline" onClick={handleOpenDashboard} disabled={isLoading}>
-          <ExternalLink className="mr-2 h-4 w-4" />
-          {t("configured.dashboardLink")}
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" onClick={handleOpenDashboard} disabled={isLoading}>
+            <ExternalLink className="mr-2 h-4 w-4" />
+            {t("configured.dashboardLink")}
+          </Button>
+          <Button variant="outline" onClick={handleDetach} disabled={isLoading}>
+            {t("reset.cta")}
+          </Button>
+        </div>
+        <p className="text-sm text-muted-foreground">{t("reset.description")}</p>
       </div>
     );
   }
@@ -94,9 +125,19 @@ export function StripeConnectTab({ status }: StripeConnectTabProps) {
           </p>
         </div>
       </div>
-      <Button onClick={handleStartOnboarding} disabled={isLoading}>
-        {isIncomplete ? t("incomplete.cta") : t("notConfigured.cta")}
-      </Button>
+      <div className="flex flex-wrap gap-2">
+        <Button onClick={handleStartOnboarding} disabled={isLoading}>
+          {isIncomplete ? t("incomplete.cta") : t("notConfigured.cta")}
+        </Button>
+        {isIncomplete ? (
+          <Button variant="outline" onClick={handleDetach} disabled={isLoading}>
+            {t("reset.cta")}
+          </Button>
+        ) : null}
+      </div>
+      {isIncomplete ? (
+        <p className="text-sm text-muted-foreground">{t("reset.description")}</p>
+      ) : null}
     </div>
   );
 }

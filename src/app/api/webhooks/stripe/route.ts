@@ -52,16 +52,14 @@ export async function POST(req: NextRequest) {
         const account = event.data.object;
         const onboardingComplete = isStripeConnectComplete(account);
 
-        if (onboardingComplete) {
-          const updated = await db
-            .update(accounts)
-            .set({ stripeConnectOnboardingComplete: true, updatedAt: new Date() })
-            .where(eq(accounts.stripeConnectAccountId, account.id))
-            .returning({ id: accounts.id });
+        const updated = await db
+          .update(accounts)
+          .set({ stripeConnectOnboardingComplete: onboardingComplete, updatedAt: new Date() })
+          .where(eq(accounts.stripeConnectAccountId, account.id))
+          .returning({ id: accounts.id });
 
-          if (updated.length > 0) {
-            revalidatePath("/", "layout");
-          }
+        if (updated.length > 0) {
+          revalidatePath("/", "layout");
         }
         break;
       }

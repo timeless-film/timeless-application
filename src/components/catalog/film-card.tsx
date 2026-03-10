@@ -43,8 +43,6 @@ export function FilmCard({ film, locale }: FilmCardProps) {
   return (
     <Link
       href={`/catalog/${film.id}`}
-      target="_blank"
-      rel="noopener noreferrer"
       className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-lg"
     >
       <Card className="group relative h-[360px] cursor-pointer overflow-hidden border-border/70 bg-card/95 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl">

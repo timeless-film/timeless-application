@@ -73,11 +73,11 @@ export async function checkStripeConnectStatus() {
 
   const isComplete = stripeAccount.details_submitted && stripeAccount.charges_enabled;
 
-  // Sync DB if Stripe says complete but DB doesn't reflect it yet
-  if (isComplete && !ctx.account.stripeConnectOnboardingComplete) {
+  // Keep the local flag aligned with Stripe in case the webhook was missed.
+  if (isComplete !== ctx.account.stripeConnectOnboardingComplete) {
     await db
       .update(accounts)
-      .set({ stripeConnectOnboardingComplete: true, updatedAt: new Date() })
+      .set({ stripeConnectOnboardingComplete: isComplete, updatedAt: new Date() })
       .where(eq(accounts.id, ctx.account.id));
     revalidatePath("/", "layout");
   }
@@ -118,4 +118,39 @@ export async function createStripeConnectDashboardLink() {
   const loginLink = await stripe.accounts.createLoginLink(ctx.account.stripeConnectAccountId);
 
   return { success: true as const, url: loginLink.url };
+}
+
+/**
+ * Detaches the locally linked Stripe Connect account so onboarding can restart.
+ * This does not delete the remote Stripe account.
+ */
+export async function detachStripeConnectAccount() {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) return { error: "UNAUTHORIZED" as const };
+
+  const ctx = await getCurrentMembership();
+  if (!ctx) return { error: "UNAUTHORIZED" as const };
+
+  if (ctx.account.type !== "rights_holder") {
+    return { error: "FORBIDDEN" as const };
+  }
+
+  if (ctx.role !== "owner" && ctx.role !== "admin") {
+    return { error: "FORBIDDEN" as const };
+  }
+
+  await db
+    .update(accounts)
+    .set({
+      stripeConnectAccountId: null,
+      stripeConnectOnboardingComplete: false,
+      updatedAt: new Date(),
+    })
+    .where(eq(accounts.id, ctx.account.id));
+
+  revalidatePath("/", "layout");
+  revalidatePath("/account/stripe-connect");
+  revalidatePath("/account/information");
+
+  return { success: true as const };
 }

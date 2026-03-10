@@ -286,9 +286,20 @@ export function FilmList({ initialFilms, initialTotal, currentUserRole }: FilmLi
       <div className="relative">
         <Search className="text-muted-foreground absolute left-3 top-1/2 size-4 -translate-y-1/2" />
         <Input
+          type="search"
+          name="film-search"
+          id="film-search"
           placeholder={t("searchPlaceholder")}
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="none"
+          spellCheck={false}
+          data-form-type="other"
+          data-lpignore="true"
+          data-1p-ignore="true"
+          aria-label={t("searchPlaceholder")}
           className="pl-9"
         />
       </div>

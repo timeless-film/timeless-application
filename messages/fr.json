@@ -1204,6 +1204,12 @@
       "message": "Votre compte de paiement n'est pas encore configuré — les achats de vos films sont bloqués.",
       "cta": "Configurer le paiement"
     },
+    "reset": {
+      "cta": "Détacher et recommencer",
+      "description": "À utiliser si le mauvais compte Stripe a été lié ou si vous devez relancer tout le parcours d'onboarding.",
+      "confirmation": "Détacher ce lien Stripe Connect et relancer l'onboarding ? Cela supprime uniquement le lien local dans TIMELESS et ne supprime pas le compte Stripe.",
+      "success": "Le lien Stripe Connect a été retiré. Vous pouvez relancer l'onboarding."
+    },
     "error": {
       "UNAUTHORIZED": "Vous devez être connecté.",
       "FORBIDDEN": "Vous n'avez pas la permission de gérer les paramètres de paiement.",
