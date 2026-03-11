@@ -53,12 +53,12 @@ export async function registerAndLogin(
   await page.fill("input[type='email']", user.email);
   await page.fill("input[type='password']", user.password);
   await page.getByRole("button", { name: /sign in/i }).click();
-  await page.waitForURL(/(?!.*\/login)/, { timeout: 15000 });
+  await page.waitForURL(/^(?!.*\/login)/, { timeout: 15000 });
 }
 
 /**
  * Complete the 3-step exhibitor onboarding wizard:
- * 1. Company information (name + country)
+ * 1. Company information (name + country + address + city + postal code)
  * 2. Add a cinema (name + city)
  * 3. Skip team invitations
  *
@@ -73,6 +73,12 @@ export async function completeOnboarding(page: Page, companyName: string): Promi
   await expect(page.locator("#companyName")).toBeVisible({ timeout: 15000 });
   await page.locator("#companyName").click();
   await page.locator("#companyName").pressSequentially(companyName, { delay: 30 });
+  await page.locator("#address").click();
+  await page.locator("#address").pressSequentially("1 Rue du Test", { delay: 30 });
+  await page.locator("#city").click();
+  await page.locator("#city").pressSequentially("Paris", { delay: 30 });
+  await page.locator("#postalCode").click();
+  await page.locator("#postalCode").pressSequentially("75001", { delay: 30 });
   await page.getByRole("button", { name: /continue/i }).click();
 
   // Step 2: Add a cinema

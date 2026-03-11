@@ -1,38 +1,8 @@
-import { Resend } from "resend";
-
 import { formatAmount } from "@/lib/pricing/format";
 
-// ─── Client ───────────────────────────────────────────────────────────────────
+import { safeEmail } from "./safe-email";
 
-const RESEND_API_KEY = process.env.RESEND_API_KEY;
-const FROM = process.env.EMAIL_FROM ?? "Timeless <hello@timeless.film>";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-
-const resend = RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null;
-
-async function safeEmail(
-  label: string,
-  params: { to: string; subject: string; html: string }
-): Promise<void> {
-  if (!resend) {
-    console.warn(`[Email] ${label} skipped: RESEND_API_KEY not configured`);
-    console.warn(`[Email] Would send to ${params.to}: ${params.subject}`);
-    return;
-  }
-  try {
-    const { error } = await resend.emails.send({
-      from: FROM,
-      to: params.to,
-      subject: params.subject,
-      html: params.html,
-    });
-    if (error) {
-      console.error(`[Email] ${label} failed:`, error);
-    }
-  } catch (err) {
-    console.error(`[Email] ${label} failed:`, err);
-  }
-}
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

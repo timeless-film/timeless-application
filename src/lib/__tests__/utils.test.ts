@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { calculateRequestExpiry, findPriceForCountry, isRequestExpired } from "@/lib/utils";
+import {
+  calculateRequestExpiry,
+  findPriceForCountry,
+  formatOrderNumber,
+  isRequestExpired,
+} from "@/lib/utils";
 
 describe("calculateRequestExpiry", () => {
   it("returns standard expiry when it is earlier than urgency expiry", () => {
@@ -86,5 +91,27 @@ describe("findPriceForCountry", () => {
 
   it("returns null for empty prices array", () => {
     expect(findPriceForCountry([], "FR")).toBeNull();
+  });
+});
+
+describe("formatOrderNumber", () => {
+  it("formats single-digit number with zero padding", () => {
+    expect(formatOrderNumber(1)).toBe("ORD-000001");
+  });
+
+  it("formats typical order number", () => {
+    expect(formatOrderNumber(42)).toBe("ORD-000042");
+  });
+
+  it("formats large order number", () => {
+    expect(formatOrderNumber(123456)).toBe("ORD-123456");
+  });
+
+  it("formats number exceeding 6 digits", () => {
+    expect(formatOrderNumber(1234567)).toBe("ORD-1234567");
+  });
+
+  it("formats zero", () => {
+    expect(formatOrderNumber(0)).toBe("ORD-000000");
   });
 });

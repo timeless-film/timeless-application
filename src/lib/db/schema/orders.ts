@@ -61,14 +61,19 @@ export const requests = pgTable("requests", {
   note: text("note"),
 
   // Price snapshotted at request time
-  catalogPrice: integer("catalog_price").notNull(), // In cents
-  currency: text("currency").notNull(),
+  catalogPrice: integer("catalog_price").notNull(), // In cents (exhibitor's currency after conversion)
+  currency: text("currency").notNull(), // Exhibitor's preferred currency
   platformMarginRate: text("platform_margin_rate").notNull(), // e.g. "0.20"
   deliveryFees: integer("delivery_fees").notNull(), // In cents
   commissionRate: text("commission_rate").notNull(), // e.g. "0.10"
   displayedPrice: integer("displayed_price").notNull(), // Price shown to exhibitor
   rightsHolderAmount: integer("rights_holder_amount").notNull(), // Amount received by rights holder
   timelessAmount: integer("timeless_amount").notNull(), // Amount retained by TIMELESS
+
+  // Cross-currency conversion (null if same currency)
+  originalCatalogPrice: integer("original_catalog_price"), // In cents, film's native currency
+  originalCurrency: text("original_currency"), // Film's native currency code
+  exchangeRate: text("exchange_rate"), // Rate applied (decimal string, e.g. "0.92")
 
   // Workflow
   status: requestStatusEnum("status").notNull().default("pending"),
@@ -97,6 +102,7 @@ export const requests = pgTable("requests", {
 // ─── Orders (paid cart or paid request) ──────────────────────────────────────
 export const orders = pgTable("orders", {
   id: uuid("id").primaryKey().defaultRandom(),
+  orderNumber: integer("order_number").generatedAlwaysAsIdentity().notNull().unique(),
   exhibitorAccountId: uuid("exhibitor_account_id")
     .notNull()
     .references(() => accounts.id),
@@ -108,9 +114,10 @@ export const orders = pgTable("orders", {
   stripeInvoiceId: text("stripe_invoice_id"),
 
   // Totals
-  subtotal: integer("subtotal").notNull(), // In cents, excl. tax
+  subtotal: integer("subtotal").notNull(), // In cents, excl. tax and delivery
+  deliveryFeesTotal: integer("delivery_fees_total").notNull().default(0), // In cents, delivery fees × number of films
   taxAmount: integer("tax_amount").notNull(),
-  total: integer("total").notNull(),
+  total: integer("total").notNull(), // subtotal + deliveryFeesTotal + taxAmount
   currency: text("currency").notNull(),
 
   // VAT
@@ -144,18 +151,23 @@ export const orderItems = pgTable("order_items", {
 
   // Screening details
   screeningCount: integer("screening_count").notNull(),
-  startDate: date("start_date").notNull(),
-  endDate: date("end_date").notNull(),
+  startDate: date("start_date"),
+  endDate: date("end_date"),
 
   // Snapshotted prices
-  catalogPrice: integer("catalog_price").notNull(),
+  catalogPrice: integer("catalog_price").notNull(), // In cents (exhibitor's currency after conversion)
   platformMarginRate: text("platform_margin_rate").notNull(),
   deliveryFees: integer("delivery_fees").notNull(),
   commissionRate: text("commission_rate").notNull(),
   displayedPrice: integer("displayed_price").notNull(),
   rightsHolderAmount: integer("rights_holder_amount").notNull(),
   timelessAmount: integer("timeless_amount").notNull(),
-  currency: text("currency").notNull(),
+  currency: text("currency").notNull(), // Exhibitor's preferred currency
+
+  // Cross-currency conversion (null if same currency)
+  originalCatalogPrice: integer("original_catalog_price"), // In cents, film's native currency
+  originalCurrency: text("original_currency"), // Film's native currency code
+  exchangeRate: text("exchange_rate"), // Rate applied (decimal string)
 
   // Stripe Connect transfer
   stripeTransferId: text("stripe_transfer_id"),

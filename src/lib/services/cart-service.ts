@@ -2,7 +2,8 @@ import { and, eq, sql } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import { cartItems, films, accounts, cinemas, rooms } from "@/lib/db/schema";
-import { calculatePricing } from "@/lib/pricing";
+import { calculatePricing, getPlatformPricingSettings, resolveCommissionRate } from "@/lib/pricing";
+import { convertCurrency } from "@/lib/services/exchange-rate-service";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -33,6 +34,7 @@ export interface CartItemWithDetails {
   filmId: string;
   filmTitle: string;
   filmYear: number | null;
+  filmPosterUrl: string | null;
   cinemaId: string;
   cinemaName: string;
   roomId: string;
@@ -40,15 +42,33 @@ export interface CartItemWithDetails {
   screeningCount: number;
   startDate: string | null;
   endDate: string | null;
-  catalogPrice: number; // cents
-  currency: string;
-  displayedPrice: number; // cents
+  catalogPrice: number; // cents — in exhibitor's currency (converted if needed)
+  currency: string; // exhibitor's preferred currency
+  displayedPrice: number; // cents — in exhibitor's currency
+  originalCatalogPrice: number | null; // cents in film's native currency (null if same currency)
+  originalCurrency: string | null; // film's native currency (null if same currency)
+  exchangeRate: string | null; // decimal string rate applied (null if same currency)
   createdAt: Date;
+}
+
+export interface UnavailableCartItem {
+  id: string;
+  filmId: string;
+  filmTitle: string;
+  filmPosterUrl: string | null;
+  cinemaName: string;
+  roomName: string;
+  reason: "no_territory_price" | "conversion_failed" | "pricing_error";
 }
 
 export interface CartSummary {
   items: CartItemWithDetails[];
-  subtotalsByCurrency: Record<string, number>; // currency -> total in cents
+  unavailableItems: UnavailableCartItem[];
+  subtotal: number; // cents — sum of displayedPrice × screeningCount (excl. delivery)
+  deliveryFeesPerItem: number; // cents — delivery fee per film
+  deliveryFeesTotal: number; // cents — deliveryFeesPerItem × numberOfFilms
+  total: number; // cents — subtotal + deliveryFeesTotal
+  currency: string; // exhibitor's preferred currency
   totalItems: number;
 }
 
@@ -138,18 +158,12 @@ export async function addToCart(input: AddToCartInput): Promise<CartResult> {
     return { success: false, error: "INVALID_FILM_TYPE" };
   }
 
-  // Fetch exhibitor account to check territory
+  // Fetch exhibitor account to check cinema is theirs
   const exhibitorAccount = await db.query.accounts.findFirst({
     where: eq(accounts.id, exhibitorAccountId),
   });
 
-  if (!exhibitorAccount || !exhibitorAccount.country) {
-    return { success: false, error: "TERRITORY_NOT_AVAILABLE" };
-  }
-
-  // Check if film is available in exhibitor's territory
-  const filmPrice = film.prices.find((p) => p.countries.includes(exhibitorAccount.country!));
-  if (!filmPrice) {
+  if (!exhibitorAccount) {
     return { success: false, error: "TERRITORY_NOT_AVAILABLE" };
   }
 
@@ -160,6 +174,12 @@ export async function addToCart(input: AddToCartInput): Promise<CartResult> {
 
   if (!cinema) {
     return { success: false, error: "INVALID_CINEMA" };
+  }
+
+  // Check if film is available in cinema's territory (screening location)
+  const filmPrice = film.prices.find((p) => p.countries.includes(cinema.country));
+  if (!filmPrice) {
+    return { success: false, error: "TERRITORY_NOT_AVAILABLE" };
   }
 
   // Validate room belongs to cinema
@@ -213,7 +233,7 @@ export async function removeFromCart(params: {
 }
 
 /**
- * Get cart summary with items and subtotals by currency.
+ * Get cart summary with items converted to exhibitor's preferred currency.
  */
 export async function getCartSummary(params: { exhibitorAccountId: string }): Promise<CartSummary> {
   const items = await db.query.cartItems.findMany({
@@ -231,39 +251,77 @@ export async function getCartSummary(params: { exhibitorAccountId: string }): Pr
     orderBy: (cartItems, { desc }) => [desc(cartItems.createdAt)],
   });
 
-  // Get exhibitor territory
+  // Get exhibitor account for territory and preferred currency
   const exhibitorAccount = await db.query.accounts.findFirst({
     where: eq(accounts.id, params.exhibitorAccountId),
   });
 
-  const territory = exhibitorAccount?.country || "FR";
+  const preferredCurrency = exhibitorAccount?.preferredCurrency || "EUR";
+
+  // Get platform pricing settings once
+  const settings = await getPlatformPricingSettings();
 
   const itemsWithDetails: CartItemWithDetails[] = [];
-  const subtotalsByCurrency: Record<string, number> = {};
+  const unavailableItems: UnavailableCartItem[] = [];
+  let subtotal = 0;
 
   for (const item of items) {
-    const filmPrice = item.film.prices.find((p) => p.countries.includes(territory));
-    if (!filmPrice) continue; // Skip items without price for territory
+    // Use cinema's country (screening territory), not exhibitor's HQ country
+    const itemTerritory = item.cinema.country;
+    const filmPrice = item.film.prices.find((p) => p.countries.includes(itemTerritory));
+    if (!filmPrice) {
+      unavailableItems.push({
+        id: item.id,
+        filmId: item.filmId,
+        filmTitle: item.film.title,
+        filmPosterUrl: item.film.posterUrl ?? null,
+        cinemaName: item.cinema.name,
+        roomName: item.room.name,
+        reason: "no_territory_price",
+      });
+      continue;
+    }
 
     try {
-      // Get platform settings for margin and delivery fees
-      const settings = await db.query.platformSettings.findFirst();
+      const commissionRate = resolveCommissionRate(
+        item.film.account.commissionRate,
+        settings.defaultCommissionRate
+      );
 
-      const platformMarginRate = settings?.platformMarginRate
-        ? parseFloat(settings.platformMarginRate)
-        : 0.2;
-      const deliveryFees = settings?.deliveryFees || 5000; // Default 50 EUR
-      const commissionRate = item.film.account.commissionRate
-        ? parseFloat(item.film.account.commissionRate)
-        : settings?.defaultCommissionRate
-          ? parseFloat(settings.defaultCommissionRate)
-          : 0.1;
+      const filmCurrency = filmPrice.currency;
+      const needsConversion = filmCurrency !== preferredCurrency;
+
+      let catalogPriceInExhibitorCurrency = filmPrice.price;
+      let exchangeRate: string | null = null;
+
+      if (needsConversion) {
+        const converted = await convertCurrency(filmPrice.price, filmCurrency, preferredCurrency);
+        if (converted === null) {
+          // Conversion failed — mark item as unavailable
+          console.error(
+            `Currency conversion failed for cart item ${item.id}: ${filmCurrency} → ${preferredCurrency}`
+          );
+          unavailableItems.push({
+            id: item.id,
+            filmId: item.filmId,
+            filmTitle: item.film.title,
+            filmPosterUrl: item.film.posterUrl ?? null,
+            cinemaName: item.cinema.name,
+            roomName: item.room.name,
+            reason: "conversion_failed",
+          });
+          continue;
+        }
+        catalogPriceInExhibitorCurrency = converted;
+        // Calculate the effective exchange rate for snapshot
+        exchangeRate = (converted / filmPrice.price).toFixed(6);
+      }
 
       const pricing = calculatePricing({
-        catalogPrice: filmPrice.price,
-        currency: filmPrice.currency,
-        platformMarginRate,
-        deliveryFees,
+        catalogPrice: catalogPriceInExhibitorCurrency,
+        currency: preferredCurrency,
+        platformMarginRate: settings.platformMarginRate,
+        deliveryFees: settings.deliveryFees,
         commissionRate,
       });
 
@@ -272,6 +330,7 @@ export async function getCartSummary(params: { exhibitorAccountId: string }): Pr
         filmId: item.filmId,
         filmTitle: item.film.title,
         filmYear: item.film.releaseYear,
+        filmPosterUrl: item.film.posterUrl ?? null,
         cinemaId: item.cinemaId,
         cinemaName: item.cinema.name,
         roomId: item.roomId,
@@ -279,24 +338,42 @@ export async function getCartSummary(params: { exhibitorAccountId: string }): Pr
         screeningCount: item.screeningCount,
         startDate: item.startDate,
         endDate: item.endDate,
-        catalogPrice: filmPrice.price,
-        currency: filmPrice.currency,
+        catalogPrice: catalogPriceInExhibitorCurrency,
+        currency: preferredCurrency,
         displayedPrice: pricing.displayedPrice,
+        originalCatalogPrice: needsConversion ? filmPrice.price : null,
+        originalCurrency: needsConversion ? filmCurrency : null,
+        exchangeRate,
         createdAt: item.createdAt,
       });
 
-      // Accumulate subtotals by currency
-      const currency = filmPrice.currency;
-      subtotalsByCurrency[currency] = (subtotalsByCurrency[currency] || 0) + pricing.displayedPrice;
+      subtotal += pricing.displayedPrice * item.screeningCount;
     } catch (error) {
       console.error("Error calculating pricing for cart item:", item.id, error);
-      // Skip items with pricing errors
+      unavailableItems.push({
+        id: item.id,
+        filmId: item.filmId,
+        filmTitle: item.film.title,
+        filmPosterUrl: item.film.posterUrl ?? null,
+        cinemaName: item.cinema.name,
+        roomName: item.room.name,
+        reason: "pricing_error",
+      });
     }
   }
 
+  const deliveryFeesPerItem = settings.deliveryFees;
+  const deliveryFeesTotal = deliveryFeesPerItem * itemsWithDetails.length;
+  const total = subtotal + deliveryFeesTotal;
+
   return {
     items: itemsWithDetails,
-    subtotalsByCurrency,
+    unavailableItems,
+    subtotal,
+    deliveryFeesPerItem,
+    deliveryFeesTotal,
+    total,
+    currency: preferredCurrency,
     totalItems: itemsWithDetails.length,
   };
 }

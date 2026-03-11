@@ -2,6 +2,7 @@ import { and, asc, count, desc, eq, gte, inArray, ilike, isNull, lte, or, sql } 
 
 import { db } from "@/lib/db";
 import { accounts, cinemas, filmPrices, films } from "@/lib/db/schema";
+import { calculatePricing, getPlatformPricingSettings, resolveCommissionRate } from "@/lib/pricing";
 
 import type { CountryCode } from "@/lib/countries";
 
@@ -32,11 +33,17 @@ export interface CatalogSort {
   order: "asc" | "desc";
 }
 
-export interface MatchingPrice {
+/** Raw price zone data from DB — returned by checkFilmAvailability (internal). */
+export interface PriceZoneMatch {
   id: string;
   countries: CountryCode[];
-  price: number;
+  price: number; // catalog price in cents
   currency: string;
+}
+
+/** Enriched price zone with displayedPrice — used in FilmWithAvailability. */
+export interface MatchingPrice extends PriceZoneMatch {
+  displayedPrice: number; // catalog price + platform margin (cents, excl. delivery fees)
 }
 
 export interface FilmWithAvailability {
@@ -60,14 +67,15 @@ export interface FilmWithAvailability {
   rightsHolderId: string;
   rightsHolderName: string | null;
   // Pricing (single best zone for this exhibitor)
-  catalogPriceHt: number | null; // In cents, null if type="validation"
-  demandPriceStartingHt: number | null; // In cents, null if type="direct"
+  displayedPrice: number | null; // In cents, catalog price + margin (excl. delivery). Null if type="validation"
+  displayedPriceStarting: number | null; // In cents, catalog price + margin (excl. delivery). Null if type="direct"
+  priceCurrency: string | null; // Currency of the best matching price zone
   hasDemandsEnabled: boolean;
   // Territory availability
   isAvailableInTerritory: boolean;
   matchingPriceZones: CountryCode[];
   availableForAccount: boolean; // Deprecated (use isAvailableInTerritory)
-  matchingPrices: MatchingPrice[]; // All matching price zones
+  matchingPrices: MatchingPrice[]; // All matching price zones (enriched with displayedPrice)
   createdAt: Date;
   updatedAt: Date;
 }
@@ -108,7 +116,7 @@ export async function checkFilmAvailability(
   accountCountries: CountryCode[]
 ): Promise<{
   available: boolean;
-  matchingPrices: MatchingPrice[];
+  matchingPrices: PriceZoneMatch[];
 }> {
   if (accountCountries.length === 0) {
     return { available: false, matchingPrices: [] };
@@ -118,7 +126,7 @@ export async function checkFilmAvailability(
     where: eq(filmPrices.filmId, filmId),
   });
 
-  const matchingPrices: MatchingPrice[] = [];
+  const matchingPrices: PriceZoneMatch[] = [];
 
   for (const priceZone of prices) {
     const intersection = priceZone.countries.filter((c) =>
@@ -318,6 +326,7 @@ export async function getCatalogForExhibitor(
         tmdbRating: films.tmdbRating,
         accountId: films.accountId,
         accountName: accounts.companyName,
+        accountCommissionRate: accounts.commissionRate,
         createdAt: films.createdAt,
       })
       .from(films)
@@ -329,38 +338,62 @@ export async function getCatalogForExhibitor(
     db.select({ value: count() }).from(films).where(whereCondition),
   ]);
 
-  // Enrich with availability + matching prices
+  // Fetch platform pricing settings once for all films
+  const platformSettings = await getPlatformPricingSettings();
+
+  // Enrich with availability + matching prices + displayedPrice
   const enrichedFilms: FilmWithAvailability[] = await Promise.all(
     filmsList.map(async (film) => {
-      const { available, matchingPrices } = await checkFilmAvailability(film.id, accountCountries);
+      const { available, matchingPrices: rawPrices } = await checkFilmAvailability(
+        film.id,
+        accountCountries
+      );
+
+      const commissionRate = resolveCommissionRate(
+        film.accountCommissionRate,
+        platformSettings.defaultCommissionRate
+      );
+
+      // Enrich each matching price with displayedPrice
+      const enrichedPrices: MatchingPrice[] = rawPrices.map((zone) => {
+        const pricing = calculatePricing({
+          catalogPrice: zone.price,
+          currency: zone.currency,
+          platformMarginRate: platformSettings.platformMarginRate,
+          deliveryFees: platformSettings.deliveryFees,
+          commissionRate,
+        });
+        return { ...zone, displayedPrice: pricing.displayedPrice };
+      });
 
       // Select best price zone:
       // 1. Most countries matching
-      // 2. If tie → lowest price
+      // 2. If tie → lowest displayedPrice
       let bestPrice: MatchingPrice | null = null;
-      if (matchingPrices.length > 0) {
-        matchingPrices.sort((a, b) => {
+      if (enrichedPrices.length > 0) {
+        enrichedPrices.sort((a, b) => {
           const matchCountA = a.countries.filter((c) => accountCountries.includes(c)).length;
           const matchCountB = b.countries.filter((c) => accountCountries.includes(c)).length;
           if (matchCountA !== matchCountB) {
             return matchCountB - matchCountA; // More matches first
           }
-          return a.price - b.price; // Lower price first
+          return a.displayedPrice - b.displayedPrice; // Lower price first
         });
-        bestPrice = matchingPrices[0] || null;
+        bestPrice = enrichedPrices[0] || null;
       }
 
       // Extract all matching country codes
       const matchingZones = [
         ...new Set(
-          matchingPrices.flatMap((p) => p.countries.filter((c) => accountCountries.includes(c)))
+          enrichedPrices.flatMap((p) => p.countries.filter((c) => accountCountries.includes(c)))
         ),
       ];
 
-      // Price assignment based on film type
-      const catalogPriceHt = film.type === "direct" && bestPrice ? bestPrice.price : null;
-      const demandPriceStartingHt =
-        film.type === "validation" && bestPrice ? bestPrice.price : null;
+      // Price assignment based on film type (using displayedPrice)
+      const displayedPrice = film.type === "direct" && bestPrice ? bestPrice.displayedPrice : null;
+      const displayedPriceStarting =
+        film.type === "validation" && bestPrice ? bestPrice.displayedPrice : null;
+      const priceCurrency = bestPrice?.currency ?? null;
       const hasDemandsEnabled = film.type === "validation";
 
       return {
@@ -381,17 +414,18 @@ export async function getCatalogForExhibitor(
         tmdbRating: film.tmdbRating,
         accountId: film.accountId,
         accountName: film.accountName,
-        rightsHolderId: film.accountId, // Same as accountId (rights holder owns the film)
+        rightsHolderId: film.accountId,
         rightsHolderName: film.accountName,
-        catalogPriceHt,
-        demandPriceStartingHt,
+        displayedPrice,
+        displayedPriceStarting,
+        priceCurrency,
         hasDemandsEnabled,
         isAvailableInTerritory: available,
         matchingPriceZones: matchingZones as CountryCode[],
-        availableForAccount: available, // Deprecated (alias)
-        matchingPrices,
+        availableForAccount: available,
+        matchingPrices: enrichedPrices,
         createdAt: film.createdAt,
-        updatedAt: film.createdAt, // Assuming no updatedAt in select
+        updatedAt: film.createdAt,
       };
     })
   );
@@ -399,8 +433,8 @@ export async function getCatalogForExhibitor(
   // Apply price sort in-memory if needed (prices are not in main query)
   if (sort.field === "price") {
     enrichedFilms.sort((a, b) => {
-      const priceA = a.catalogPriceHt ?? a.demandPriceStartingHt ?? Infinity;
-      const priceB = b.catalogPriceHt ?? b.demandPriceStartingHt ?? Infinity;
+      const priceA = a.displayedPrice ?? a.displayedPriceStarting ?? Infinity;
+      const priceB = b.displayedPrice ?? b.displayedPriceStarting ?? Infinity;
       return sort.order === "asc" ? priceA - priceB : priceB - priceA;
     });
   }
@@ -452,37 +486,64 @@ export async function getFilmForExhibitor(
     return null;
   }
 
-  // Get rights holder name separately
+  // Get rights holder name and commission rate
   const [rightsHolder] = await db
-    .select({ companyName: accounts.companyName })
+    .select({
+      companyName: accounts.companyName,
+      commissionRate: accounts.commissionRate,
+    })
     .from(accounts)
     .where(eq(accounts.id, film.accountId))
     .limit(1);
 
-  const { available, matchingPrices } = await checkFilmAvailability(filmId, accountCountries);
+  const { available, matchingPrices: rawPrices } = await checkFilmAvailability(
+    filmId,
+    accountCountries
+  );
+
+  // Fetch platform pricing settings
+  const platformSettings = await getPlatformPricingSettings();
+  const commissionRate = resolveCommissionRate(
+    rightsHolder?.commissionRate,
+    platformSettings.defaultCommissionRate
+  );
+
+  // Enrich each matching price with displayedPrice
+  const enrichedPrices: MatchingPrice[] = rawPrices.map((zone) => {
+    const pricing = calculatePricing({
+      catalogPrice: zone.price,
+      currency: zone.currency,
+      platformMarginRate: platformSettings.platformMarginRate,
+      deliveryFees: platformSettings.deliveryFees,
+      commissionRate,
+    });
+    return { ...zone, displayedPrice: pricing.displayedPrice };
+  });
 
   // Select best price zone (same logic as in getCatalogForExhibitor)
   let bestPrice: MatchingPrice | null = null;
-  if (matchingPrices.length > 0) {
-    matchingPrices.sort((a, b) => {
+  if (enrichedPrices.length > 0) {
+    enrichedPrices.sort((a, b) => {
       const matchCountA = a.countries.filter((c) => accountCountries.includes(c)).length;
       const matchCountB = b.countries.filter((c) => accountCountries.includes(c)).length;
       if (matchCountA !== matchCountB) {
         return matchCountB - matchCountA;
       }
-      return a.price - b.price;
+      return a.displayedPrice - b.displayedPrice;
     });
-    bestPrice = matchingPrices[0] || null;
+    bestPrice = enrichedPrices[0] || null;
   }
 
   const matchingZones = [
     ...new Set(
-      matchingPrices.flatMap((p) => p.countries.filter((c) => accountCountries.includes(c)))
+      enrichedPrices.flatMap((p) => p.countries.filter((c) => accountCountries.includes(c)))
     ),
   ];
 
-  const catalogPriceHt = film.type === "direct" && bestPrice ? bestPrice.price : null;
-  const demandPriceStartingHt = film.type === "validation" && bestPrice ? bestPrice.price : null;
+  const displayedPrice = film.type === "direct" && bestPrice ? bestPrice.displayedPrice : null;
+  const displayedPriceStarting =
+    film.type === "validation" && bestPrice ? bestPrice.displayedPrice : null;
+  const priceCurrency = bestPrice?.currency ?? null;
   const hasDemandsEnabled = film.type === "validation";
 
   return {
@@ -505,13 +566,14 @@ export async function getFilmForExhibitor(
     accountName: rightsHolder?.companyName ?? null,
     rightsHolderId: film.accountId,
     rightsHolderName: rightsHolder?.companyName ?? null,
-    catalogPriceHt,
-    demandPriceStartingHt,
+    displayedPrice,
+    displayedPriceStarting,
+    priceCurrency,
     hasDemandsEnabled,
     isAvailableInTerritory: available,
     matchingPriceZones: matchingZones as CountryCode[],
     availableForAccount: available,
-    matchingPrices,
+    matchingPrices: enrichedPrices,
     createdAt: film.createdAt,
     updatedAt: film.updatedAt,
   };

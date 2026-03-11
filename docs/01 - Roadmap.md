@@ -6,7 +6,7 @@
 |---|---|---|---|
 | **P0 — Fondations** | Infra, auth, structure des comptes | S1–S2 | ✅ Done |
 | **P1 — Catalogue** | Import, enrichissement TMDB, recherche | S3–S4 | ✅ Done |
-| **P2 — Réservation** | Panier, demandes, validation, paiement | S5–S7 | 🔄 En cours |
+| **P2 — Réservation** | Panier, demandes, validation, paiement | S5–S7 | ✅ Done |
 | **P3 — Finance & Ops** | Stripe Connect, wallets, backoffice, livraison | S8–S10 | A faire |
 | **P4 — Polish** | TVA internationale, devises, analytics | S11–S12 | A faire |
 
@@ -23,7 +23,7 @@
 | [[E05 - Recherche & Catalogue]] | Page catalogue, filtres, fiche film, analytics | P1 | 4 | ✅ Done |
 | [[E06 - Panier & Demandes]] | Panier, demandes de réservation, expiration | P2 | 7 | ✅ Done |
 | [[E07 - Workflow Validation]] | Validation par l'ayant droit (email + dashboard) | P2 | 7 | ✅ Done |
-| [[E08 - Paiement Stripe]] | Stripe Checkout, TVA, commissions, transfers | P2–P3 | 12 | ⬜ A faire |
+| [[E08 - Paiement Stripe]] | Stripe Checkout, TVA, commissions, transfers | P2–P3 | 12 | ✅ Done |
 | [[E09 - Wallet Ayants Droits]] | Dashboard financier, retraits, virements auto | P3 | 4 | ⬜ A faire |
 | [[E10 - Livraison Opérationnelle]] | Notifications ops, suivi DCP/KDM | P3 | 4 | ⬜ A faire |
 | [[E11 - Backoffice Admin]] | Dashboard admin, gestion comptes, supervision | P3 | 7 | ⬜ A faire |
@@ -62,16 +62,16 @@
 
 ---
 
-### P2 — Réservation (Sprint 5–7) 🔄
+### P2 — Réservation (Sprint 5–7) ✅
 - ✅ Panier persistant (nb visionnages, dates, salle)
 - ✅ Demandes de réservation (films en validation requise)
 - ✅ Expiration automatique des demandes
 - ✅ Historique commandes exploitant
 - ✅ Workflow validation ayant droit (email + dashboard) — E07
-- ⬜ Paiement Stripe Checkout — E08
-- ⬜ Emails transactionnels (Resend) — intégrés dans E07/E08
+- ✅ Paiement Stripe Checkout — E08
+- ✅ Emails transactionnels (Resend) — intégrés dans E07/E08
 
-**Livrables** : flow complet catalogue → panier → validation → paiement.
+**Livrables** : flow complet catalogue → panier → validation → paiement. ✅
 
 ---
 

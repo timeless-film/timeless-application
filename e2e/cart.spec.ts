@@ -180,7 +180,8 @@ test.describe("Cart functionality", () => {
     expect(body.data.items).toHaveLength(1);
     expect(body.data.items[0]!.filmTitle).toBe("Cart Test Film");
     expect(body.data.items[0]!.screeningCount).toBe(2);
-    expect(body.data.subtotalsByCurrency).toBeDefined();
+    expect(body.data.total).toBeDefined();
+    expect(body.data.currency).toBeDefined();
   });
 
   test("Cart requires authentication", async ({ request }) => {

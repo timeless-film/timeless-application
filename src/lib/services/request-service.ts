@@ -5,6 +5,7 @@ import { accounts, requests, films, cinemas, rooms } from "@/lib/db/schema";
 import { sendRequestNotificationToRightsHolder } from "@/lib/email/request-emails";
 import { calculatePricing, getPlatformPricingSettings, resolveCommissionRate } from "@/lib/pricing";
 import { getAccountUserEmails } from "@/lib/services/account-users";
+import { convertCurrency } from "@/lib/services/exchange-rate-service";
 import { generateValidationToken } from "@/lib/services/request-token-service";
 
 import type { requestStatusEnum } from "@/lib/db/schema";
@@ -318,7 +319,7 @@ export async function createRequest(params: {
     return { success: false, error: "TERRITORY_NOT_AVAILABLE" };
   }
 
-  // 6. Calculate pricing and insert request
+  // 6. Calculate pricing with currency conversion and insert request
   try {
     const settings = await getPlatformPricingSettings();
     const commissionRate = resolveCommissionRate(
@@ -334,9 +335,30 @@ export async function createRequest(params: {
       return { success: false, error: "TERRITORY_NOT_AVAILABLE" };
     }
 
+    // Get exhibitor's preferred currency for conversion
+    const exhibitorAccount = await db.query.accounts.findFirst({
+      where: eq(accounts.id, exhibitorAccountId),
+    });
+    const preferredCurrency = exhibitorAccount?.preferredCurrency || "EUR";
+
+    const filmCurrency = matchingPrice.currency;
+    const needsConversion = filmCurrency !== preferredCurrency;
+
+    let catalogPriceInExhibitorCurrency = matchingPrice.price;
+    let exchangeRate: string | null = null;
+
+    if (needsConversion) {
+      const converted = await convertCurrency(matchingPrice.price, filmCurrency, preferredCurrency);
+      if (converted === null) {
+        return { success: false, error: "TERRITORY_NOT_AVAILABLE" };
+      }
+      catalogPriceInExhibitorCurrency = converted;
+      exchangeRate = (converted / matchingPrice.price).toFixed(6);
+    }
+
     const pricing = calculatePricing({
-      catalogPrice: matchingPrice.price,
-      currency: matchingPrice.currency,
+      catalogPrice: catalogPriceInExhibitorCurrency,
+      currency: preferredCurrency,
       platformMarginRate: settings.platformMarginRate,
       deliveryFees: settings.deliveryFees,
       commissionRate,
@@ -363,6 +385,9 @@ export async function createRequest(params: {
         displayedPrice: pricing.displayedPrice,
         rightsHolderAmount: pricing.rightsHolderAmount,
         timelessAmount: pricing.timelessAmount,
+        originalCatalogPrice: needsConversion ? matchingPrice.price : null,
+        originalCurrency: needsConversion ? filmCurrency : null,
+        exchangeRate,
         status: "pending",
       })
       .returning({ id: requests.id });
@@ -484,4 +509,15 @@ async function sendValidationEmails(params: {
       recipientLocale: user.preferredLocale,
     });
   }
+}
+
+/**
+ * Returns the exhibitor's preferred currency.
+ */
+export async function getExhibitorPreferredCurrency(accountId: string): Promise<string> {
+  const account = await db.query.accounts.findFirst({
+    where: eq(accounts.id, accountId),
+    columns: { preferredCurrency: true },
+  });
+  return account?.preferredCurrency || "EUR";
 }

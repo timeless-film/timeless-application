@@ -21,16 +21,15 @@ interface FilmCardProps {
 
 export function FilmCard({ film, locale }: FilmCardProps) {
   const t = useTranslations("catalog.film.card");
-  // Format price
-  const formatPrice = (cents: number | null) => {
+  // Format price in the film's native currency
+  const formatPrice = (cents: number | null, currency: string) => {
     if (cents === null) return null;
-    const euros = cents / 100;
     return new Intl.NumberFormat(locale, {
       style: "currency",
-      currency: "EUR",
+      currency: currency.toUpperCase(),
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(euros);
+    }).format(cents / 100);
   };
 
   const coverImageSource = film.backdropUrl ?? film.posterUrl;
@@ -118,23 +117,30 @@ export function FilmCard({ film, locale }: FilmCardProps) {
               <div className="rounded-md border border-border/60 bg-muted/35 p-2.5">
                 {film.isAvailableInTerritory ? (
                   <div className="space-y-1.5">
-                    {film.catalogPriceHt !== null && (
+                    {film.displayedPrice !== null && (
                       <div className="flex items-center justify-between">
                         <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
                           {t("direct")}
                         </span>
                         <span className="text-sm font-semibold">
-                          {formatPrice(film.catalogPriceHt)} {t("excludingTax")}
+                          {formatPrice(film.displayedPrice, film.priceCurrency ?? "EUR")}{" "}
+                          {t("excludingTax")}
                         </span>
                       </div>
                     )}
-                    {film.demandPriceStartingHt !== null && film.hasDemandsEnabled && (
+                    {film.displayedPriceStarting !== null && film.hasDemandsEnabled && (
                       <div className="flex items-center justify-between">
                         <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
                           {t("onDemand")}
                         </span>
                         <span className="text-sm font-semibold">
-                          {t("from", { price: formatPrice(film.demandPriceStartingHt) ?? "" })}{" "}
+                          {t("from", {
+                            price:
+                              formatPrice(
+                                film.displayedPriceStarting,
+                                film.priceCurrency ?? "EUR"
+                              ) ?? "",
+                          })}{" "}
                           {t("excludingTax")}
                         </span>
                       </div>

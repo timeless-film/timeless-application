@@ -308,34 +308,43 @@ function Step1Form({ account, locale, loading, onSubmit }: Step1FormProps) {
 
           {/* Address */}
           <div className="space-y-2">
-            <Label htmlFor="address">{t("address")}</Label>
+            <Label htmlFor="address">
+              {t("address")} <span className="text-destructive">*</span>
+            </Label>
             <Input
               id="address"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               placeholder={t("addressPlaceholder")}
               disabled={loading}
+              required
             />
           </div>
 
           {/* City + Postal code */}
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="city">{t("city")}</Label>
+              <Label htmlFor="city">
+                {t("city")} <span className="text-destructive">*</span>
+              </Label>
               <Input
                 id="city"
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
                 disabled={loading}
+                required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="postalCode">{t("postalCode")}</Label>
+              <Label htmlFor="postalCode">
+                {t("postalCode")} <span className="text-destructive">*</span>
+              </Label>
               <Input
                 id="postalCode"
                 value={postalCode}
                 onChange={(e) => setPostalCode(e.target.value)}
                 disabled={loading}
+                required
               />
             </div>
           </div>
@@ -392,7 +401,17 @@ function Step1Form({ account, locale, loading, onSubmit }: Step1FormProps) {
             </div>
           </div>
 
-          <Button type="submit" className="w-full" disabled={loading || !companyName.trim()}>
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={
+              loading ||
+              !companyName.trim() ||
+              !address.trim() ||
+              !city.trim() ||
+              !postalCode.trim()
+            }
+          >
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {t("continue")}
           </Button>

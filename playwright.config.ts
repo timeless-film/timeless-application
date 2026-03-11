@@ -47,8 +47,15 @@ export default defineConfig({
       ...process.env,
       PORT: String(E2E_PORT),
       DATABASE_URL: testDatabaseUrl,
+      BETTER_AUTH_SECRET:
+        process.env.BETTER_AUTH_SECRET ??
+        "test-e2e-auth-secret-do-not-use-in-production",
       NEXT_PUBLIC_APP_URL: baseURL,
       RESEND_API_KEY: "", // Disable real email sending during E2E tests
+      STRIPE_SECRET_KEY:
+        process.env.STRIPE_SECRET_KEY ?? "sk_test_fake_e2e_key",
+      STRIPE_WEBHOOK_SECRET:
+        process.env.STRIPE_WEBHOOK_SECRET ?? "whsec_test_e2e_secret",
     },
   },
 });

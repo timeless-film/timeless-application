@@ -213,9 +213,12 @@ test.describe("Film Detail & Modal (E05-002)", () => {
     const body = await response.json();
     const film = body.data;
 
-    expect(film.catalogPriceHt).toBe(200000); // 2000 USD in cents
+    // displayedPrice = catalogPrice * (1 + marginRate)
+    // = 200000 * 1.20 = 240000 (delivery fees are a separate line item)
+    expect(film.displayedPrice).toBe(240000);
     expect(film.matchingPrices).toBeDefined();
     expect(Array.isArray(film.matchingPrices)).toBe(true);
+    expect(film.matchingPrices[0]?.displayedPrice).toBe(240000);
   });
 
   test("Film detail includes availability status", async ({ request }) => {

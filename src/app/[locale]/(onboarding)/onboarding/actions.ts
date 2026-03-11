@@ -40,7 +40,13 @@ export async function submitOnboardingStep1(input: Step1Input) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) return { error: "UNAUTHORIZED" as const };
 
-  if (!input.companyName.trim() || !input.country.trim()) {
+  if (
+    !input.companyName.trim() ||
+    !input.country.trim() ||
+    !input.address?.trim() ||
+    !input.city?.trim() ||
+    !input.postalCode?.trim()
+  ) {
     return { error: "INVALID_INPUT" as const };
   }
 

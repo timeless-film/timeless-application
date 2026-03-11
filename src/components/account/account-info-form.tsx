@@ -1,8 +1,8 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
+import { CheckCircle2, Loader2 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -20,7 +20,7 @@ import {
 import { getCountryOptions } from "@/lib/countries";
 import { getCurrencyOptions } from "@/lib/currencies";
 
-import { updateAccountInfo } from "./actions";
+import { checkVatNumber, updateAccountInfo } from "./actions";
 
 const CINEMA_TYPES = [
   "art_house",
@@ -66,11 +66,57 @@ export function AccountInfoForm({ account, canEdit }: AccountInfoFormProps) {
   const [city, setCity] = useState(account.city ?? "");
   const [postalCode, setPostalCode] = useState(account.postalCode ?? "");
   const [vatNumber, setVatNumber] = useState(account.vatNumber ?? "");
+  const [vatStatus, setVatStatus] = useState<"idle" | "checking" | "valid" | "invalid_format">(
+    account.vatValidated ? "valid" : "idle"
+  );
+  const [vatError, setVatError] = useState<string | null>(null);
+  const vatCheckAbort = useRef<AbortController | null>(null);
   const [preferredCurrency, setPreferredCurrency] = useState(account.preferredCurrency ?? "EUR");
   const [contactEmail, setContactEmail] = useState(account.contactEmail ?? "");
   const [contactPhone, setContactPhone] = useState(account.contactPhone ?? "");
   const [cinemaType, setCinemaType] = useState(account.cinemaType ?? "");
   const [saving, setSaving] = useState(false);
+
+  const handleVatChange = useCallback((value: string) => {
+    setVatNumber(value);
+    setVatError(null);
+    if (!value.trim()) {
+      setVatStatus("idle");
+    }
+  }, []);
+
+  const handleVatBlur = useCallback(async () => {
+    const trimmed = vatNumber.trim();
+    if (!trimmed) {
+      setVatStatus("idle");
+      return;
+    }
+
+    // Cancel any in-flight check
+    vatCheckAbort.current?.abort();
+    const abort = new AbortController();
+    vatCheckAbort.current = abort;
+
+    setVatStatus("checking");
+    setVatError(null);
+
+    const result = await checkVatNumber(trimmed);
+
+    // Ignore if this check was superseded
+    if (abort.signal.aborted) return;
+
+    switch (result.status) {
+      case "valid":
+        setVatStatus("valid");
+        break;
+      case "invalid_format":
+        setVatStatus("invalid_format");
+        setVatError(t("vatInvalidFormat"));
+        break;
+      default:
+        setVatStatus("idle");
+    }
+  }, [vatNumber, t]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -92,9 +138,18 @@ export function AccountInfoForm({ account, canEdit }: AccountInfoFormProps) {
     });
 
     if ("error" in result) {
-      toast.error(t(`error.${result.error}`));
+      if ("field" in result && result.field === "vatNumber") {
+        setVatError(t(`error.${result.error}`));
+        setVatStatus("invalid_format");
+      } else {
+        toast.error(t(`error.${result.error}`));
+      }
     } else {
       toast.success(t("saved"));
+      // Update VAT validated status after successful save
+      if (vatNumber.trim()) {
+        setVatStatus((prev) => (prev === "valid" ? "valid" : prev));
+      }
     }
     setSaving(false);
   }
@@ -166,16 +221,35 @@ export function AccountInfoForm({ account, canEdit }: AccountInfoFormProps) {
                 <Input
                   id="vatNumber"
                   value={vatNumber}
-                  onChange={(e) => setVatNumber(e.target.value)}
+                  onChange={(e) => handleVatChange(e.target.value)}
+                  onBlur={handleVatBlur}
                   placeholder={t("vatPlaceholder")}
                   disabled={!canEdit || saving}
+                  aria-invalid={vatStatus === "invalid_format"}
+                  className={
+                    vatStatus === "invalid_format"
+                      ? "border-destructive"
+                      : vatStatus === "valid"
+                        ? "border-green-500"
+                        : undefined
+                  }
                 />
-                {account.vatValidated && (
-                  <span className="whitespace-nowrap text-xs font-medium text-green-600">
+                {vatStatus === "checking" && (
+                  <span className="flex items-center gap-1 whitespace-nowrap text-xs text-muted-foreground">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    {t("vatChecking")}
+                  </span>
+                )}
+                {vatStatus === "valid" && (
+                  <span className="flex items-center gap-1 whitespace-nowrap text-xs font-medium text-green-600">
+                    <CheckCircle2 className="h-3 w-3" />
                     {t("vatValidated")}
                   </span>
                 )}
               </div>
+              {vatError && vatStatus === "invalid_format" && (
+                <p className="text-sm text-destructive">{vatError}</p>
+              )}
             </div>
           </div>
 

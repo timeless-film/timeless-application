@@ -24,14 +24,18 @@ export interface PricingResult {
  * Calculates the displayed price and split for an order line.
  *
  * Formula:
- *   displayedPrice = catalogPrice × (1 + marginRate) + deliveryFees
+ *   displayedPrice = catalogPrice × (1 + marginRate)
  *   rightsHolderAmount = catalogPrice × (1 - commissionRate)
  *   timelessAmount = displayedPrice - rightsHolderAmount
+ *
+ * Delivery fees are NOT included in displayedPrice — they are tracked
+ * separately and added as a distinct line item at checkout.
+ * Delivery fees are per film (not per screening).
  */
 export function calculatePricing(params: PricingParams): PricingResult {
   const { catalogPrice, platformMarginRate, deliveryFees, commissionRate, currency } = params;
 
-  const displayedPrice = Math.round(catalogPrice * (1 + platformMarginRate) + deliveryFees);
+  const displayedPrice = Math.round(catalogPrice * (1 + platformMarginRate));
   const rightsHolderAmount = Math.round(catalogPrice * (1 - commissionRate));
   const timelessAmount = displayedPrice - rightsHolderAmount;
 

@@ -34,6 +34,7 @@ yarn-error.log*
 .env
 .env.local
 .env.*.local
+.env.test
 
 # Drizzle migrations — SQL files + journal + snapshots must all be committed
 # Snapshots are required by drizzle-kit generate to detect schema changes

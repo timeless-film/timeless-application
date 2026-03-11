@@ -33,3 +33,8 @@ export function findPriceForCountry(
 ) {
   return prices.find((p) => p.countries.includes(country.toUpperCase())) ?? null;
 }
+
+/** Formats a numeric order number as ORD-000042 */
+export function formatOrderNumber(orderNumber: number): string {
+  return `ORD-${String(orderNumber).padStart(6, "0")}`;
+}

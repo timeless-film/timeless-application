@@ -12,11 +12,19 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default async function RequestsPage() {
+export default async function RequestsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const t = await getTranslations("requests");
+  const resolvedParams = await searchParams;
+  const sessionId =
+    typeof resolvedParams.session_id === "string" ? resolvedParams.session_id : undefined;
   const result = await getRequests({ page: 1, limit: 20, tab: "pending" });
-  const requests = "success" in result ? result.data : [];
-  const pagination = "success" in result ? result.pagination : { page: 1, limit: 20, total: 0 };
+  const requests = "success" in result && result.data ? result.data : [];
+  const pagination =
+    "success" in result && result.pagination ? result.pagination : { page: 1, limit: 20, total: 0 };
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 px-4 py-8 lg:px-6">
@@ -25,6 +33,7 @@ export default async function RequestsPage() {
         initialRequests={requests}
         initialPagination={pagination}
         initialTab="pending"
+        checkoutSessionId={sessionId}
       />
     </div>
   );

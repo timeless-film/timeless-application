@@ -107,7 +107,7 @@ export function FilmActionModal({
   // Get best price (first matching price)
   const bestPrice = film.matchingPrices?.[0];
   const nativeCurrency = bestPrice?.currency ?? "EUR";
-  const nativeUnitPrice = bestPrice?.price ?? 0;
+  const nativeUnitPrice = bestPrice?.displayedPrice ?? 0;
   const totalCents = (displayUnitPrice ?? nativeUnitPrice) * screeningCount;
 
   const normalizedPreferredCurrency = preferredCurrency.toUpperCase();

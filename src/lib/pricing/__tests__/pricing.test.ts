@@ -18,7 +18,7 @@ describe("calculatePricing", () => {
     expect(result.currency).toBe("EUR");
   });
 
-  it("includes delivery fees in displayed price", () => {
+  it("does not include delivery fees in displayed price", () => {
     const result = calculatePricing({
       catalogPrice: 10000,
       currency: "EUR",
@@ -27,9 +27,10 @@ describe("calculatePricing", () => {
       commissionRate: 0.1,
     });
 
-    expect(result.displayedPrice).toBe(17000); // €100 × 1.20 + €50 = €170.00
+    expect(result.displayedPrice).toBe(12000); // €100 × 1.20 = €120.00 (no delivery)
+    expect(result.deliveryFees).toBe(5000); // preserved but separate
     expect(result.rightsHolderAmount).toBe(9000); // unchanged
-    expect(result.timelessAmount).toBe(8000); // €170 - €90 = €80.00
+    expect(result.timelessAmount).toBe(3000); // €120 - €90 = €30.00
   });
 
   it("handles zero margin", () => {
@@ -69,9 +70,10 @@ describe("calculatePricing", () => {
       commissionRate: 0.1,
     });
 
-    expect(result.displayedPrice).toBe(5000); // only delivery fees
+    expect(result.displayedPrice).toBe(0); // 0 × 1.20 = 0
+    expect(result.deliveryFees).toBe(5000); // separate
     expect(result.rightsHolderAmount).toBe(0);
-    expect(result.timelessAmount).toBe(5000);
+    expect(result.timelessAmount).toBe(0);
   });
 
   it("rounds to nearest cent", () => {
@@ -117,6 +119,25 @@ describe("calculatePricing", () => {
     });
 
     expect(result.timelessAmount).toBe(result.displayedPrice - result.rightsHolderAmount);
+  });
+
+  it("handles converted catalog price (cross-currency)", () => {
+    // Simulates USD→EUR conversion: 20000 USD × 0.92 = 18400 EUR cents
+    const convertedCatalogPrice = Math.round(20000 * 0.92);
+
+    const result = calculatePricing({
+      catalogPrice: convertedCatalogPrice, // 18400 (already converted)
+      currency: "EUR",
+      platformMarginRate: 0.2,
+      deliveryFees: 5000,
+      commissionRate: 0.1,
+    });
+
+    expect(result.displayedPrice).toBe(22080); // 18400 × 1.20 = 22080
+    expect(result.rightsHolderAmount).toBe(16560); // 18400 × 0.90 = 16560
+    expect(result.timelessAmount).toBe(5520); // 22080 - 16560 = 5520
+    expect(result.deliveryFees).toBe(5000); // preserved, separate
+    expect(result.currency).toBe("EUR");
   });
 });
 

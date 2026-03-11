@@ -1,6 +1,7 @@
 /**
- * E2E tests for Validation Requests (E06).
- * Tests: create requests, cancel, relaunch, status transitions.
+ * E2E tests for Validation Requests (E06 + E07).
+ * Tests: create requests, cancel, relaunch, status transitions,
+ * incoming requests, approve, reject workflows.
  */
 import { expect, test } from "@playwright/test";
 import postgres from "postgres";
@@ -381,5 +382,495 @@ test.describe("Validation Requests", () => {
       AND film_id = ${catalogFilmId}
     `;
     expect(requests.length).toBe(2);
+  });
+});
+
+// ─── E07: Rights Holder endpoints (incoming, approve, reject) ─────────────
+
+test.describe("E07 — Rights Holder request workflow", () => {
+  let sql: ReturnType<typeof postgres>;
+  let rhToken: string;
+  let rhAccountId: string;
+  let exhibitorAccountId: string;
+  let catalogFilmId: string;
+  let cinemaId: string;
+  let roomId: string;
+  let exhibitorToken: string;
+
+  test.beforeAll(async () => {
+    sql = postgres(DATABASE_URL, { max: 1 });
+
+    // Create rights holder account
+    const [rh] = await sql`
+      INSERT INTO accounts (type, company_name, country, onboarding_completed)
+      VALUES ('rights_holder', 'E07 RH Tests', 'FR', true)
+      RETURNING id
+    `;
+    rhAccountId = rh!.id;
+
+    // RH user
+    const rhSuffix = randomBytes(6).toString("hex");
+    const [rhUser] = await sql`
+      INSERT INTO better_auth_users (id, email, email_verified, name, created_at, updated_at)
+      VALUES (gen_random_uuid(), ${"rh-e07-" + rhSuffix + "@test.local"}, true, 'RH E07', NOW(), NOW())
+      RETURNING id
+    `;
+    await sql`INSERT INTO account_members (account_id, user_id, role) VALUES (${rhAccountId}, ${rhUser!.id}, 'owner')`;
+
+    // RH API token
+    const rawRhToken = `tmls_${randomBytes(20).toString("hex")}`;
+    const rhHash = createHash("sha256").update(rawRhToken).digest("hex");
+    await sql`
+      INSERT INTO api_tokens (account_id, token_hash, name, token_prefix)
+      VALUES (${rhAccountId}, ${rhHash}, 'rh-e07-token', ${rawRhToken.substring(0, 13)})
+    `;
+    rhToken = rawRhToken;
+
+    // Create exhibitor account
+    const [exhibitor] = await sql`
+      INSERT INTO accounts (type, company_name, country, onboarding_completed)
+      VALUES ('exhibitor', 'E07 Exhibitor Tests', 'FR', true)
+      RETURNING id
+    `;
+    exhibitorAccountId = exhibitor!.id;
+
+    // Exhibitor user
+    const exSuffix = randomBytes(6).toString("hex");
+    const [exUser] = await sql`
+      INSERT INTO better_auth_users (id, email, email_verified, name, created_at, updated_at)
+      VALUES (gen_random_uuid(), ${"ex-e07-" + exSuffix + "@test.local"}, true, 'EX E07', NOW(), NOW())
+      RETURNING id
+    `;
+    await sql`INSERT INTO account_members (account_id, user_id, role) VALUES (${exhibitorAccountId}, ${exUser!.id}, 'owner')`;
+
+    // Exhibitor API token
+    const rawExToken = `tmls_${randomBytes(20).toString("hex")}`;
+    const exHash = createHash("sha256").update(rawExToken).digest("hex");
+    await sql`
+      INSERT INTO api_tokens (account_id, token_hash, name, token_prefix)
+      VALUES (${exhibitorAccountId}, ${exHash}, 'ex-e07-token', ${rawExToken.substring(0, 13)})
+    `;
+    exhibitorToken = rawExToken;
+
+    // Create catalog film (requires validation)
+    const [film] = await sql`
+      INSERT INTO films (account_id, title, type, status, release_year)
+      VALUES (${rhAccountId}, 'E07 Test Film', 'validation', 'active', 1995)
+      RETURNING id
+    `;
+    catalogFilmId = film!.id;
+
+    // Film price for France
+    await sql`
+      INSERT INTO film_prices (film_id, countries, price, currency)
+      VALUES (${catalogFilmId}, ARRAY['FR'], 20000, 'EUR')
+    `;
+
+    // Cinema + room for exhibitor
+    const [cinema] = await sql`
+      INSERT INTO cinemas (account_id, name, address, city, postal_code, country)
+      VALUES (${exhibitorAccountId}, 'E07 Cinema', '10 Rue E07', 'Paris', '75001', 'FR')
+      RETURNING id
+    `;
+    cinemaId = cinema!.id;
+
+    const [room] = await sql`
+      INSERT INTO rooms (cinema_id, name, capacity)
+      VALUES (${cinemaId}, 'Salle E07', 200)
+      RETURNING id
+    `;
+    roomId = room!.id;
+  });
+
+  test.afterAll(async () => {
+    await sql.end();
+  });
+
+  /** Helper: create a pending request and return its id */
+  async function createPendingRequest(
+    request: import("@playwright/test").APIRequestContext,
+    opts?: { note?: string }
+  ): Promise<string> {
+    const res = await request.post("/api/v1/requests", {
+      headers: { Authorization: `Bearer ${exhibitorToken}` },
+      data: {
+        filmId: catalogFilmId,
+        cinemaId,
+        roomId,
+        quantity: 2,
+        note: opts?.note,
+      },
+    });
+    expect(res.status()).toBe(201);
+    const body = await res.json();
+    return body.data.id;
+  }
+
+  // ── GET /api/v1/requests/incoming ───────────────────────────────────────
+
+  test("GET /incoming returns pending requests by default", async ({ request }) => {
+    // Create a pending request
+    await createPendingRequest(request);
+
+    const res = await request.get("/api/v1/requests/incoming", {
+      headers: { Authorization: `Bearer ${rhToken}` },
+    });
+    expect(res.status()).toBe(200);
+
+    const body = await res.json();
+    expect(body.data.length).toBeGreaterThanOrEqual(1);
+    for (const r of body.data) {
+      expect(r.status).toBe("pending");
+    }
+  });
+
+  test("GET /incoming?status=approved returns only approved", async ({ request }) => {
+    // Create and approve a request
+    const requestId = await createPendingRequest(request);
+    await sql`UPDATE requests SET status = 'approved', approved_at = NOW() WHERE id = ${requestId}`;
+
+    const res = await request.get("/api/v1/requests/incoming?status=approved", {
+      headers: { Authorization: `Bearer ${rhToken}` },
+    });
+    expect(res.status()).toBe(200);
+
+    const body = await res.json();
+    for (const r of body.data) {
+      expect(r.status).toBe("approved");
+    }
+  });
+
+  test("GET /incoming supports pagination", async ({ request }) => {
+    const res = await request.get("/api/v1/requests/incoming?page=1&limit=2", {
+      headers: { Authorization: `Bearer ${rhToken}` },
+    });
+    expect(res.status()).toBe(200);
+
+    const body = await res.json();
+    expect(body.pagination).toBeDefined();
+    expect(body.pagination.page).toBe(1);
+    expect(body.pagination.limit).toBe(2);
+    expect(typeof body.pagination.total).toBe("number");
+    expect(body.data.length).toBeLessThanOrEqual(2);
+  });
+
+  test("GET /incoming requires auth", async ({ request }) => {
+    const res = await request.get("/api/v1/requests/incoming");
+    expect(res.status()).toBe(401);
+  });
+
+  // ── POST /api/v1/requests/:id/approve ───────────────────────────────────
+
+  test("POST /approve transitions to approved", async ({ request }) => {
+    const requestId = await createPendingRequest(request);
+
+    const res = await request.post(`/api/v1/requests/${requestId}/approve`, {
+      headers: { Authorization: `Bearer ${rhToken}` },
+    });
+    expect(res.status()).toBe(200);
+
+    const body = await res.json();
+    expect(body.data.status).toBe("approved");
+
+    // Verify in DB
+    const [row] = await sql`SELECT status, approved_at FROM requests WHERE id = ${requestId}`;
+    expect(row!.status).toBe("approved");
+    expect(row!.approved_at).not.toBeNull();
+  });
+
+  test("POST /approve with note stores approval note", async ({ request }) => {
+    const requestId = await createPendingRequest(request);
+
+    const res = await request.post(`/api/v1/requests/${requestId}/approve`, {
+      headers: { Authorization: `Bearer ${rhToken}` },
+      data: { note: "Approved with pleasure" },
+    });
+    expect(res.status()).toBe(200);
+
+    const [row] = await sql`SELECT approval_note FROM requests WHERE id = ${requestId}`;
+    expect(row!.approval_note).toBe("Approved with pleasure");
+  });
+
+  test("POST /approve on already-processed request returns 409", async ({ request }) => {
+    const requestId = await createPendingRequest(request);
+    // Approve first
+    await request.post(`/api/v1/requests/${requestId}/approve`, {
+      headers: { Authorization: `Bearer ${rhToken}` },
+    });
+
+    // Try to approve again
+    const res = await request.post(`/api/v1/requests/${requestId}/approve`, {
+      headers: { Authorization: `Bearer ${rhToken}` },
+    });
+    expect(res.status()).toBe(409);
+
+    const body = await res.json();
+    expect(body.error.code).toBe("INVALID_TRANSITION");
+  });
+
+  test("POST /approve with wrong RH account returns 403", async ({ request }) => {
+    const requestId = await createPendingRequest(request);
+
+    // Create another RH account with its own token
+    const [otherRh] = await sql`
+      INSERT INTO accounts (type, company_name, country, onboarding_completed)
+      VALUES ('rights_holder', 'Other RH E07', 'FR', true)
+      RETURNING id
+    `;
+    const otherRawToken = `tmls_${randomBytes(20).toString("hex")}`;
+    const otherHash = createHash("sha256").update(otherRawToken).digest("hex");
+    await sql`
+      INSERT INTO api_tokens (account_id, token_hash, name, token_prefix)
+      VALUES (${otherRh!.id}, ${otherHash}, 'other-rh-e07', ${otherRawToken.substring(0, 13)})
+    `;
+
+    const res = await request.post(`/api/v1/requests/${requestId}/approve`, {
+      headers: { Authorization: `Bearer ${otherRawToken}` },
+    });
+    expect(res.status()).toBe(403);
+  });
+
+  test("POST /approve requires auth", async ({ request }) => {
+    const requestId = await createPendingRequest(request);
+    const res = await request.post(`/api/v1/requests/${requestId}/approve`);
+    expect(res.status()).toBe(401);
+  });
+
+  // ── POST /api/v1/requests/:id/reject ────────────────────────────────────
+
+  test("POST /reject transitions to rejected", async ({ request }) => {
+    const requestId = await createPendingRequest(request);
+
+    const res = await request.post(`/api/v1/requests/${requestId}/reject`, {
+      headers: { Authorization: `Bearer ${rhToken}` },
+    });
+    expect(res.status()).toBe(200);
+
+    const body = await res.json();
+    expect(body.data.status).toBe("rejected");
+
+    const [row] = await sql`SELECT status, rejected_at FROM requests WHERE id = ${requestId}`;
+    expect(row!.status).toBe("rejected");
+    expect(row!.rejected_at).not.toBeNull();
+  });
+
+  test("POST /reject with reason stores rejection reason", async ({ request }) => {
+    const requestId = await createPendingRequest(request);
+
+    const res = await request.post(`/api/v1/requests/${requestId}/reject`, {
+      headers: { Authorization: `Bearer ${rhToken}` },
+      data: { reason: "Not available for this territory" },
+    });
+    expect(res.status()).toBe(200);
+
+    const [row] = await sql`SELECT rejection_reason FROM requests WHERE id = ${requestId}`;
+    expect(row!.rejection_reason).toBe("Not available for this territory");
+  });
+
+  test("POST /reject on already-processed returns 409", async ({ request }) => {
+    const requestId = await createPendingRequest(request);
+    await request.post(`/api/v1/requests/${requestId}/reject`, {
+      headers: { Authorization: `Bearer ${rhToken}` },
+    });
+
+    const res = await request.post(`/api/v1/requests/${requestId}/reject`, {
+      headers: { Authorization: `Bearer ${rhToken}` },
+    });
+    expect(res.status()).toBe(409);
+
+    const body = await res.json();
+    expect(body.error.code).toBe("INVALID_TRANSITION");
+  });
+
+  test("POST /reject requires auth", async ({ request }) => {
+    const requestId = await createPendingRequest(request);
+    const res = await request.post(`/api/v1/requests/${requestId}/reject`);
+    expect(res.status()).toBe(401);
+  });
+});
+
+// ─── E07: Exhibitor endpoints (list, filter, cancel, relaunch) ────────────
+
+test.describe("E07 — Exhibitor request workflow", () => {
+  let sql: ReturnType<typeof postgres>;
+  let exhibitorToken: string;
+  let exhibitorAccountId: string;
+  let rhAccountId: string;
+  let catalogFilmId: string;
+  let cinemaId: string;
+  let roomId: string;
+
+  test.beforeAll(async () => {
+    sql = postgres(DATABASE_URL, { max: 1 });
+
+    // RH account
+    const [rh] = await sql`
+      INSERT INTO accounts (type, company_name, country, onboarding_completed)
+      VALUES ('rights_holder', 'E07 ExFlow RH', 'FR', true)
+      RETURNING id
+    `;
+    rhAccountId = rh!.id;
+
+    // Exhibitor account
+    const [exhibitor] = await sql`
+      INSERT INTO accounts (type, company_name, country, onboarding_completed)
+      VALUES ('exhibitor', 'E07 ExFlow Exhibitor', 'FR', true)
+      RETURNING id
+    `;
+    exhibitorAccountId = exhibitor!.id;
+
+    // Exhibitor user
+    const exSuffix = randomBytes(6).toString("hex");
+    const [exUser] = await sql`
+      INSERT INTO better_auth_users (id, email, email_verified, name, created_at, updated_at)
+      VALUES (gen_random_uuid(), ${"exflow-e07-" + exSuffix + "@test.local"}, true, 'ExFlow E07', NOW(), NOW())
+      RETURNING id
+    `;
+    await sql`INSERT INTO account_members (account_id, user_id, role) VALUES (${exhibitorAccountId}, ${exUser!.id}, 'owner')`;
+
+    // Exhibitor API token
+    const rawToken = `tmls_${randomBytes(20).toString("hex")}`;
+    const hash = createHash("sha256").update(rawToken).digest("hex");
+    await sql`
+      INSERT INTO api_tokens (account_id, token_hash, name, token_prefix)
+      VALUES (${exhibitorAccountId}, ${hash}, 'exflow-e07-token', ${rawToken.substring(0, 13)})
+    `;
+    exhibitorToken = rawToken;
+
+    // Film
+    const [film] = await sql`
+      INSERT INTO films (account_id, title, type, status, release_year)
+      VALUES (${rhAccountId}, 'E07 ExFlow Film', 'validation', 'active', 1990)
+      RETURNING id
+    `;
+    catalogFilmId = film!.id;
+
+    await sql`
+      INSERT INTO film_prices (film_id, countries, price, currency)
+      VALUES (${catalogFilmId}, ARRAY['FR'], 15000, 'EUR')
+    `;
+
+    // Cinema + room
+    const [cinema] = await sql`
+      INSERT INTO cinemas (account_id, name, address, city, postal_code, country)
+      VALUES (${exhibitorAccountId}, 'ExFlow Cinema', '20 Rue ExFlow', 'Lyon', '69001', 'FR')
+      RETURNING id
+    `;
+    cinemaId = cinema!.id;
+
+    const [room] = await sql`
+      INSERT INTO rooms (cinema_id, name, capacity)
+      VALUES (${cinemaId}, 'Salle ExFlow', 150)
+      RETURNING id
+    `;
+    roomId = room!.id;
+  });
+
+  test.afterAll(async () => {
+    await sql.end();
+  });
+
+  /** Helper: create a pending request and return its id */
+  async function createPendingRequest(
+    request: import("@playwright/test").APIRequestContext
+  ): Promise<string> {
+    const res = await request.post("/api/v1/requests", {
+      headers: { Authorization: `Bearer ${exhibitorToken}` },
+      data: { filmId: catalogFilmId, cinemaId, roomId, quantity: 1 },
+    });
+    expect(res.status()).toBe(201);
+    return (await res.json()).data.id;
+  }
+
+  // ── GET /api/v1/requests ────────────────────────────────────────────────
+
+  test("GET /requests lists exhibitor requests", async ({ request }) => {
+    await createPendingRequest(request);
+
+    const res = await request.get("/api/v1/requests", {
+      headers: { Authorization: `Bearer ${exhibitorToken}` },
+    });
+    expect(res.status()).toBe(200);
+
+    const body = await res.json();
+    expect(body.data.length).toBeGreaterThanOrEqual(1);
+    expect(body.pagination).toBeDefined();
+  });
+
+  test("GET /requests filters by status", async ({ request }) => {
+    const id = await createPendingRequest(request);
+    await sql`UPDATE requests SET status = 'rejected', rejected_at = NOW() WHERE id = ${id}`;
+
+    const res = await request.get("/api/v1/requests?status=rejected", {
+      headers: { Authorization: `Bearer ${exhibitorToken}` },
+    });
+    expect(res.status()).toBe(200);
+
+    const body = await res.json();
+    for (const r of body.data) {
+      expect(r.status).toBe("rejected");
+    }
+  });
+
+  test("GET /requests requires auth", async ({ request }) => {
+    const res = await request.get("/api/v1/requests");
+    expect(res.status()).toBe(401);
+  });
+
+  // ── POST /api/v1/requests/:id/cancel ────────────────────────────────────
+
+  test("POST /cancel transitions pending to cancelled", async ({ request }) => {
+    const id = await createPendingRequest(request);
+
+    const res = await request.post(`/api/v1/requests/${id}/cancel`, {
+      headers: { Authorization: `Bearer ${exhibitorToken}` },
+    });
+    expect(res.status()).toBe(200);
+
+    const body = await res.json();
+    expect(body.data.status).toBe("cancelled");
+
+    const [row] = await sql`SELECT status, cancelled_at FROM requests WHERE id = ${id}`;
+    expect(row!.status).toBe("cancelled");
+    expect(row!.cancelled_at).not.toBeNull();
+  });
+
+  test("POST /cancel on non-pending request returns 409", async ({ request }) => {
+    const id = await createPendingRequest(request);
+    // Approve it first
+    await sql`UPDATE requests SET status = 'approved', approved_at = NOW() WHERE id = ${id}`;
+
+    const res = await request.post(`/api/v1/requests/${id}/cancel`, {
+      headers: { Authorization: `Bearer ${exhibitorToken}` },
+    });
+    expect(res.status()).toBe(409);
+  });
+
+  // ── POST /api/v1/requests/:id/relaunch ──────────────────────────────────
+
+  test("POST /relaunch creates new pending from cancelled request", async ({ request }) => {
+    const id = await createPendingRequest(request);
+    // Cancel it
+    await request.post(`/api/v1/requests/${id}/cancel`, {
+      headers: { Authorization: `Bearer ${exhibitorToken}` },
+    });
+
+    const res = await request.post(`/api/v1/requests/${id}/relaunch`, {
+      headers: { Authorization: `Bearer ${exhibitorToken}` },
+    });
+    expect(res.status()).toBe(201);
+
+    const body = await res.json();
+    expect(body.data.status).toBe("pending");
+    expect(body.data.id).not.toBe(id); // New request, different ID
+  });
+
+  test("POST /relaunch on pending request returns 409", async ({ request }) => {
+    const id = await createPendingRequest(request);
+
+    const res = await request.post(`/api/v1/requests/${id}/relaunch`, {
+      headers: { Authorization: `Bearer ${exhibitorToken}` },
+    });
+    expect(res.status()).toBe(409);
   });
 });

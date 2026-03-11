@@ -1,12 +1,12 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { Trash2 } from "lucide-react";
+import { AlertTriangle, Trash2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import { useMemo, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import { checkoutCart, removeCartItem } from "@/components/booking/actions";
@@ -14,26 +14,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatAmount } from "@/lib/pricing/format";
 
-interface CartItem {
-  id: string;
-  filmId: string;
-  screeningCount: number;
-  startDate: string | null;
-  endDate: string | null;
-  film: { id: string; title: string; posterUrl: string | null };
-  cinema: { name: string };
-  room: { name: string };
-  price: {
-    price: number;
-    currency: string;
-  } | null;
-}
+import type { CartSummary } from "@/lib/services/cart-service";
 
 interface CartPageContentProps {
-  items: CartItem[];
+  summary: CartSummary | null;
 }
 
-export function CartPageContent({ items }: CartPageContentProps) {
+export function CartPageContent({ summary }: CartPageContentProps) {
   const t = useTranslations("cart");
   const queryClient = useQueryClient();
   const locale = useLocale();
@@ -42,43 +29,17 @@ export function CartPageContent({ items }: CartPageContentProps) {
   const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
   const [showRecalculate, setShowRecalculate] = useState(false);
 
-  const groupedTotals = useMemo(() => {
-    // Calculate totals grouped by currency
-    const byDisplayCurrency: Record<string, { subtotal: number; count: number }> = {};
+  const dateFormatter = new Intl.DateTimeFormat(locale, {
+    year: "numeric",
+    month: "short",
+    day: "2-digit",
+  });
 
-    items.forEach((item) => {
-      if (item.price) {
-        const key = item.price.currency;
-        const lineTotal = item.price.price * item.screeningCount;
-
-        if (!byDisplayCurrency[key]) {
-          byDisplayCurrency[key] = { subtotal: 0, count: 0 };
-        }
-        byDisplayCurrency[key].subtotal += lineTotal;
-        byDisplayCurrency[key].count += 1;
-      }
-    });
-
-    return Object.entries(byDisplayCurrency).map(([currency, data]) => ({
-      currency,
-      subtotal: data.subtotal,
-      count: data.count,
-    }));
-  }, [items]);
-
-  const dateFormatter = useMemo(
-    () =>
-      new Intl.DateTimeFormat(locale, {
-        year: "numeric",
-        month: "short",
-        day: "2-digit",
-      }),
-    [locale]
-  );
-
-  if (items.length === 0) {
+  if (!summary || (summary.items.length === 0 && summary.unavailableItems.length === 0)) {
     return <p className="text-muted-foreground">{t("empty")}</p>;
   }
+
+  const { items, unavailableItems, subtotal, deliveryFeesTotal, total, currency } = summary;
 
   return (
     <div className="space-y-4">
@@ -86,9 +47,9 @@ export function CartPageContent({ items }: CartPageContentProps) {
         {items.map((item) => (
           <Card key={item.id}>
             <CardHeader className="pb-2 flex flex-row items-center justify-between">
-              <Link href={`/${locale}/catalog/${item.film.id}`}>
+              <Link href={`/${locale}/catalog/${item.filmId}`}>
                 <CardTitle className="text-lg hover:underline cursor-pointer">
-                  {item.film.title}
+                  {item.filmTitle}
                 </CardTitle>
               </Link>
               <Button
@@ -113,11 +74,11 @@ export function CartPageContent({ items }: CartPageContentProps) {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex gap-4">
-                {item.film.posterUrl ? (
+                {item.filmPosterUrl ? (
                   <div className="relative h-32 w-24 flex-shrink-0">
                     <Image
-                      src={item.film.posterUrl}
-                      alt={item.film.title}
+                      src={item.filmPosterUrl}
+                      alt={item.filmTitle}
                       fill
                       className="rounded-md object-cover"
                     />
@@ -131,11 +92,11 @@ export function CartPageContent({ items }: CartPageContentProps) {
                 <div className="flex-1 space-y-2 text-sm">
                   <p>
                     <span className="font-medium">{t("item.cinema")}: </span>
-                    {item.cinema.name}
+                    {item.cinemaName}
                   </p>
                   <p>
                     <span className="font-medium">{t("item.room")}: </span>
-                    {item.room.name}
+                    {item.roomName}
                   </p>
                   <p>
                     <span className="font-medium">{t("item.screenings")}: </span>
@@ -153,24 +114,31 @@ export function CartPageContent({ items }: CartPageContentProps) {
                       {dateFormatter.format(new Date(item.endDate))}
                     </p>
                   ) : null}
-                  {item.price ? (
-                    <div className="pt-2 space-y-1">
+                  <div className="pt-2 space-y-1">
+                    <p className="text-xs text-muted-foreground">
+                      {t("item.price")}: {formatAmount(item.displayedPrice, item.currency, locale)}{" "}
+                      × {item.screeningCount}
+                    </p>
+                    <p className="font-semibold text-base">
+                      {formatAmount(
+                        item.displayedPrice * item.screeningCount,
+                        item.currency,
+                        locale
+                      )}
+                    </p>
+                    {item.originalCurrency && item.originalCatalogPrice !== null ? (
                       <p className="text-xs text-muted-foreground">
-                        {t("item.price")}:{" "}
-                        {formatAmount(item.price.price, item.price.currency, locale)} ×{" "}
-                        {item.screeningCount}
+                        {t("item.convertedFrom", {
+                          amount: formatAmount(
+                            item.originalCatalogPrice,
+                            item.originalCurrency,
+                            locale
+                          ),
+                          currency: item.originalCurrency,
+                        })}
                       </p>
-                      <p className="font-semibold text-base">
-                        {formatAmount(
-                          item.price.price * item.screeningCount,
-                          item.price.currency,
-                          locale
-                        )}
-                      </p>
-                    </div>
-                  ) : (
-                    <p className="pt-2 text-muted-foreground">{t("priceUnavailable")}</p>
-                  )}
+                    ) : null}
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -178,111 +146,150 @@ export function CartPageContent({ items }: CartPageContentProps) {
         ))}
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("summary.subtotal")}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4 text-sm">
-          {groupedTotals.length === 0 ? (
-            <p className="text-muted-foreground">{t("priceUnavailable")}</p>
-          ) : (
-            <>
-              {groupedTotals.map((total) => (
-                <div
-                  key={total.currency}
-                  className="space-y-2 pb-4 border-b last:border-b-0 last:pb-0"
-                >
-                  <p className="text-xs text-muted-foreground">{total.count} film(s)</p>
-                  <p className="font-semibold text-base">
-                    {formatAmount(total.subtotal, total.currency, locale)}
-                  </p>
+      {unavailableItems.length > 0 ? (
+        <div className="space-y-3">
+          {unavailableItems.map((item) => (
+            <Card key={item.id} className="border-destructive/50 bg-destructive/5">
+              <CardHeader className="pb-2 flex flex-row items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 text-destructive" />
+                  <CardTitle className="text-lg">{item.filmTitle}</CardTitle>
                 </div>
-              ))}
-            </>
-          )}
-          <div className="pt-4 space-y-3">
-            <Button
-              className="w-full"
-              disabled={isPending || isCheckoutLoading}
-              onClick={async () => {
-                setIsCheckoutLoading(true);
-                const result = await checkoutCart({ recalculate: false });
-                setIsCheckoutLoading(false);
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    startTransition(async () => {
+                      const result = await removeCartItem(item.id);
+                      if ("error" in result) {
+                        toast.error(result.error);
+                        return;
+                      }
+                      queryClient.invalidateQueries({ queryKey: ["cart-items-count"] });
+                      router.refresh();
+                    });
+                  }}
+                  disabled={isPending || isCheckoutLoading}
+                  className="text-destructive hover:text-destructive"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  {item.cinemaName} — {item.roomName}
+                </p>
+                <p className="text-sm text-destructive mt-1">
+                  {t(`item.unavailableReason.${item.reason}`)}
+                </p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : null}
 
-                if ("error" in result) {
-                  if (result.error === "PAYMENT_NOT_AVAILABLE_YET") {
-                    toast.error(t("summary.paymentNotAvailable"));
-                    setShowRecalculate(true);
-                    return;
-                  }
-
-                  // Translate error code
-                  const errorTranslationKey = `booking.errors.${result.error}` as const;
-                  const errorMsg = t.has(errorTranslationKey)
-                    ? t(errorTranslationKey)
-                    : result.error || "An error occurred";
-
-                  toast.error(errorMsg);
-
-                  // Allow recalculation on validation errors
-                  const errorNeedsRecalc = [
-                    "PRICE_CHANGED",
-                    "TERRITORY_NOT_AVAILABLE",
-                    "FILM_NOT_AVAILABLE",
-                  ] as const;
-                  if (
-                    result.error &&
-                    errorNeedsRecalc.includes(result.error as (typeof errorNeedsRecalc)[number])
-                  ) {
-                    setShowRecalculate(true);
-                  }
-                  return;
-                }
-
-                // Success case (when payment is implemented in E08)
-                toast.success(t("summary.checkoutSuccess"));
-              }}
-            >
-              {t("summary.checkout")}
-            </Button>
-
-            {showRecalculate ? (
+      {items.length > 0 ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("summary.total")}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4 text-sm">
+            <div className="space-y-2">
+              <p className="text-xs text-muted-foreground">
+                {t("summary.filmCount", { count: items.length })}
+              </p>
+              <div className="flex justify-between">
+                <span>{t("summary.subtotal")}</span>
+                <span>{formatAmount(subtotal, currency, locale)}</span>
+              </div>
+              {deliveryFeesTotal > 0 ? (
+                <div className="flex justify-between">
+                  <span>{t("summary.deliveryFees")}</span>
+                  <span>{formatAmount(deliveryFeesTotal, currency, locale)}</span>
+                </div>
+              ) : null}
+              <div className="flex justify-between font-semibold text-base pt-2 border-t">
+                <span>{t("summary.total")}</span>
+                <span>{formatAmount(total, currency, locale)}</span>
+              </div>
+            </div>
+            <div className="pt-4 space-y-3">
               <Button
-                variant="secondary"
                 className="w-full"
                 disabled={isPending || isCheckoutLoading}
                 onClick={async () => {
                   setIsCheckoutLoading(true);
-                  const result = await checkoutCart({ recalculate: true });
+                  const result = await checkoutCart({ recalculate: false, locale });
                   setIsCheckoutLoading(false);
 
                   if ("error" in result) {
-                    // Translate error code
                     const errorTranslationKey = `booking.errors.${result.error}` as const;
                     const errorMsg = t.has(errorTranslationKey)
                       ? t(errorTranslationKey)
                       : result.error || "An error occurred";
+
                     toast.error(errorMsg);
+
+                    const errorNeedsRecalc = [
+                      "PRICE_CHANGED",
+                      "TERRITORY_NOT_AVAILABLE",
+                      "FILM_NOT_AVAILABLE",
+                    ] as const;
+                    if (
+                      result.error &&
+                      errorNeedsRecalc.includes(result.error as (typeof errorNeedsRecalc)[number])
+                    ) {
+                      setShowRecalculate(true);
+                    }
                     return;
                   }
 
-                  if ("success" in result && result.recalculated) {
-                    setShowRecalculate(false);
-                    toast.success(t("summary.recalculated"));
-                    router.refresh(); // Refresh to show updated pricing
-                    return;
+                  if ("redirectUrl" in result && result.redirectUrl) {
+                    // Redirect to Stripe Checkout
+                    window.location.href = result.redirectUrl;
                   }
-
-                  setShowRecalculate(false);
-                  toast.success(t("summary.recalculated"));
                 }}
               >
-                {t("summary.recalculate")}
+                {t("summary.checkout")}
               </Button>
-            ) : null}
-          </div>
-        </CardContent>
-      </Card>
+
+              {showRecalculate ? (
+                <Button
+                  variant="secondary"
+                  className="w-full"
+                  disabled={isPending || isCheckoutLoading}
+                  onClick={async () => {
+                    setIsCheckoutLoading(true);
+                    const result = await checkoutCart({ recalculate: true, locale });
+                    setIsCheckoutLoading(false);
+
+                    if ("error" in result) {
+                      const errorTranslationKey = `booking.errors.${result.error}` as const;
+                      const errorMsg = t.has(errorTranslationKey)
+                        ? t(errorTranslationKey)
+                        : result.error || "An error occurred";
+                      toast.error(errorMsg);
+                      return;
+                    }
+
+                    if ("success" in result && result.recalculated) {
+                      setShowRecalculate(false);
+                      toast.success(t("summary.recalculated"));
+                      router.refresh();
+                      return;
+                    }
+
+                    setShowRecalculate(false);
+                    toast.success(t("summary.recalculated"));
+                  }}
+                >
+                  {t("summary.recalculate")}
+                </Button>
+              ) : null}
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
     </div>
   );
 }

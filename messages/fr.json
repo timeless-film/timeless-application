@@ -261,7 +261,8 @@
       "END_DATE_WITHOUT_START": "Veuillez sélectionner une date de début avant de définir une date de fin",
       "START_DATE_IN_PAST": "La date de début doit être au moins demain",
       "END_DATE_BEFORE_START": "La date de fin doit être postérieure à la date de début",
-      "DATABASE_ERROR": "Une erreur s'est produite. Veuillez réessayer."
+      "DATABASE_ERROR": "Une erreur s'est produite. Veuillez réessayer.",
+      "ADDRESS_INCOMPLETE": "Veuillez compléter votre adresse fiscale dans les paramètres de votre compte avant d'effectuer un achat."
     },
     "error": {
       "title": "Erreur de chargement",
@@ -281,7 +282,14 @@
       "startDate": "Date de début",
       "endDate": "Date de fin",
       "price": "Prix",
-      "remove": "Supprimer"
+      "remove": "Supprimer",
+      "convertedFrom": "≈ {amount} {currency} (taux indicatif)",
+      "unavailable": "Ce film n'est pas disponible pour votre territoire. Retirez-le du panier pour continuer.",
+      "unavailableReason": {
+        "no_territory_price": "Ce film n'est pas disponible pour votre territoire. Retirez-le du panier pour continuer.",
+        "conversion_failed": "La conversion du prix vers votre devise préférée a échoué. Veuillez mettre à jour votre devise dans les paramètres du compte.",
+        "pricing_error": "Une erreur est survenue lors du calcul du prix. Veuillez réessayer plus tard."
+      }
     },
     "summary": {
       "subtotal": "Sous-total",
@@ -292,6 +300,8 @@
       "paymentNotAvailable": "Le paiement n'est pas encore disponible. Veuillez recalculer puis réessayer.",
       "recalculate": "Recalculer",
       "recalculated": "Prix recalculés.",
+      "filmCount": "{count, plural, one {# film} other {# films}}",
+      "checkoutSuccess": "Paiement réussi !",
       "multiCurrency": "Prix en plusieurs devises"
     },
     "modal": {
@@ -321,7 +331,8 @@
       "screeningsSingular": "séance",
       "price": "Prix",
       "requestDate": "Date de la demande",
-      "requestedBy": "Demandé par"
+      "requestedBy": "Demandé par",
+      "convertedFrom": "≈ {amount} {currency} (taux indicatif)"
     },
     "tabs": {
       "pending": "En attente",
@@ -365,24 +376,53 @@
     "cancelConfirmDescription": "Êtes-vous sûr de vouloir annuler cette demande ? Cette action est irréversible.",
     "cancelConfirmButton": "Oui, annuler",
     "cancelSuccess": "Demande annulée avec succès.",
-    "resubmitSuccess": "Demande soumise à nouveau avec succès."
+    "resubmitSuccess": "Demande soumise à nouveau avec succès.",
+    "paymentSuccess": "Paiement effectué ! Votre demande a été traitée."
   },
   "orders": {
     "title": "Historique des commandes",
+    "empty": "Aucune commande pour le moment.",
+    "noResults": "Aucune commande ne correspond au filtre sélectionné.",
+    "tabs": {
+      "all": "Toutes",
+      "paid": "Payées",
+      "processing": "En traitement",
+      "delivered": "Livrées"
+    },
     "columns": {
       "film": "Film",
+      "films": "Films",
       "cinema": "Cinéma",
       "date": "Date de commande",
+      "orderNumber": "N° commande",
       "amount": "Montant",
-      "status": "Statut de livraison",
+      "quantity": "Qté",
+      "status": "Statut",
       "invoice": "Facture"
     },
     "deliveryStatus": {
+      "paid": "Payée",
       "pending": "En attente de traitement",
+      "processing": "En traitement",
       "in_progress": "En cours",
-      "delivered": "Livré"
+      "delivered": "Livré",
+      "refunded": "Remboursé"
     },
-    "downloadInvoice": "Télécharger la facture"
+    "pagination": {
+      "showing": "{from}–{to} sur {total}"
+    },
+    "detail": {
+      "title": "Commande {orderNumber}",
+      "subtotal": "Sous-total (HT)",
+      "deliveryFees": "Frais de livraison",
+      "tax": "TVA",
+      "total": "Total TTC",
+      "screenings": "{count} séance(s)",
+      "dates": "{start} — {end}"
+    },
+    "downloadInvoice": "Télécharger la facture",
+    "invoiceUnavailable": "La facture n'est pas encore disponible. Veuillez réessayer plus tard.",
+    "paymentSuccess": "Paiement réussi ! Votre commande a été enregistrée."
   },
   "account": {
     "profile": {
@@ -440,6 +480,8 @@
     "vatNumber": "Numéro de TVA",
     "vatPlaceholder": "ex. FR12345678901",
     "vatValidated": "Validé",
+    "vatInvalidFormat": "Format de numéro de TVA invalide.",
+    "vatChecking": "Vérification…",
     "preferredCurrency": "Devise préférée",
     "contactEmail": "Email de contact",
     "contactEmailPlaceholder": "booking@votrecinema.com",
@@ -506,7 +548,9 @@
       "UNAUTHORIZED": "Vous devez être connecté.",
       "FORBIDDEN": "Vous n'avez pas la permission de modifier ce compte.",
       "NOT_FOUND": "Compte introuvable.",
-      "INVALID_INPUT": "Veuillez remplir tous les champs obligatoires."
+      "INVALID_INPUT": "Veuillez remplir tous les champs obligatoires.",
+      "VAT_INVALID_FORMAT": "Format de numéro de TVA invalide.",
+      "NOT_FOUND": "Compte introuvable."
     }
   },
   "cinemas": {

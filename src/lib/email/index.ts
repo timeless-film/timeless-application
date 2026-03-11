@@ -1,41 +1,4 @@
-import { Resend } from "resend";
-
-// ─── Client ───────────────────────────────────────────────────────────────────
-
-const RESEND_API_KEY = process.env.RESEND_API_KEY;
-const FROM = process.env.EMAIL_FROM ?? "Timeless <hello@timeless.film>";
-
-const resend = RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null;
-
-/**
- * Safely execute an email send via Resend HTTP API.
- * Logs errors but never throws — email is best-effort.
- * In development without RESEND_API_KEY, logs to console instead.
- */
-async function safeEmail(
-  label: string,
-  params: { to: string; subject: string; html: string }
-): Promise<void> {
-  if (!resend) {
-    console.warn(`[Email] ${label} skipped: RESEND_API_KEY not configured`);
-    console.warn(`[Email] Would send to ${params.to}: ${params.subject}`);
-    return;
-  }
-  try {
-    const { error } = await resend.emails.send({
-      from: FROM,
-      to: params.to,
-      subject: params.subject,
-      html: params.html,
-    });
-    if (error) {
-      console.error(`[Email] ${label} failed:`, error);
-      return;
-    }
-  } catch (err) {
-    console.error(`[Email] ${label} failed:`, err);
-  }
-}
+import { safeEmail } from "./safe-email";
 
 // ─── Transactional emails ─────────────────────────────────────────────────────
 

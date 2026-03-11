@@ -58,8 +58,9 @@ GET /api/v1/catalog?genres=action&genres=thriller&countries=FR&countries=IT
       "posterUrl": "https://image.tmdb.org/t/p/w500/abc123.jpg",
       "rightsHolderId": "550e8400-e29b-41d4-a716-446655440002",
       "rightsHolderName": "Studiocanal",
-      "catalogPriceHt": 150000,
-      "demandPriceStartingHt": 180000,
+      "displayedPrice": 180000,
+      "displayedPriceStarting": 216000,
+      "priceCurrency": "EUR",
       "hasDemandsEnabled": true,
       "isAvailableInTerritory": true,
       "matchingPriceZones": ["FR", "BE", "CH"],
@@ -76,10 +77,11 @@ GET /api/v1/catalog?genres=action&genres=thriller&countries=FR&countries=IT
 ```
 
 **Field notes**:
-- `catalogPriceHt` / `demandPriceStartingHt`: In Euro cents (HT), `null` if film type doesn't allow that mode
+- `displayedPrice` / `displayedPriceStarting`: In cents (HT), includes platform margin and delivery fees. `null` if film type doesn't allow that mode
+- `priceCurrency`: Currency of the best matching price zone (e.g. `"EUR"`, `"USD"`)
 - `isAvailableInTerritory`: `true` if ≥1 price zone matches exhibitor territories
 - `matchingPriceZones`: Array of country codes where film is available (based on exhibitor's cinema countries)
-- All price fields (`catalogPriceHt`, `demandPriceStartingHt`) are always displayed excluding tax (HT)
+- All price fields are always displayed excluding tax (HT)
 
 ---
 
@@ -145,16 +147,18 @@ curl -H "Authorization: Bearer YOUR_TOKEN" \
    - Example: Film with zones `["FR", "BE", "LU"]` and `["DE", "AT"]` is available because first zone matches FR and BE
 
 2. **Multi-zone pricing**:
-   - When a film has multiple price zones (`catalogPriceHt` can differ per zone), the API returns the **zone with the most matching countries**
-   - If tie, the **lowest price** wins
-   - The `catalogPriceHt` field shows the selected zone's price
+   - When a film has multiple price zones, the API returns the **zone with the most matching countries**
+   - If tie, the **lowest displayed price** wins
+   - The `displayedPrice` field shows the selected zone's price (including platform margin + delivery fees)
+   - Each zone in `matchingPrices` also includes its `displayedPrice`
 
 3. **HT display**:
    - All prices are always displayed excluding tax (HT)
+   - The `displayedPrice` includes the platform margin and delivery fees applied to the catalog price
    - VAT calculation is done at checkout time based on cinema location
 
 4. **Type filtering**:
-   - `type=direct`: Only films with `catalogPriceHt` (instant booking without validation)
+   - `type=direct`: Only films with `displayedPrice` (instant booking without validation)
    - `type=all`: All films (both direct and on-demand)
 
 5. **Performance**:
@@ -198,8 +202,9 @@ Get detailed information for a single film in the catalog. Returns the full film
     "posterUrl": "https://image.tmdb.org/t/p/w500/abc123.jpg",
     "rightsHolderId": "550e8400-e29b-41d4-a716-446655440002",
     "rightsHolderName": "Studiocanal",
-    "catalogPriceHt": 150000,
-    "demandPriceStartingHt": 180000,
+    "displayedPrice": 180000,
+    "displayedPriceStarting": 216000,
+    "priceCurrency": "EUR",
     "hasDemandsEnabled": true,
     "isAvailableInTerritory": true,
     "matchingPriceZones": ["FR", "BE", "CH"],

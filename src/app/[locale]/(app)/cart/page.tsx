@@ -15,12 +15,12 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function CartPage() {
   const t = await getTranslations("cart");
   const result = await getCartItems();
-  const items = "success" in result ? result.data : [];
+  const summary = "success" in result ? result.data : null;
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 px-4 py-8 lg:px-6">
       <h1 className="font-heading text-3xl">{t("title")}</h1>
-      <CartPageContent items={items} />
+      <CartPageContent summary={summary} />
     </div>
   );
 }

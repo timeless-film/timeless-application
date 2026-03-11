@@ -190,7 +190,7 @@ export function FilmDetailContent({
                             {t("zone", { number: idx + 1 })}
                           </span>
                           <span className="text-lg font-semibold">
-                            {formatAmount(price.price, price.currency, locale)}{" "}
+                            {formatAmount(price.displayedPrice, price.currency, locale)}{" "}
                             <span className="text-sm font-normal text-muted-foreground">
                               {price.currency}
                             </span>

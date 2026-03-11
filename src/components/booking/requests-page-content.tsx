@@ -7,7 +7,12 @@ import { useLocale, useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 
-import { cancelRequest, getRequests, relaunchRequest } from "@/components/booking/actions";
+import {
+  cancelRequest,
+  getRequests,
+  payRequest,
+  relaunchRequest,
+} from "@/components/booking/actions";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -39,6 +44,10 @@ interface RequestItem {
   endDate: string | null;
   displayedPrice: number;
   currency: string;
+  originalCatalogPrice: number | null;
+  originalCurrency: string | null;
+  convertedTotal: number | null;
+  convertedCurrency: string | null;
   createdAt: string | Date;
   approvalNote: string | null;
   rejectionReason: string | null;
@@ -55,6 +64,7 @@ interface RequestsPageContentProps {
   initialRequests: RequestItem[];
   initialPagination: { page: number; limit: number; total: number };
   initialTab: "pending" | "history";
+  checkoutSessionId?: string;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -84,6 +94,7 @@ export function RequestsPageContent({
   initialRequests,
   initialPagination,
   initialTab,
+  checkoutSessionId,
 }: RequestsPageContentProps) {
   const t = useTranslations("requests");
   const tCommon = useTranslations("common");
@@ -97,7 +108,9 @@ export function RequestsPageContent({
   const [currentPage, setCurrentPage] = useState(initialPagination.page);
   const [loadingSource, setLoadingSource] = useState<"tab" | "search" | "page" | null>(null);
   const [cancelDialogOpen, setCancelDialogOpen] = useState<string | null>(null);
+  const [payingRequestId, setPayingRequestId] = useState<string | null>(null);
   const isInitialMount = useRef(true);
+  const paymentToastShown = useRef(false);
 
   const dateFormatter = useMemo(
     () =>
@@ -142,7 +155,7 @@ export function RequestsPageContent({
         tab,
         search: search.trim() || undefined,
       });
-      if ("success" in result) {
+      if ("success" in result && result.data && result.pagination) {
         setRequestsList(result.data as unknown as RequestItem[]);
         setPagination(result.pagination);
       }
@@ -202,6 +215,31 @@ export function RequestsPageContent({
       router.refresh();
     });
   };
+
+  const handlePay = (requestId: string) => {
+    setPayingRequestId(requestId);
+    startTransition(async () => {
+      const result = await payRequest({ requestId, locale });
+      if ("error" in result) {
+        toast.error(result.error);
+        setPayingRequestId(null);
+        return;
+      }
+      if ("redirectUrl" in result && result.redirectUrl) {
+        window.location.href = result.redirectUrl;
+      }
+    });
+  };
+
+  // Show success toast when returning from Stripe Checkout
+  useEffect(() => {
+    if (checkoutSessionId && !paymentToastShown.current) {
+      paymentToastShown.current = true;
+      toast.success(t("paymentSuccess"));
+      // Refresh to get updated request status
+      fetchRequests(activeTab, currentPage, searchInput);
+    }
+  }, [checkoutSessionId, t, fetchRequests, activeTab, currentPage, searchInput]);
 
   // ─── Skeleton cards ────────────────────────────────────────────────────
 
@@ -453,6 +491,18 @@ export function RequestsPageContent({
                       {request.screeningCount}
                     </span>
                   )}
+                  {request.convertedTotal !== null && request.convertedCurrency && (
+                    <span className="text-muted-foreground text-xs">
+                      {t("item.convertedFrom", {
+                        amount: formatAmount(
+                          request.convertedTotal,
+                          request.convertedCurrency,
+                          locale
+                        ),
+                        currency: request.convertedCurrency,
+                      })}
+                    </span>
+                  )}
                 </div>
                 <div className="flex items-center gap-4">
                   <span className="text-muted-foreground text-xs">
@@ -465,7 +515,15 @@ export function RequestsPageContent({
                     )}
                   </span>
                   {request.status === "approved" && (
-                    <Button variant="default" size="sm" disabled>
+                    <Button
+                      variant="default"
+                      size="sm"
+                      disabled={payingRequestId === request.id}
+                      onClick={() => handlePay(request.id)}
+                    >
+                      {payingRequestId === request.id && (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      )}
                       {t("actions.pay")}
                     </Button>
                   )}
