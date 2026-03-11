@@ -2,7 +2,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
-import { AppSidebar } from "@/components/app-sidebar";
+import { RightsHolderSidebar } from "@/components/layout/rights-holder-sidebar";
 import { MarketplaceHeader } from "@/components/marketplace-header";
 import { AccountProvider } from "@/components/providers/account-provider";
 import { StripeConnectBanner } from "@/components/shared/stripe-connect-banner";
@@ -111,7 +111,7 @@ export default async function HomeLayout({ children }: { children: ReactNode }) 
             } as React.CSSProperties
           }
         >
-          <AppSidebar
+          <RightsHolderSidebar
             variant="inset"
             user={user}
             sections={sections}
