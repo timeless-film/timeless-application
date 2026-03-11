@@ -78,6 +78,14 @@ describe("isPublicAuthPath", () => {
     expect(isPublicAuthPath("/en/reset-password")).toBe(true);
   });
 
+  it("returns true for /en/request-action", () => {
+    expect(isPublicAuthPath("/en/request-action")).toBe(true);
+  });
+
+  it("returns true for /fr/request-action with query params", () => {
+    expect(isPublicAuthPath("/fr/request-action?token=abc&action=approve")).toBe(true);
+  });
+
   it("returns false for /en/catalog", () => {
     expect(isPublicAuthPath("/en/catalog")).toBe(false);
   });

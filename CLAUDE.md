@@ -211,7 +211,7 @@ src/app/api/
 ├── auth/[...all]/route.ts          ← Better Auth (not versioned)
 ├── webhooks/                       ← External webhooks (not versioned)
 │   ├── stripe/route.ts
-│   └── customerio/route.ts
+
 └── v1/                             ← Versioned public API
     └── cinemas/
         ├── route.ts                ← GET (list), POST (create)
@@ -323,6 +323,16 @@ List all cinemas for the authenticated account.
 - **CardTitle** renders `<div>`, not `<h1-h6>` — don't use `getByRole("heading")`.
 - **Select** is Radix-based — use `getByRole("combobox")`, not `selectOption()`.
 - **Text collisions**: when text appears in both CardTitle and CardDescription, use exact regex: `/^Active sessions$/i`.
+
+### Data tables (list/management pages)
+
+All management tables (films, validation requests, etc.) must follow these patterns:
+
+- **`table-fixed`** layout + explicit percentage widths on every `<TableHead>` (e.g. `className="w-[28%]"`) — prevents column width shifts when content loads or changes.
+- **Skeleton loading for tab switches & pagination**: when `isPending && loadingSource !== "search"`, show 5 skeleton rows matching the column layout (use `<Skeleton>` sized to approximate real content). Never show a single centered spinner or empty table.
+- **Search: keep stale content visible** — during search, don't show skeletons. Keep the current rows displayed until new results arrive (seamless replacement). Show a spinning `Loader2` icon inside the search input (replacing the `Search` icon) as the loading indicator.
+- **Track loading source** via `useState<"tab" | "search" | "page" | null>(null)` — set before each fetch to differentiate between skeleton (tab/page) and inline spinner (search) behaviors.
+- **Guard empty states during loading** — when a table has an "absolute empty" state (e.g. "No films — import some"), guard with the SSR initial count: `initialTotal === 0 && total === 0 && !loading`. Checking `total === 0 && !loading` alone isn't enough — there's a 300ms debounce gap between clearing the search input and the fetch starting, during which `total` is still 0 from the previous empty search, `searchInput` is empty, and `loading` is false. Using `initialTotal` (the SSR prop with no search filter) prevents flashing because it reflects the real film count.
 
 ### Forms & feedback
 

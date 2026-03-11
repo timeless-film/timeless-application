@@ -1,7 +1,7 @@
 import { headers } from "next/headers";
 import { getTranslations } from "next-intl/server";
 
-import { AppSidebar } from "@/components/app-sidebar";
+import { RightsHolderSidebar } from "@/components/layout/rights-holder-sidebar";
 import { AccountProvider } from "@/components/providers/account-provider";
 import { StripeConnectBanner } from "@/components/shared/stripe-connect-banner";
 import { SiteHeader } from "@/components/site-header";
@@ -71,7 +71,7 @@ export default async function RightsHolderLayout({ children }: { children: React
           } as React.CSSProperties
         }
       >
-        <AppSidebar
+        <RightsHolderSidebar
           variant="inset"
           user={user}
           sections={sections}

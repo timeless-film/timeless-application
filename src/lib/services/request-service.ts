@@ -1,8 +1,11 @@
 import { and, eq, inArray } from "drizzle-orm";
 
 import { db } from "@/lib/db";
-import { requests, films, cinemas, rooms } from "@/lib/db/schema";
+import { accounts, requests, films, cinemas, rooms } from "@/lib/db/schema";
+import { sendRequestNotificationToRightsHolder } from "@/lib/email/request-emails";
 import { calculatePricing, getPlatformPricingSettings, resolveCommissionRate } from "@/lib/pricing";
+import { getAccountUserEmails } from "@/lib/services/account-users";
+import { generateValidationToken } from "@/lib/services/request-token-service";
 
 import type { requestStatusEnum } from "@/lib/db/schema";
 
@@ -64,9 +67,19 @@ export async function transitionRequestStatus(params: {
   exhibitorAccountId?: string; // For exhibitor-initiated transitions (cancel)
   rightsHolderAccountId?: string; // For rights holder-initiated transitions (approve/reject)
   reason?: string;
+  approvalNote?: string;
+  processedByUserId?: string | null;
 }): Promise<RequestTransitionResult> {
-  const { requestId, fromStatus, toStatus, exhibitorAccountId, rightsHolderAccountId, reason } =
-    params;
+  const {
+    requestId,
+    fromStatus,
+    toStatus,
+    exhibitorAccountId,
+    rightsHolderAccountId,
+    reason,
+    approvalNote,
+    processedByUserId,
+  } = params;
 
   // Validate transition
   if (!isValidTransition(fromStatus, toStatus)) {
@@ -107,9 +120,16 @@ export async function transitionRequestStatus(params: {
 
   if (toStatus === "approved") {
     updates.approvedAt = new Date();
+    updates.approvalNote = approvalNote ?? null;
+    if (processedByUserId !== undefined) {
+      updates.processedByUserId = processedByUserId;
+    }
   } else if (toStatus === "rejected") {
     updates.rejectedAt = new Date();
     updates.rejectionReason = reason;
+    if (processedByUserId !== undefined) {
+      updates.processedByUserId = processedByUserId;
+    }
   } else if (toStatus === "cancelled") {
     updates.cancelledAt = new Date();
     updates.cancellationReason = reason;
@@ -220,9 +240,19 @@ export async function createRequest(params: {
   startDate?: string;
   endDate?: string;
   note?: string;
+  createdByUserId?: string;
 }): Promise<CreateRequestResult> {
-  const { exhibitorAccountId, filmId, cinemaId, roomId, screeningCount, startDate, endDate, note } =
-    params;
+  const {
+    exhibitorAccountId,
+    filmId,
+    cinemaId,
+    roomId,
+    screeningCount,
+    startDate,
+    endDate,
+    note,
+    createdByUserId,
+  } = params;
 
   // 1. Date validation (same as cart)
   if (endDate && !startDate) {
@@ -324,6 +354,7 @@ export async function createRequest(params: {
         startDate: startDate || null,
         endDate: endDate || null,
         note: note || null,
+        createdByUserId: createdByUserId ?? null,
         catalogPrice: pricing.catalogPrice,
         currency: pricing.currency,
         platformMarginRate: pricing.platformMarginRate.toString(),
@@ -336,9 +367,121 @@ export async function createRequest(params: {
       })
       .returning({ id: requests.id });
 
-    return { success: true, requestId: inserted!.id };
+    const requestId = inserted!.id;
+
+    // Generate validation token and send emails to all RH account users (fire-and-forget)
+    sendValidationEmails({
+      requestId,
+      rightsHolderAccountId: film.accountId,
+      exhibitorAccountId,
+      filmTitle: film.title,
+      cinemaName: cinema.name,
+      cinemaAddress: cinema.address,
+      cinemaCity: cinema.city,
+      cinemaPostalCode: cinema.postalCode,
+      cinemaCountry: cinema.country,
+      roomName: room.name,
+      roomCapacity: room.capacity,
+      screeningCount,
+      startDate: startDate || null,
+      endDate: endDate || null,
+      displayedPrice: pricing.displayedPrice,
+      rightsHolderAmount: pricing.rightsHolderAmount,
+      currency: pricing.currency,
+      note: note || null,
+    }).catch((err) => {
+      console.error("Failed to send validation emails:", err);
+    });
+
+    return { success: true, requestId };
   } catch (error) {
     console.error("Failed to create request:", error);
     return { success: false, error: "DATABASE_ERROR" };
+  }
+}
+
+// ─── Internal helpers ─────────────────────────────────────────────────────────
+
+/**
+ * Generate validation tokens and send notification emails to all RH account users.
+ * Fire-and-forget — errors are logged but don't affect the request creation.
+ */
+async function sendValidationEmails(params: {
+  requestId: string;
+  rightsHolderAccountId: string;
+  exhibitorAccountId: string;
+  filmTitle: string;
+  cinemaName: string;
+  cinemaAddress: string | null;
+  cinemaCity: string | null;
+  cinemaPostalCode: string | null;
+  cinemaCountry: string;
+  roomName: string;
+  roomCapacity: number;
+  screeningCount: number;
+  startDate: string | null;
+  endDate: string | null;
+  displayedPrice: number;
+  rightsHolderAmount: number;
+  currency: string;
+  note: string | null;
+}): Promise<void> {
+  // Get exhibitor account details
+  const exhibitorAccount = await db.query.accounts.findFirst({
+    where: eq(accounts.id, params.exhibitorAccountId),
+    columns: {
+      companyName: true,
+      country: true,
+      vatNumber: true,
+    },
+  });
+
+  if (!exhibitorAccount) {
+    console.error("sendValidationEmails: exhibitor account not found");
+    return;
+  }
+
+  // Get all RH account users
+  const rhUsers = await getAccountUserEmails(params.rightsHolderAccountId);
+  if (rhUsers.length === 0) {
+    console.warn("sendValidationEmails: no users found for RH account");
+    return;
+  }
+
+  // Generate a token per user (each token includes the user's ID for traceability)
+  for (const user of rhUsers) {
+    const token = await generateValidationToken(params.requestId, user.userId);
+
+    // Store token on the request (last one wins — all tokens are valid independently)
+    await db
+      .update(requests)
+      .set({ validationToken: token, updatedAt: new Date() })
+      .where(eq(requests.id, params.requestId));
+
+    await sendRequestNotificationToRightsHolder({
+      requestId: params.requestId,
+      token,
+      filmTitle: params.filmTitle,
+      exhibitorCompanyName: exhibitorAccount.companyName,
+      exhibitorCountry: exhibitorAccount.country,
+      exhibitorVatNumber: exhibitorAccount.vatNumber,
+      cinemaName: params.cinemaName,
+      cinemaAddress: params.cinemaAddress,
+      cinemaCity: params.cinemaCity,
+      cinemaPostalCode: params.cinemaPostalCode,
+      cinemaCountry: params.cinemaCountry,
+      roomName: params.roomName,
+      roomCapacity: params.roomCapacity,
+      screeningCount: params.screeningCount,
+      startDate: params.startDate,
+      endDate: params.endDate,
+      displayedPrice: params.displayedPrice,
+      rightsHolderAmount: params.rightsHolderAmount,
+      currency: params.currency,
+      note: params.note,
+      recipientEmail: user.email,
+      recipientName: user.name,
+      recipientLocale: user.preferredLocale,
+    });
   }
 }

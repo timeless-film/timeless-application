@@ -21,7 +21,8 @@
     "currency": "Currency",
     "country": "Country",
     "error": "An error occurred. Please try again.",
-    "noResults": "No results found."
+    "noResults": "No results found.",
+    "excludingTax": "excl. tax"
   },
   "auth": {
     "alreadyConnected": {
@@ -312,19 +313,28 @@
     "title": "My requests",
     "empty": "No requests yet.",
     "noPoster": "No poster",
+    "searchPlaceholder": "Search by film title…",
     "item": {
       "room": "Screen",
       "screenings": "Number of screenings",
+      "screeningsPlural": "screenings",
+      "screeningsSingular": "screening",
       "price": "Price",
       "requestDate": "Request date",
       "requestedBy": "Requested by"
     },
     "tabs": {
       "pending": "Pending",
+      "history": "History",
       "approved": "Approved",
       "rejected": "Rejected",
       "cancelled": "Cancelled",
       "paid": "Paid"
+    },
+    "pagination": {
+      "info": "Page {page} of {total}",
+      "previous": "Previous",
+      "next": "Next"
     },
     "columns": {
       "film": "Film",
@@ -347,7 +357,15 @@
       "cancel": "Cancel request",
       "resubmit": "Resubmit"
     },
-    "refusalReason": "Reason: {reason}"
+    "refusalReason": "Reason: {reason}",
+    "approvalNote": "Note from rights holder: {note}",
+    "approvedAt": "Approved on {date}",
+    "rejectedAt": "Rejected on {date}",
+    "cancelConfirmTitle": "Cancel request",
+    "cancelConfirmDescription": "Are you sure you want to cancel this request? This action cannot be undone.",
+    "cancelConfirmButton": "Yes, cancel",
+    "cancelSuccess": "Request cancelled successfully.",
+    "resubmitSuccess": "Request resubmitted successfully."
   },
   "orders": {
     "title": "Order history",
@@ -748,6 +766,7 @@
     },
     "validation": {
       "title": "Validation requests",
+      "empty": "No validation requests.",
       "columns": {
         "film": "Film",
         "exhibitor": "Exhibitor",
@@ -757,14 +776,97 @@
         "room": "Screen ({capacity} seats)",
         "price": "Price",
         "expires": "Expires on",
-        "actions": "Actions"
+        "actions": "Actions",
+        "requestDate": "Request date",
+        "status": "Status"
+      },
+      "tabs": {
+        "pending": "Pending",
+        "history": "History"
       },
       "accept": "Accept",
       "refuse": "Refuse",
+      "approvalNote": "Comment (optional)",
+      "approvalNotePlaceholder": "Add a comment for the exhibitor...",
       "refusalReason": "Reason for refusal (optional)",
-      "confirmAccept": "Are you sure you want to accept this request?",
-      "confirmRefuse": "Are you sure you want to refuse this request?"
+      "refusalReasonPlaceholder": "Explain why you are declining this request...",
+      "confirmAcceptTitle": "Accept this request?",
+      "confirmAcceptDescription": "Are you sure you want to accept this booking request? The exhibitor will be notified.",
+      "confirmAcceptButton": "Yes, accept",
+      "confirmRefuseTitle": "Decline this request?",
+      "confirmRefuseDescription": "Are you sure you want to decline this booking request? The exhibitor will be notified.",
+      "confirmRefuseButton": "Yes, decline",
+      "approveSuccess": "Request approved successfully.",
+      "rejectSuccess": "Request declined successfully.",
+      "searchPlaceholder": "Search by film or exhibitor…",
+      "pagination": {
+        "previous": "Previous",
+        "next": "Next",
+        "info": "Page {page} of {total}"
+      },
+      "detail": {
+        "title": "Request details",
+        "filmSection": "Film",
+        "exhibitorSection": "Exhibitor",
+        "companyName": "Company name",
+        "country": "Country",
+        "vatNumber": "VAT number",
+        "cinemaSection": "Cinema",
+        "address": "Address",
+        "roomSection": "Screen",
+        "capacity": "{capacity} seats",
+        "screeningsSection": "Screening details",
+        "screeningCount": "Number of screenings",
+        "dates": "Dates",
+        "noDates": "Not specified",
+        "pricingSection": "Pricing",
+        "displayedPrice": "Exhibitor price",
+        "yourRevenue": "Your revenue",
+        "noteSection": "Note from exhibitor",
+        "approvalNoteSection": "Your comment",
+        "rejectionReasonSection": "Reason for refusal",
+        "processedBy": "Processed by",
+        "alreadyApproved": "This request has been approved.",
+        "alreadyRejected": "This request has been declined.",
+        "alreadyCancelled": "This request has been cancelled by the exhibitor.",
+        "alreadyPaid": "This request has been paid."
+      }
     }
+  },
+  "requestAction": {
+    "approveTitle": "Approve booking request",
+    "rejectTitle": "Decline booking request",
+    "successApproved": "Request approved",
+    "successApprovedDescription": "The booking request has been approved. The exhibitor has been notified.",
+    "successRejected": "Request declined",
+    "successRejectedDescription": "The booking request has been declined. The exhibitor has been notified.",
+    "approvalNote": "Comment for the exhibitor (optional)",
+    "approvalNotePlaceholder": "Add a comment...",
+    "rejectionReason": "Reason for refusal (optional)",
+    "rejectionReasonPlaceholder": "Explain why you are declining...",
+    "confirmApproveButton": "Confirm approval",
+    "confirmRejectButton": "Confirm refusal",
+    "confirmApproveTitle": "Approve this request?",
+    "confirmApproveDescription": "Are you sure you want to approve this booking request?",
+    "confirmRejectTitle": "Decline this request?",
+    "confirmRejectDescription": "Are you sure you want to decline this booking request?",
+    "tokenExpired": "This link has expired. Please log in to your dashboard to process this request.",
+    "tokenInvalid": "This link is not valid.",
+    "requestNotFound": "This request does not exist.",
+    "alreadyApproved": "This request has already been approved.",
+    "alreadyRejected": "This request has already been declined.",
+    "alreadyCancelled": "This request has been cancelled by the exhibitor.",
+    "alreadyPaid": "This request has already been paid.",
+    "goToDashboard": "Go to dashboard",
+    "filmLabel": "Film",
+    "exhibitorLabel": "Exhibitor",
+    "cinemaLabel": "Cinema",
+    "roomLabel": "Screen",
+    "screeningsLabel": "Screenings",
+    "datesLabel": "Dates",
+    "priceLabel": "Price",
+    "noDates": "Not specified",
+    "error": "An error occurred. Please try again."
   },
   "wallet": {
     "title": "Wallet",

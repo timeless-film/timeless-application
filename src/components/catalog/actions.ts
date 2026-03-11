@@ -7,9 +7,9 @@ import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { getActiveAccountCookie } from "@/lib/auth/membership";
 import { db } from "@/lib/db";
-import { cartItems, cinemas, films, requests, rooms } from "@/lib/db/schema";
-import { calculatePricing, getPlatformPricingSettings, resolveCommissionRate } from "@/lib/pricing";
+import { cartItems, cinemas, films, rooms } from "@/lib/db/schema";
 import { getFilmRequestsSummary } from "@/lib/services/booking-service";
+import { createRequest as createRequestService } from "@/lib/services/request-service";
 
 // ─── Validation ───────────────────────────────────────────────────────────────
 
@@ -161,7 +161,6 @@ export async function createRequest(input: z.infer<typeof createRequestSchema>) 
   if (!activeAccount?.accountId) {
     return { error: "NO_ACTIVE_ACCOUNT" as const };
   }
-  const activeAccountId = activeAccount.accountId;
 
   // 2. Validation
   const parsed = createRequestSchema.safeParse(input);
@@ -184,94 +183,24 @@ export async function createRequest(input: z.infer<typeof createRequestSchema>) 
     return { error: "END_DATE_BEFORE_START" as const, field: "endDate" as const };
   }
 
-  // 3. Verify film exists and is available for validation requests
-  const film = await db.query.films.findFirst({
-    where: eq(films.id, filmId),
-    with: {
-      prices: true,
-      account: true, // Rights holder
-    },
+  // 3. Delegate to service (handles validation, pricing, token generation, email)
+  const result = await createRequestService({
+    exhibitorAccountId: activeAccount.accountId,
+    filmId,
+    cinemaId,
+    roomId,
+    screeningCount,
+    startDate,
+    endDate,
+    note,
+    createdByUserId: session.user.id,
   });
 
-  if (!film || !film.account || film.status !== "active") {
-    return { error: "FILM_NOT_FOUND" as const };
+  if (!result.success) {
+    return { error: result.error as string };
   }
 
-  if (film.type !== "validation") {
-    return { error: "FILM_NOT_DIRECT" as const };
-  }
-
-  // 3b. Verify cinema ownership + room ownership
-  const cinema = await db.query.cinemas.findFirst({
-    where: and(eq(cinemas.id, cinemaId), eq(cinemas.accountId, activeAccountId)),
-  });
-  if (!cinema) {
-    return { error: "INVALID_INPUT" as const };
-  }
-
-  const room = await db.query.rooms.findFirst({
-    where: and(eq(rooms.id, roomId), eq(rooms.cinemaId, cinemaId)),
-  });
-  if (!room) {
-    return { error: "INVALID_INPUT" as const };
-  }
-
-  // 3c. Verify territory availability for selected cinema country
-  const hasMatchingPrice = film.prices.some((priceZone) =>
-    priceZone.countries.includes(cinema.country)
-  );
-  if (!hasMatchingPrice) {
-    return { error: "FILM_NOT_FOUND" as const };
-  }
-
-  // 4. Get pricing settings, compute totals, and insert request
-  try {
-    const settings = await getPlatformPricingSettings();
-    const commissionRate = resolveCommissionRate(
-      film.account.commissionRate,
-      settings.defaultCommissionRate
-    );
-
-    const matchingPrice =
-      film.prices.find((priceZone) => priceZone.countries.includes(cinema.country)) ??
-      film.prices[0] ??
-      null;
-
-    const pricing = calculatePricing({
-      catalogPrice: matchingPrice?.price ?? 0,
-      currency: matchingPrice?.currency ?? "EUR",
-      platformMarginRate: settings.platformMarginRate,
-      deliveryFees: settings.deliveryFees,
-      commissionRate,
-    });
-
-    await db.insert(requests).values({
-      exhibitorAccountId: activeAccountId,
-      rightsHolderAccountId: film.accountId,
-      createdByUserId: session.user.id,
-      filmId,
-      cinemaId,
-      roomId,
-      screeningCount,
-      startDate,
-      endDate,
-      note,
-      catalogPrice: pricing.catalogPrice,
-      currency: pricing.currency,
-      platformMarginRate: pricing.platformMarginRate.toString(),
-      deliveryFees: pricing.deliveryFees,
-      commissionRate: pricing.commissionRate.toString(),
-      displayedPrice: pricing.displayedPrice,
-      rightsHolderAmount: pricing.rightsHolderAmount,
-      timelessAmount: pricing.timelessAmount,
-      status: "pending",
-    });
-
-    return { success: true as const };
-  } catch (error) {
-    console.error("Failed to create request:", error);
-    return { error: "DATABASE_ERROR" as const };
-  }
+  return { success: true as const };
 }
 
 export async function getFilmRequestSummary(input: { filmId: string }) {

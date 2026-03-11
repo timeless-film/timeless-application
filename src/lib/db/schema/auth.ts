@@ -14,6 +14,7 @@ export const betterAuthUsers = pgTable("better_auth_users", {
   twoFactorEnabled: boolean("two_factor_enabled"),
   twoFactorSecret: text("two_factor_secret"),
   twoFactorBackupCodes: text("two_factor_backup_codes"),
+  preferredLocale: text("preferred_locale").default("en"),
 });
 
 export const betterAuthSessions = pgTable("better_auth_sessions", {

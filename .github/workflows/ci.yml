@@ -108,9 +108,6 @@ jobs:
       BETTER_AUTH_URL: http://localhost:3099
       STRIPE_SECRET_KEY: sk_test_fake_ci_key
       STRIPE_WEBHOOK_SECRET: whsec_fake_ci_key
-      CUSTOMERIO_SITE_ID: fake_ci
-      CUSTOMERIO_API_KEY: fake_ci
-      CUSTOMERIO_APP_API_KEY: fake_ci
       TMDB_API_KEY: fake_ci
       CI: true
 

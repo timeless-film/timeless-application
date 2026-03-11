@@ -68,6 +68,8 @@ export interface NavSection {
     title: string;
     href: string;
     icon?: IconName;
+    badge?: number;
+    badgeVariant?: "default" | "destructive";
   }[];
 }
 
@@ -107,6 +109,8 @@ export function AppSidebar({
             items={section.items.map((item) => ({
               ...item,
               icon: item.icon ? ICON_MAP[item.icon] : undefined,
+              badge: item.badge,
+              badgeVariant: item.badgeVariant,
             }))}
           />
         ))}

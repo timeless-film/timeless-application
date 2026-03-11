@@ -10,7 +10,7 @@ B2B marketplace for classic and heritage films. Exhibitors (cinemas, festivals) 
 | Database    | PostgreSQL + Drizzle ORM                |
 | Auth        | Better Auth (email + MFA/TOTP)          |
 | Payments    | Stripe + Stripe Connect                 |
-| Emails      | Customer.io                             |
+| Emails      | Resend (HTTP API)                        |
 | UI          | Tailwind CSS v4 + shadcn/ui             |
 | i18n        | next-intl (en, fr)                      |
 
@@ -50,8 +50,7 @@ Open [http://localhost:3000](http://localhost:3000).
 | `NEXT_PUBLIC_APP_URL`    | App URL (default: http://localhost:3000) |
 | `STRIPE_SECRET_KEY`      | Stripe API key                        |
 | `STRIPE_WEBHOOK_SECRET`  | Stripe webhook signing secret         |
-| `CUSTOMERIO_SITE_ID`     | Customer.io site ID                   |
-| `CUSTOMERIO_API_KEY`     | Customer.io API key                   |
+| `RESEND_API_KEY`         | Resend API key                         |
 | `TMDB_API_KEY`           | TMDB read access token                |
 
 ## Commands
@@ -86,7 +85,7 @@ src/
 │   ├── auth/               # Better Auth config
 │   ├── db/schema/          # Drizzle schema (accounts, films, orders…)
 │   ├── stripe/             # Stripe + Connect helpers
-│   ├── customerio/         # Email events + user sync
+│   ├── email/              # Transactional email (Resend HTTP API)
 │   ├── pricing/            # Pricing engine
 │   └── tmdb/               # TMDB API integration
 ├── i18n/                   # next-intl setup

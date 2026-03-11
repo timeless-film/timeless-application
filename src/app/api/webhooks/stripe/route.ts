@@ -35,7 +35,6 @@ export async function POST(req: NextRequest) {
 
           // TODO: trigger Stripe Connect transfers to rights holders
           // TODO: notify the ops team (email + dashboard)
-          // TODO: track Customer.io event
         }
         break;
       }

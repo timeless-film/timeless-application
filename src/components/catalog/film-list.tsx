@@ -41,6 +41,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -92,6 +93,7 @@ export function FilmList({ initialFilms, initialTotal, currentUserRole }: FilmLi
   const [searchInput, setSearchInput] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [loadingSource, setLoadingSource] = useState<"search" | "page" | null>(null);
   const isInitialMount = useRef(true);
 
   const canEdit = currentUserRole === "owner" || currentUserRole === "admin";
@@ -128,6 +130,7 @@ export function FilmList({ initialFilms, initialTotal, currentUserRole }: FilmLi
       return;
     }
     const timer = setTimeout(() => {
+      setLoadingSource("search");
       setCurrentPage(1);
       fetchFilms(searchInput, 1);
     }, 300);
@@ -135,6 +138,7 @@ export function FilmList({ initialFilms, initialTotal, currentUserRole }: FilmLi
   }, [searchInput, fetchFilms]);
 
   function handlePageChange(page: number) {
+    setLoadingSource("page");
     setCurrentPage(page);
     fetchFilms(searchInput, page);
   }
@@ -228,8 +232,11 @@ export function FilmList({ initialFilms, initialTotal, currentUserRole }: FilmLi
   }
 
   // ─── Empty state (no films at all) ─────────────────────────────────────
+  // Guard with initialTotal: if SSR found films, never flash this state.
+  // Without this, clearing a search that returned 0 results causes a flash
+  // during the 300ms debounce gap (total=0, searchInput="", loading=false).
 
-  if (total === 0 && !searchInput.trim()) {
+  if (initialTotal === 0 && total === 0 && !searchInput.trim() && !loading) {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
@@ -284,7 +291,11 @@ export function FilmList({ initialFilms, initialTotal, currentUserRole }: FilmLi
       </div>
 
       <div className="relative">
-        <Search className="text-muted-foreground absolute left-3 top-1/2 size-4 -translate-y-1/2" />
+        {loading && loadingSource === "search" ? (
+          <Loader2 className="text-muted-foreground absolute left-3 top-1/2 size-4 -translate-y-1/2 animate-spin" />
+        ) : (
+          <Search className="text-muted-foreground absolute left-3 top-1/2 size-4 -translate-y-1/2" />
+        )}
         <Input
           type="search"
           name="film-search"
@@ -304,23 +315,45 @@ export function FilmList({ initialFilms, initialTotal, currentUserRole }: FilmLi
         />
       </div>
 
-      <Table>
+      <Table className="table-fixed">
         <TableHeader>
           <TableRow className="border-border/40">
-            <TableHead>{t("columns.title")}</TableHead>
-            <TableHead>{t("columns.type")}</TableHead>
-            <TableHead>{t("columns.status")}</TableHead>
-            <TableHead>{t("columns.price")}</TableHead>
-            {canEdit && <TableHead className="w-12" />}
+            <TableHead className="w-[44%]">{t("columns.title")}</TableHead>
+            <TableHead className="w-[14%]">{t("columns.type")}</TableHead>
+            <TableHead className="w-[14%]">{t("columns.status")}</TableHead>
+            <TableHead className="w-[20%]">{t("columns.price")}</TableHead>
+            {canEdit && <TableHead className="w-[8%]" />}
           </TableRow>
         </TableHeader>
         <TableBody>
-          {loading ? (
-            <TableRow>
-              <TableCell colSpan={canEdit ? 5 : 4} className="py-8 text-center">
-                <Loader2 className="text-muted-foreground mx-auto size-6 animate-spin" />
-              </TableCell>
-            </TableRow>
+          {loading && loadingSource !== "search" ? (
+            Array.from({ length: 5 }).map((_, i) => (
+              <TableRow key={`skeleton-${i}`} className="border-b border-border/40">
+                <TableCell>
+                  <div className="flex items-center gap-3">
+                    <Skeleton className="h-12 w-8 rounded" />
+                    <div>
+                      <Skeleton className="h-4 w-36 mb-1" />
+                      <Skeleton className="h-3 w-16" />
+                    </div>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-5 w-20 rounded-full" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-5 w-16 rounded-full" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-4 w-24" />
+                </TableCell>
+                {canEdit && (
+                  <TableCell>
+                    <Skeleton className="h-8 w-8 rounded" />
+                  </TableCell>
+                )}
+              </TableRow>
+            ))
           ) : films.length === 0 ? (
             <TableRow className="border-b border-border/40">
               <TableCell

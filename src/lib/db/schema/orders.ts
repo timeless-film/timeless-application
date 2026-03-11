@@ -75,7 +75,9 @@ export const requests = pgTable("requests", {
   validationToken: text("validation_token"), // JWT token for accept/refuse from email
   refusalReason: text("refusal_reason"), // DEPRECATED - use rejectionReason
   rejectionReason: text("rejection_reason"),
+  approvalNote: text("approval_note"),
   cancellationReason: text("cancellation_reason"),
+  processedByUserId: text("processed_by_user_id").references(() => betterAuthUsers.id),
   approvedAt: timestamp("approved_at"),
   rejectedAt: timestamp("rejected_at"),
   cancelledAt: timestamp("cancelled_at"),
@@ -208,6 +210,12 @@ export const requestsRelations = relations(requests, ({ one }) => ({
   createdByUser: one(betterAuthUsers, {
     fields: [requests.createdByUserId],
     references: [betterAuthUsers.id],
+    relationName: "created_requests",
+  }),
+  processedByUser: one(betterAuthUsers, {
+    fields: [requests.processedByUserId],
+    references: [betterAuthUsers.id],
+    relationName: "processed_requests",
   }),
 }));
 

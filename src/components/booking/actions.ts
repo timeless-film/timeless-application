@@ -19,6 +19,8 @@ const listRequestsSchema = z.object({
   page: z.number().int().min(1).default(1),
   limit: z.number().int().min(1).max(100).default(20),
   status: z.enum(["pending", "approved", "rejected", "cancelled", "paid"]).optional(),
+  tab: z.enum(["pending", "history"]).optional(),
+  search: z.string().max(200).optional(),
 });
 
 const checkoutSchema = z.object({
@@ -134,6 +136,13 @@ export async function getRequests(input: z.infer<typeof listRequestsSchema>) {
   const result = await listRequestsForAccount({
     exhibitorAccountId: authResult.accountId,
     status: parsed.data.status,
+    statuses:
+      parsed.data.tab === "pending"
+        ? ["pending", "approved"]
+        : parsed.data.tab === "history"
+          ? ["rejected", "cancelled", "paid"]
+          : undefined,
+    search: parsed.data.search?.trim() || undefined,
     page: parsed.data.page,
     limit: parsed.data.limit,
   });

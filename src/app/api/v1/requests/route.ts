@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { verifyBearerToken } from "@/lib/auth/api-auth";
+import { listRequestsForAccount } from "@/lib/services/booking-service";
 import { createRequest } from "@/lib/services/request-service";
 
 import type { NextRequest } from "next/server";
@@ -16,6 +17,40 @@ const createRequestSchema = z.object({
   endDate: z.string().optional(),
   note: z.string().optional(),
 });
+
+/**
+ * GET /api/v1/requests
+ * List requests for the authenticated exhibitor account.
+ */
+export async function GET(request: NextRequest) {
+  const authResult = await verifyBearerToken(request);
+  if (!authResult.success) {
+    return NextResponse.json(
+      { error: { code: "UNAUTHORIZED", message: "Invalid or missing token" } },
+      { status: 401 }
+    );
+  }
+
+  const { searchParams } = new URL(request.url);
+  const page = Math.max(1, Number(searchParams.get("page")) || 1);
+  const limit = Math.min(100, Math.max(1, Number(searchParams.get("limit")) || 20));
+  const statusParam = searchParams.get("status") as
+    | "pending"
+    | "approved"
+    | "rejected"
+    | "cancelled"
+    | "paid"
+    | null;
+
+  const result = await listRequestsForAccount({
+    exhibitorAccountId: authResult.accountId,
+    status: statusParam ?? undefined,
+    page,
+    limit,
+  });
+
+  return NextResponse.json(result);
+}
 
 /**
  * POST /api/v1/requests

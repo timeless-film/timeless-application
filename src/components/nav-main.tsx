@@ -7,10 +7,12 @@ import {
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarMenu,
+  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { Link } from "@/i18n/navigation";
+import { cn } from "@/lib/utils";
 
 import type { LucideIcon } from "lucide-react";
 
@@ -23,6 +25,8 @@ export function NavMain({
     title: string;
     href: string;
     icon?: LucideIcon;
+    badge?: number;
+    badgeVariant?: "default" | "destructive";
   }[];
 }) {
   const pathname = usePathname();
@@ -44,6 +48,18 @@ export function NavMain({
                   <span>{item.title}</span>
                 </Link>
               </SidebarMenuButton>
+              {item.badge !== undefined && (
+                <SidebarMenuBadge
+                  className={cn(
+                    "rounded-full min-w-5 h-5 text-xs",
+                    item.badgeVariant === "destructive" && item.badge > 0
+                      ? "bg-destructive !text-white font-semibold"
+                      : "bg-muted text-muted-foreground"
+                  )}
+                >
+                  {item.badge}
+                </SidebarMenuBadge>
+              )}
             </SidebarMenuItem>
           ))}
         </SidebarMenu>

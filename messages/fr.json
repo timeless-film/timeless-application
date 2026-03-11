@@ -21,7 +21,8 @@
     "currency": "Devise",
     "country": "Pays",
     "error": "Une erreur est survenue. Veuillez réessayer.",
-    "noResults": "Aucun résultat trouvé."
+    "noResults": "Aucun résultat trouvé.",
+    "excludingTax": "HT"
   },
   "auth": {
     "alreadyConnected": {
@@ -312,19 +313,28 @@
     "title": "Mes demandes",
     "empty": "Aucune demande pour le moment.",
     "noPoster": "Pas d'affiche",
+    "searchPlaceholder": "Rechercher par titre de film…",
     "item": {
       "room": "Salle",
       "screenings": "Nombre de visionnages",
+      "screeningsPlural": "séances",
+      "screeningsSingular": "séance",
       "price": "Prix",
       "requestDate": "Date de la demande",
       "requestedBy": "Demandé par"
     },
     "tabs": {
       "pending": "En attente",
+      "history": "Historique",
       "approved": "Approuvées",
       "rejected": "Rejetées",
       "cancelled": "Annulées",
       "paid": "Payées"
+    },
+    "pagination": {
+      "info": "Page {page} sur {total}",
+      "previous": "Précédent",
+      "next": "Suivant"
     },
     "columns": {
       "film": "Film",
@@ -347,7 +357,15 @@
       "cancel": "Annuler la demande",
       "resubmit": "Soumettre à nouveau"
     },
-    "refusalReason": "Motif : {reason}"
+    "refusalReason": "Motif : {reason}",
+    "approvalNote": "Commentaire de l'ayant droit : {note}",
+    "approvedAt": "Approuvée le {date}",
+    "rejectedAt": "Refusée le {date}",
+    "cancelConfirmTitle": "Annuler la demande",
+    "cancelConfirmDescription": "Êtes-vous sûr de vouloir annuler cette demande ? Cette action est irréversible.",
+    "cancelConfirmButton": "Oui, annuler",
+    "cancelSuccess": "Demande annulée avec succès.",
+    "resubmitSuccess": "Demande soumise à nouveau avec succès."
   },
   "orders": {
     "title": "Historique des commandes",
@@ -748,6 +766,7 @@
     },
     "validation": {
       "title": "Demandes de validation",
+      "empty": "Aucune demande de validation.",
       "columns": {
         "film": "Film",
         "exhibitor": "Exploitant",
@@ -757,14 +776,97 @@
         "room": "Salle ({capacity} places)",
         "price": "Prix",
         "expires": "Expire le",
-        "actions": "Actions"
+        "actions": "Actions",
+        "requestDate": "Date de la demande",
+        "status": "Statut"
+      },
+      "tabs": {
+        "pending": "En attente",
+        "history": "Historique"
       },
       "accept": "Accepter",
       "refuse": "Refuser",
+      "approvalNote": "Commentaire (optionnel)",
+      "approvalNotePlaceholder": "Ajouter un commentaire pour l'exploitant...",
       "refusalReason": "Motif du refus (optionnel)",
-      "confirmAccept": "Voulez-vous vraiment accepter cette demande ?",
-      "confirmRefuse": "Voulez-vous vraiment refuser cette demande ?"
+      "refusalReasonPlaceholder": "Expliquez pourquoi vous refusez cette demande...",
+      "confirmAcceptTitle": "Accepter cette demande ?",
+      "confirmAcceptDescription": "Êtes-vous sûr de vouloir accepter cette demande de réservation ? L'exploitant sera notifié.",
+      "confirmAcceptButton": "Oui, accepter",
+      "confirmRefuseTitle": "Refuser cette demande ?",
+      "confirmRefuseDescription": "Êtes-vous sûr de vouloir refuser cette demande de réservation ? L'exploitant sera notifié.",
+      "confirmRefuseButton": "Oui, refuser",
+      "approveSuccess": "Demande acceptée avec succès.",
+      "rejectSuccess": "Demande refusée avec succès.",
+      "searchPlaceholder": "Rechercher par film ou exploitant…",
+      "pagination": {
+        "previous": "Précédent",
+        "next": "Suivant",
+        "info": "Page {page} sur {total}"
+      },
+      "detail": {
+        "title": "Détails de la demande",
+        "filmSection": "Film",
+        "exhibitorSection": "Exploitant",
+        "companyName": "Raison sociale",
+        "country": "Pays",
+        "vatNumber": "Numéro de TVA",
+        "cinemaSection": "Cinéma",
+        "address": "Adresse",
+        "roomSection": "Salle",
+        "capacity": "{capacity} places",
+        "screeningsSection": "Détails des visionnages",
+        "screeningCount": "Nombre de visionnages",
+        "dates": "Dates",
+        "noDates": "Non précisé",
+        "pricingSection": "Tarification",
+        "displayedPrice": "Prix exploitant",
+        "yourRevenue": "Votre revenu",
+        "noteSection": "Note de l'exploitant",
+        "approvalNoteSection": "Votre commentaire",
+        "rejectionReasonSection": "Motif du refus",
+        "processedBy": "Traité par",
+        "alreadyApproved": "Cette demande a été acceptée.",
+        "alreadyRejected": "Cette demande a été refusée.",
+        "alreadyCancelled": "Cette demande a été annulée par l'exploitant.",
+        "alreadyPaid": "Cette demande a été payée."
+      }
     }
+  },
+  "requestAction": {
+    "approveTitle": "Approuver la demande de réservation",
+    "rejectTitle": "Refuser la demande de réservation",
+    "successApproved": "Demande approuvée",
+    "successApprovedDescription": "La demande de réservation a été approuvée. L'exploitant a été notifié.",
+    "successRejected": "Demande refusée",
+    "successRejectedDescription": "La demande de réservation a été refusée. L'exploitant a été notifié.",
+    "approvalNote": "Commentaire pour l'exploitant (optionnel)",
+    "approvalNotePlaceholder": "Ajouter un commentaire...",
+    "rejectionReason": "Motif du refus (optionnel)",
+    "rejectionReasonPlaceholder": "Expliquez pourquoi vous refusez...",
+    "confirmApproveButton": "Confirmer l'approbation",
+    "confirmRejectButton": "Confirmer le refus",
+    "confirmApproveTitle": "Approuver cette demande ?",
+    "confirmApproveDescription": "Êtes-vous sûr de vouloir approuver cette demande de réservation ?",
+    "confirmRejectTitle": "Refuser cette demande ?",
+    "confirmRejectDescription": "Êtes-vous sûr de vouloir refuser cette demande de réservation ?",
+    "tokenExpired": "Ce lien a expiré. Veuillez vous connecter à votre tableau de bord pour traiter cette demande.",
+    "tokenInvalid": "Ce lien n'est pas valide.",
+    "requestNotFound": "Cette demande n'existe pas.",
+    "alreadyApproved": "Cette demande a déjà été approuvée.",
+    "alreadyRejected": "Cette demande a déjà été refusée.",
+    "alreadyCancelled": "Cette demande a été annulée par l'exploitant.",
+    "alreadyPaid": "Cette demande a déjà été payée.",
+    "goToDashboard": "Accéder au tableau de bord",
+    "filmLabel": "Film",
+    "exhibitorLabel": "Exploitant",
+    "cinemaLabel": "Cinéma",
+    "roomLabel": "Salle",
+    "screeningsLabel": "Visionnages",
+    "datesLabel": "Dates",
+    "priceLabel": "Prix",
+    "noDates": "Non précisé",
+    "error": "Une erreur est survenue. Veuillez réessayer."
   },
   "wallet": {
     "title": "Portefeuille",

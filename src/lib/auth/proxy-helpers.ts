@@ -6,7 +6,13 @@
 import type { AccountType } from "@/lib/auth/active-account-cookie";
 
 // Pages accessible without being authenticated (after locale prefix)
-export const PUBLIC_AUTH_PATHS = ["/login", "/register", "/forgot-password", "/reset-password"];
+export const PUBLIC_AUTH_PATHS = [
+  "/login",
+  "/register",
+  "/forgot-password",
+  "/reset-password",
+  "/request-action",
+];
 
 // Paths that require a session but NOT an active account cookie
 export const ACCOUNT_OPTIONAL_PATHS = ["/no-account", "/onboarding", "/accounts"];

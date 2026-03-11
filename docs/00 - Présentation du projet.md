@@ -84,7 +84,7 @@ Voir détail dans [[Epics/E08 - Paiement Stripe]] (section "Modèle de prix").
 | ORM | Drizzle ou Prisma | Drizzle = plus léger/moderne ; Prisma = plus mature |
 | Authentification | Better Auth (self-hosted) | Open-source, email+mdp+MFA/TOTP, gratuit, contrôle total |
 | Paiement | Stripe + Stripe Connect | International, marketplace natif, splits + KYC vendeurs |
-| Emails / CRM | Customer.io | Sync users/events, transactionnel + lifecycle marketing |
+| Emails | Resend (HTTP API) | Transactionnel, simple et fiable |
 | Stockage fichiers | Scaleway Object Storage (S3-compatible) | DCPs = 10–50 Go/film, URLs signées pour livraison sécurisée |
 | Hébergement | Scaleway (Docker) | Cohérent avec l'infra existante |
 
@@ -143,7 +143,7 @@ Voir détail dans [[Epics/E08 - Paiement Stripe]] (section "Modèle de prix").
 
 - [ ] GitHub (organisation pour le projet)
 - [ ] Stripe (+ activer Connect et Tax)
-- [ ] Customer.io
+- [ ] Resend
 
 ## Prochaines étapes
 

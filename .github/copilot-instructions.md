@@ -28,7 +28,7 @@ Every decision must optimize for **long-term readability and maintainability**, 
 - **Drizzle ORM** + PostgreSQL
 - **Better Auth** (self-hosted — email + password + MFA/TOTP)
 - **Stripe + Stripe Connect** (marketplace payments)
-- **Customer.io** (transactional emails, CRM)
+- **Resend** (transactional emails)
 - **Tailwind CSS v4 + shadcn/ui**
 - **next-intl** (i18n — en/fr, default: en)
 - **Zod** (validation)
@@ -46,7 +46,7 @@ Every decision must optimize for **long-term readability and maintainability**, 
 - `src/lib/auth/` — Better Auth config + helpers. `proxy.ts` handles auth routing.
 - `src/lib/pricing/` — pricing engine. All money in **cents** (integers).
 - `src/lib/services/` — business logic shared between server actions & API routes.
-- `src/lib/customerio/` — Customer.io integration with `safeCio` wrapper.
+- `src/lib/email/` — Transactional email (Resend HTTP API).
 - `src/lib/countries.ts` — ISO country codes + localized names (`Intl.DisplayNames`).
 - `src/lib/currencies.ts` — ISO currency codes (Stripe-compatible) + localized names.
 - `src/i18n/` — next-intl routing, request, navigation.
@@ -150,6 +150,14 @@ Next.js UI → server action → service function ← API route ← External cli
 - Auth pages: render `<AlreadyConnected />` if user is signed in.
 - **Field-level validation errors**: server actions return `{ error: "CODE", field: "fieldName" }` for field-specific errors. Display error below the field with `<p className="text-sm text-destructive">`, mark the field with `aria-invalid` + `border-destructive`. Clear error on field change.
 
+### Data tables (list/management pages)
+
+- **`table-fixed`** + explicit `w-[X%]` on every `<TableHead>` — prevents column width shifts on content load.
+- **Skeleton loading** for tab switches and pagination: show 5 skeleton rows (matching column layout) instead of a spinner or empty table.
+- **Search: keep stale content** — don't show skeletons during search. Replace content seamlessly once results arrive. Show a spinning `Loader2` icon inside the search input instead of the `Search` icon.
+- **Track loading source** via `useState<"tab" | "search" | "page" | null>(null)` to differentiate skeleton (tab/page) vs inline spinner (search).
+- **Guard empty states** — when the table has an "absolute empty" state (e.g. "No films — import"), guard with the SSR initial count (`initialTotal === 0 && total === 0 && !loading`). Using `total` alone causes a flash during the 300ms debounce gap when clearing a search that returned 0 results.
+
 ### shadcn/ui testing gotchas
 
 - **CardTitle** = `<div>` not heading — use `getByText`, not `getByRole("heading")`.
@@ -238,7 +246,7 @@ pnpm db:studio        # Drizzle Studio
 
 ## Environment variables
 
-`DATABASE_URL` · `BETTER_AUTH_SECRET` · `STRIPE_SECRET_KEY` · `STRIPE_WEBHOOK_SECRET` · `RESEND_API_KEY` · `CUSTOMERIO_SITE_ID` · `CUSTOMERIO_API_KEY` · `CUSTOMERIO_APP_API_KEY` · `TMDB_API_KEY` · `NEXT_PUBLIC_APP_URL`
+`DATABASE_URL` · `BETTER_AUTH_SECRET` · `STRIPE_SECRET_KEY` · `STRIPE_WEBHOOK_SECRET` · `RESEND_API_KEY` · `TMDB_API_KEY` · `NEXT_PUBLIC_APP_URL`
 
 ## Progress tracking
 
