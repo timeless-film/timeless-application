@@ -13,7 +13,7 @@ export const requestStatusEnum = pgEnum("request_status", [
   "cancelled", // Cancelled by exhibitor
   "validated", // DEPRECATED - use approved
   "refused", // DEPRECATED - use rejected
-  "expired", // DEPRECATED (E13 - auto expiration)
+  "expired", // DEPRECATED (auto expiration - deferred)
   "paid", // Paid
 ]);
 
@@ -88,7 +88,7 @@ export const requests = pgTable("requests", {
   cancelledAt: timestamp("cancelled_at"),
   validatedAt: timestamp("validated_at"), // DEPRECATED - use approvedAt
   refusedAt: timestamp("refused_at"), // DEPRECATED - use rejectedAt
-  expiresAt: timestamp("expires_at"), // Future use (E13)
+  expiresAt: timestamp("expires_at"), // Future use (auto expiration - deferred)
 
   // Payment (if validated → paid)
   stripePaymentLinkId: text("stripe_payment_link_id"),

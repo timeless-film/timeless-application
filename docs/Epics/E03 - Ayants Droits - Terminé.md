@@ -20,7 +20,7 @@ Compte Ayant Droit
   └── Utilisateurs (avec rôles : owner / admin / member)
   └── Catalogue de films (E04)
   └── Wallet Stripe Connect (E08)
-  └── Taux de commission (configuré en DB, non visible par l'ayant droit)
+  └── Taux de commission (configuré en DB, non visible par l'ayant droit — **0 % par défaut** depuis mars 2026, modèle marge uniquement)
 ```
 
 ---
@@ -35,7 +35,7 @@ Compte Ayant Droit
 ## Hors scope E03
 
 - Création du compte rights_holder via UI admin (→ E11, fait en DB pour l'instant)
-- Édition du taux de commission via UI (→ E11, fait en DB pour l'instant)
+- Édition du taux de commission via UI (→ E11, fait en DB pour l'instant — défaut 0 %)
 - Suspension / désactivation d'un compte rights_holder (→ E11)
 - Flow de paiement et splits (→ E08)
 - Wallet et historique des transactions (→ E09)

@@ -94,21 +94,21 @@ Les champs existants + les trois ajouts couvrent tous les besoins E07.
 Mettre en place les pré-requis DB, la génération de tokens JWT pour les CTA email, et les utilitaires d'envoi d'emails liés aux demandes.
 
 #### Tâches
-1. ⬜ **Migration DB** :
+1. ✅ **Migration DB** :
    - Ajouter `approvalNote` (text, nullable) sur la table `requests`.
    - Ajouter `processedByUserId` (text, nullable, FK → `better_auth_users.id`) sur la table `requests`.
    - Ajouter `preferredLocale` (text, nullable, default `"en"`) sur la table `better_auth_users`.
    - `pnpm db:generate` + `pnpm db:migrate`.
-2. ⬜ Créer `src/lib/services/request-token-service.ts` :
+2. ✅ Créer `src/lib/services/request-token-service.ts` :
    - `generateValidationToken(requestId: string, userId: string)` : génère un JWT signé avec `BETTER_AUTH_SECRET`, payload `{ requestId, userId, action: "validate" }`, expiration 14 jours.
    - `verifyValidationToken(token: string)` : vérifie et décode le token. Retourne `{ requestId, userId }` ou `{ error: "TOKEN_EXPIRED" | "TOKEN_INVALID" }`.
-3. ⬜ Créer `src/lib/email/request-emails.ts` :
+3. ✅ Créer `src/lib/email/request-emails.ts` :
    - `sendRequestNotificationToRightsHolder(params)` : email avec infos de la demande + CTA Accepter/Refuser.
    - `sendRequestApprovedToExhibitor(params)` : email de confirmation d'approbation avec commentaire RH si renseigné.
    - `sendRequestRejectedToExhibitor(params)` : email de notification de refus avec motif si renseigné.
-4. ⬜ Créer les templates HTML pour chaque email (réutiliser `emailLayout()` existant).
-5. ⬜ Ajouter les clés i18n nécessaires dans `messages/en.json` et `messages/fr.json`.
-6. ⬜ Créer la fonction utilitaire `getAccountUserEmails(accountId)` : retourne les emails de **tous les utilisateurs** (owner, admin, member) d'un compte.
+4. ✅ Créer les templates HTML pour chaque email (réutiliser `emailLayout()` existant).
+5. ✅ Ajouter les clés i18n nécessaires dans `messages/en.json` et `messages/fr.json`.
+6. ✅ Créer la fonction utilitaire `getAccountUserEmails(accountId)` : retourne les emails de **tous les utilisateurs** (owner, admin, member) d'un compte.
 
 #### Critères d'acceptation
 1. Le token JWT est généré et stocké dans `requests.validationToken` lors de l'envoi de l'email.
@@ -138,12 +138,12 @@ Déclenché dès qu'un exploitant soumet une demande pour un film "validation re
 - Lien de secours vers le dashboard `/validation-requests` si les boutons ne fonctionnent pas
 
 #### Tâches
-1. ⬜ Modifier `createRequest()` dans `request-service.ts` pour :
+1. ✅ Modifier `createRequest()` dans `request-service.ts` pour :
    - Générer le `validationToken` via `generateValidationToken()`.
    - Stocker le token en base.
    - Déclencher l'envoi de l'email après insertion réussie (fire-and-forget).
-2. ⬜ Récupérer tous les utilisateurs du compte ayant droit via `getAccountUserEmails()`.
-3. ⬜ Construire les URLs CTA localisées : `${APP_URL}/${locale}/request-action?token={jwt}&action=approve`.
+2. ✅ Récupérer tous les utilisateurs du compte ayant droit via `getAccountUserEmails()`.
+3. ✅ Construire les URLs CTA localisées : `${APP_URL}/${locale}/request-action?token={jwt}&action=approve`.
 
 #### Critères d'acceptation
 1. Après création d'une demande `validation`, un email est envoyé à chaque utilisateur du compte ayant droit.
@@ -177,22 +177,22 @@ Pages publiques (pas de connexion requise) accessibles via les liens tokenisés 
 - Demande non trouvée → message "Cette demande n'existe pas."
 
 #### Tâches
-1. ⬜ Créer la route `src/app/[locale]/(auth)/request-action/page.tsx` :
+1. ✅ Créer la route `src/app/[locale]/(auth)/request-action/page.tsx` :
    - Lire les query params `token` et `action` (`approve` | `reject`).
    - Vérifier le token JWT côté serveur.
    - Charger les données de la demande (film, exploitant, cinéma, salle, prix).
    - Afficher le récapitulatif en lecture seule.
-2. ⬜ Créer le composant client `RequestActionForm` :
+2. ✅ Créer le composant client `RequestActionForm` :
    - Formulaire avec champ commentaire/motif optionnel + bouton de confirmation.
    - Appel server action `processRequestAction()`.
-3. ⬜ Créer la server action `processRequestAction()` :
+3. ✅ Créer la server action `processRequestAction()` :
    - Vérifier token, vérifier statut `pending` (sinon message explicite avec statut actuel), appliquer transition.
    - Stocker `approvalNote` ou `rejectionReason` selon l'action.
    - Stocker `processedByUserId` : session userId (si connecté) > token userId > `null`.
    - Déclencher l'envoi de l'email de notification (E07-004).
    - Retourner `{ success: true }` ou `{ error }`.
-4. ⬜ Ajouter une **modale de confirmation** avant l'appel server action (shadcn/ui `AlertDialog`).
-5. ⬜ Gérer tous les cas d'erreur avec messages traduits (i18n).
+4. ✅ Ajouter une **modale de confirmation** avant l'appel server action (shadcn/ui `AlertDialog`).
+5. ✅ Gérer tous les cas d'erreur avec messages traduits (i18n).
 
 #### Critères d'acceptation
 1. L'acceptation sans connexion fonctionne et change le statut à `approved`, avec commentaire optionnel stocké dans `approvalNote`.
@@ -228,22 +228,22 @@ Compléter la page stub existante (`/validation-requests`) avec la liste des dem
 3. **Si déjà traitée** : affichage du statut, date de traitement, commentaire/motif si renseigné. Pas d'action possible.
 
 #### Tâches
-1. ⬜ Créer la server action `getIncomingRequests()` dans `src/app/[locale]/(rights-holder)/validation-requests/actions.ts` :
+1. ✅ Créer la server action `getIncomingRequests()` dans `src/app/[locale]/(rights-holder)/validation-requests/actions.ts` :
    - Requête DB filtrant par `rightsHolderAccountId` et statut (par défaut `pending`).
    - Jointures : film, cinema, room, exhibitor account.
    - Pagination.
-2. ⬜ Créer le composant `ValidationRequestsPageContent` (client component) avec onglets "En attente" / "Historique".
-3. ⬜ Créer la page détail `src/app/[locale]/(rights-holder)/validation-requests/[requestId]/page.tsx`.
-4. ⬜ Créer le composant `RequestDetailPage` avec formulaires d'approbation/refus.
-5. ⬜ Créer les server actions `approveRequest()` et `rejectRequest()` :
+2. ✅ Créer le composant `ValidationRequestsPageContent` (client component) avec onglets "En attente" / "Historique".
+3. ✅ Créer la page détail `src/app/[locale]/(rights-holder)/validation-requests/[requestId]/page.tsx`.
+4. ✅ Créer le composant `RequestDetailPage` avec formulaires d'approbation/refus.
+5. ✅ Créer les server actions `approveRequest()` et `rejectRequest()` :
    - Auth check + authorization (la demande appartient au compte RH actif).
    - Appel `transitionRequestStatus()` du service avec `approvalNote` ou `rejectionReason` + `processedByUserId` (userId de session).
    - Envoi email de notification à l'exploitant (E07-004).
-6. ⬜ Ajouter des **modales de confirmation** (shadcn/ui `AlertDialog`) avant chaque action (approuver/refuser).
-7. ⬜ Créer le hook `usePendingRequestsCount()` + endpoint `/api/requests/pending-count` (polling **60 secondes** + rechargement à chaque navigation).
-8. ⬜ Intégrer le compteur badge dans la sidebar RH (item "Demandes de validation").
-9. ⬜ Compléter la page stub existante avec le composant.
-10. ⬜ Ajouter les clés i18n (en/fr).
+6. ✅ Ajouter des **modales de confirmation** (shadcn/ui `AlertDialog`) avant chaque action (approuver/refuser).
+7. ✅ Créer le hook `usePendingRequestsCount()` + endpoint `/api/requests/pending-count` (polling **60 secondes** + rechargement à chaque navigation).
+8. ✅ Intégrer le compteur badge dans la sidebar RH (item "Demandes de validation").
+9. ✅ Compléter la page stub existante avec le composant.
+10. ✅ Ajouter les clés i18n (en/fr).
 
 #### Critères d'acceptation
 1. La vue par défaut affiche uniquement les demandes `pending`.
@@ -277,10 +277,10 @@ Emails de notification envoyés à l'exploitant après qu'une demande ait été 
 - La demande passe en statut `rejected`.
 
 #### Tâches
-1. ⬜ Créer les templates HTML dans `src/lib/email/request-emails.ts` (réutiliser `emailLayout()`).
-2. ⬜ Récupérer les emails de tous les utilisateurs du compte exploitant via `getAccountUserEmails()`.
-3. ⬜ Intégrer l'envoi dans les flows d'acceptation/refus (dashboard E07-003 et page publique E07-002).
-4. ⬜ Inclure le commentaire/motif de l'ayant droit dans l'email.
+1. ✅ Créer les templates HTML dans `src/lib/email/request-emails.ts` (réutiliser `emailLayout()`).
+2. ✅ Récupérer les emails de tous les utilisateurs du compte exploitant via `getAccountUserEmails()`.
+3. ✅ Intégrer l'envoi dans les flows d'acceptation/refus (dashboard E07-003 et page publique E07-002).
+4. ✅ Inclure le commentaire/motif de l'ayant droit dans l'email.
 
 #### Critères d'acceptation
 1. Après approbation, les emails sont envoyés à tous les utilisateurs du compte exploitant, chacun dans sa langue.
@@ -338,13 +338,13 @@ Inclut également les endpoints E06 manquants côté exploitant (reportés depui
 6. `POST /api/v1/requests/:requestId/relaunch` — Relancer une demande `cancelled`/`rejected`.
 
 #### Tâches
-1. ⬜ Créer `src/app/api/v1/requests/incoming/route.ts` (GET).
-2. ⬜ Créer `src/app/api/v1/requests/[requestId]/approve/route.ts` (POST).
-3. ⬜ Créer `src/app/api/v1/requests/[requestId]/reject/route.ts` (POST).
-4. ⬜ Compléter `src/app/api/v1/requests/route.ts` avec GET (liste exploitant).
-5. ⬜ Créer `src/app/api/v1/requests/[requestId]/cancel/route.ts` (POST).
-6. ⬜ Créer `src/app/api/v1/requests/[requestId]/relaunch/route.ts` (POST).
-7. ⬜ Documenter tous les endpoints dans `docs/api/v1/requests.md`.
+1. ✅ Créer `src/app/api/v1/requests/incoming/route.ts` (GET).
+2. ✅ Créer `src/app/api/v1/requests/[requestId]/approve/route.ts` (POST).
+3. ✅ Créer `src/app/api/v1/requests/[requestId]/reject/route.ts` (POST).
+4. ✅ Compléter `src/app/api/v1/requests/route.ts` avec GET (liste exploitant).
+5. ✅ Créer `src/app/api/v1/requests/[requestId]/cancel/route.ts` (POST).
+6. ✅ Créer `src/app/api/v1/requests/[requestId]/relaunch/route.ts` (POST).
+7. ✅ Documenter tous les endpoints dans `docs/api/v1/requests.md`.
 
 #### Critères d'acceptation
 1. Tous les endpoints respectent les conventions API v1 (auth Bearer, réponse `{ data }` / `{ error }`).
@@ -363,12 +363,12 @@ Inclut également les endpoints E06 manquants côté exploitant (reportés depui
 Adapter la page "Mes demandes" (implémentée en E06-004) pour refléter les nouveaux statuts et informations liés au workflow de validation.
 
 #### Tâches
-1. ⬜ Afficher le motif de refus (`rejectionReason`) dans le détail d'une demande `rejected`.
-2. ⬜ Afficher le commentaire d'approbation (`approvalNote`) dans le détail d'une demande `approved`.
-3. ⬜ Afficher la date d'approbation/refus dans le détail.
-4. ⬜ S'assurer que le bouton "Procéder au paiement" est visible (mais désactivé) sur les demandes `approved` (bridge E08).
-5. ⬜ Ajouter un badge/indicateur visuel pour les statuts (pastille "Approuvée" verte, "Refusée" rouge, "En attente" jaune).
-6. ⬜ Ajouter une **modale de confirmation** sur le bouton "Annuler la demande" (si pas encore présente depuis E06).
+1. ✅ Afficher le motif de refus (`rejectionReason`) dans le détail d'une demande `rejected`.
+2. ✅ Afficher le commentaire d'approbation (`approvalNote`) dans le détail d'une demande `approved`.
+3. ✅ Afficher la date d'approbation/refus dans le détail.
+4. ✅ Bouton "Procéder au paiement" actif sur les demandes `approved` (E08 implémenté).
+5. ✅ Ajouter un badge/indicateur visuel pour les statuts (pastille "Approuvée" verte, "Refusée" rouge, "En attente" jaune).
+6. ✅ Ajouter une **modale de confirmation** sur le bouton "Annuler la demande" (si pas encore présente depuis E06).
 
 #### Critères d'acceptation
 1. Le motif de refus est affiché pour les demandes `rejected`.
@@ -386,18 +386,18 @@ Adapter la page "Mes demandes" (implémentée en E06-004) pour refléter les nou
 | Méthode | Endpoint | Statut | Description |
 |---------|----------|--------|-------------|
 | `POST` | `/api/v1/requests` | ✅ E06 | Créer une demande |
-| `GET` | `/api/v1/requests` | ⬜ E07-006 | Lister ses demandes |
-| `POST` | `/api/v1/requests/:id/cancel` | ⬜ E07-006 | Annuler (pending) |
-| `POST` | `/api/v1/requests/:id/relaunch` | ⬜ E07-006 | Relancer (cancelled/rejected) |
+| `GET` | `/api/v1/requests` | ✅ E07-006 | Lister ses demandes |
+| `POST` | `/api/v1/requests/:id/cancel` | ✅ E07-006 | Annuler (pending) |
+| `POST` | `/api/v1/requests/:id/relaunch` | ✅ E07-006 | Relancer (cancelled/rejected) |
 | `GET` | `/api/v1/films/:filmId/requests-summary` | ✅ E06 | Résumé anti-doublon |
 
 ### Endpoints ayant droit
 
 | Méthode | Endpoint | Statut | Description |
 |---------|----------|--------|-------------|
-| `GET` | `/api/v1/requests/incoming` | ⬜ E07-006 | Demandes reçues (pending par défaut) |
-| `POST` | `/api/v1/requests/:id/approve` | ⬜ E07-006 | Approuver (avec note optionnelle) |
-| `POST` | `/api/v1/requests/:id/reject` | ⬜ E07-006 | Refuser (avec motif optionnel) |
+| `GET` | `/api/v1/requests/incoming` | ✅ E07-006 | Demandes reçues (pending par défaut) |
+| `POST` | `/api/v1/requests/:id/approve` | ✅ E07-006 | Approuver (avec note optionnelle) |
+| `POST` | `/api/v1/requests/:id/reject` | ✅ E07-006 | Refuser (avec motif optionnel) |
 
 ### Codes d'erreur E07
 

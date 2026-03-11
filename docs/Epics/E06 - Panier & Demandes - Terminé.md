@@ -149,15 +149,14 @@ Les endpoints externes restent sous `/api/v1/` avec auth Bearer token.
 - **Status**: ⬜ TODO (not required for E06 MVP)
 
 4. `POST /api/v1/cart/checkout`
-- Pré-validation et lancement du flow paiement (bridge E08).
-- Avant E08: endpoint exposé mais retourne `501` avec erreur fonctionnelle explicite (`PAYMENT_NOT_AVAILABLE_YET`).
-- **Status**: ⬜ TODO (checkout via server action for now)
+- Pré-validation et lancement du flow paiement via Stripe Checkout.
+- **Status**: ✅ Implemented in E08 (`/app/api/v1/cart/checkout/route.ts`)
 
 ### Demandes
 
 1. `GET /api/v1/requests`
 - Liste des demandes de l'exploitant (filtres : statut, période, cinéma, pagination).
-- **Status**: ⬜ TODO (query via server action for now)
+- **Status**: ✅ Implemented in E07 (`/app/api/v1/requests/route.ts`)
 
 2. `POST /api/v1/requests`
 - Crée une demande depuis un film `validation`.
@@ -167,11 +166,11 @@ Les endpoints externes restent sous `/api/v1/` avec auth Bearer token.
 3. `POST /api/v1/requests/:requestId/cancel`
 - Annule une demande `pending`.
 - Transition de statut: `pending -> cancelled`.
-- **Status**: ⬜ TODO (cancel via server action for now)
+- **Status**: ✅ Implemented in E07 (`/app/api/v1/requests/[requestId]/cancel/route.ts`)
 
 4. `POST /api/v1/requests/:requestId/relaunch`
 - Relance une demande `cancelled` ou `rejected` en créant une nouvelle demande pré-remplie.
-- **Status**: ⬜ TODO (relaunch via server action for now)
+- **Status**: ✅ Implemented in E07 (`/app/api/v1/requests/[requestId]/relaunch/route.ts`)
 
 5. `GET /api/v1/films/:filmId/requests-summary`
 - Retourne les demandes existantes `pending` et `approved` du compte actif pour ce film (affichage d'aide anti-doublon).
@@ -214,7 +213,7 @@ Mettre en place les tables, contraintes et machine d'états qui sécurisent tous
 1. ✅ Créer schéma Drizzle (`carts`, `cartItems`, `bookingRequests`, `bookingRequestStatusHistory`).
 2. ✅ Implémenter transitions de statuts en service layer.
 3. ⬜ Ajouter index de performance (deferred to actual usage).
-4. ⬜ Ajouter utilitaires de mapping statut + messages i18n (part of E06-001).
+4. ✅ Utilitaires de mapping statut + messages i18n (fait dans E06-001).
 
 #### Critères d'acceptation
 1. ✅ Les transitions invalides sont refusées côté service.
@@ -579,8 +578,8 @@ Note : E06-005 est reporte, ne bloque pas la livraison des autres lots.
 
 1. ✅ Migrations validées + schéma exporté depuis `src/lib/db/schema/index.ts`.
 2. ✅ Services métier testés (unit): 26 tests in request-service + cart-service + checkout-service.
-3. ⬜ API documentée dans `docs/api/v1/` (`cart.md`, `requests.md`, `orders.md`) — TODO.
-4. ⬜ E2E critiques verts (panier, demandes, commandes) — 3 new spec files created, need clean run.
+3. ✅ API documentée dans `docs/api/v1/` (`requests.md`, `orders.md`). Note : `cart.md` reste à créer.
+4. ✅ E2E critiques verts (panier, demandes, commandes) — 407 tests pass.
 5. ✅ `pnpm typecheck && pnpm lint && pnpm test` vert.
 6. ✅ Flux `CHECKOUT_PRECONDITION_FAILED` avec bouton `Recalculer` validé en UI.
 

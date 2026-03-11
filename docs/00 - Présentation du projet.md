@@ -124,7 +124,7 @@ Voir détail dans [[Epics/E08 - Paiement Stripe]] (section "Modèle de prix").
 - [[Epics/E09 - Wallet Ayants Droits]]
 - [[Epics/E10 - Livraison Opérationnelle]]
 - [[Epics/E11 - Backoffice Admin]]
-- [[Epics/E12 - Notifications & Emails]]
+- [[Epics/E12 - Sécurité des Accès]]
 
 ---
 

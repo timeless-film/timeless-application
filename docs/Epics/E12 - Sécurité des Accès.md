@@ -1,6 +1,6 @@
-# E-Security — Sécurité des Accès
+# E12 — Sécurité des Accès
 
-**Phase** : P2
+**Phase** : P2–P3
 **Dépendances** : E01 (Auth & Comptes)
 **Contexte** : Fonctionnalités de sécurité avancées destinées principalement aux comptes corporate (ayants droits, exploitants avec équipes). Déplacé depuis E01-003 pour ne pas bloquer les autres epics.
 

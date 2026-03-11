@@ -18,6 +18,8 @@ rightsHolderAmount = catalogPrice × (1 - commissionRate)
 timelessAmount = displayedPrice - rightsHolderAmount
 ```
 
+> **Décision pricing (mars 2026)** : Le modèle retenu est **marge uniquement**. La `commissionRate` est à **0 %** par défaut (`defaultCommissionRate = '0'`). L'ayant droit reçoit 100 % du prix catalogue. TIMELESS se rémunère uniquement via la marge ajoutée au prix exploitant + les frais de livraison. Le champ `commissionRate` est conservé dans le code et le schéma pour permettre une activation future par ayant droit (E11).
+
 Les `deliveryFees` sont **séparés** du `displayedPrice` et ajoutés comme ligne distincte au checkout.
 Ils sont appliqués **par item** (par film, pas par séance). Un panier de 5 films = 5 × `deliveryFees`.
 
@@ -33,7 +35,7 @@ Quand le film est dans une devise différente de celle de l'exploitant, une conv
 ```
 convertedCatalogPrice = catalogPrice × exchangeRate(filmCurrency → exhibitorCurrency)
 displayedPrice = convertedCatalogPrice × (1 + platformMarginRate)
-rightsHolderAmount = convertedCatalogPrice × (1 - commissionRate)
+rightsHolderAmount = convertedCatalogPrice × (1 - commissionRate)   ← 0% par défaut
 timelessAmount = displayedPrice - rightsHolderAmount
 ```
 
@@ -44,38 +46,39 @@ Le taux de change est celui du moment (Frankfurter API, cache 1h). Il est snapsh
 - Ayant droit fixe le prix catalogue : 150 EUR (15 000 cts)
 - Marge plateforme (admin) : 20 %
 - Frais de livraison (admin) : 50 EUR (5 000 cts) — par item
-- Commission plateforme : 10 %
+- Commission plateforme : **0 %** (modèle marge uniquement)
 - → Prix affiché à l'exploitant : 15 000 × 1.20 = **18 000 cts (180 EUR)**
 - → Frais de livraison : **5 000 cts (50 EUR)** — ligne séparée au checkout
 - → Total pour 1 film : 18 000 + 5 000 = **23 000 cts (230 EUR)** HT
-- → Ayant droit reçoit : 15 000 × 0.90 = **13 500 cts (135 EUR)**
-- → TIMELESS garde : (18 000 − 13 500) + 5 000 = **9 500 cts (95 EUR)**
+- → Ayant droit reçoit : 15 000 × 1.00 = **15 000 cts (150 EUR)**
+- → TIMELESS garde : (18 000 − 15 000) + 5 000 = **8 000 cts (80 EUR)**
 
 ### Exemple (cross-devise)
 
 - Ayant droit fixe le prix catalogue : 200 USD (20 000 cts)
 - Exploitant en EUR, taux USD→EUR : 0.92
+- Commission plateforme : **0 %**
 - → `convertedCatalogPrice` : 20 000 × 0.92 = 18 400 cts (184 EUR)
 - → Prix affiché : 18 400 × 1.20 = **22 080 cts (220.80 EUR)**
 - → Frais de livraison : **5 000 cts (50 EUR)** — ligne séparée au checkout
 - → Total pour 1 film : 22 080 + 5 000 = **27 080 cts (270.80 EUR)** HT
-- → Ayant droit reçoit : 18 400 × 0.90 = **16 560 cts (165.60 EUR)** — Stripe convertira en USD sur son compte Connect
-- → TIMELESS garde : (22 080 − 16 560) + 5 000 = **10 520 cts (105.20 EUR)**
+- → Ayant droit reçoit : 18 400 × 1.00 = **18 400 cts (184 EUR)** — Stripe convertira en USD sur son compte Connect
+- → TIMELESS garde : (22 080 − 18 400) + 5 000 = **8 680 cts (86.80 EUR)**
 
 ### Paramètres configurables
 
 Table `platformSettings` (éditable via backoffice E11-007) :
 - `platformMarginRate` : décimal (`"0.20"` = 20 %), défaut : 20 %
 - `deliveryFees` : entier en centimes **par item**, défaut : 5 000 (50 EUR)
-- `defaultCommissionRate` : décimal (`"0.10"` = 10 %), défaut : 10 %
-- Override par ayant droit : `accounts.commissionRate` (optionnel, configuré à la création — E03-001)
+- `defaultCommissionRate` : décimal, défaut : **`"0"` (0 %)** — modèle marge uniquement depuis mars 2026
+- Override par ayant droit : `accounts.commissionRate` (optionnel, configurable via E11 — non utilisé actuellement)
 
 ### Visibilité des prix
 
 | Acteur | Voit | Ne voit pas |
 |--------|------|-------------|
 | Exploitant | `displayedPrice` + frais de livraison (séparément) | `catalogPrice`, commission, marge, décomposition |
-| Ayant droit | `catalogPrice` (son prix) | `displayedPrice`, marge plateforme |
+| Ayant droit | `catalogPrice` (son prix), `rightsHolderAmount` (= catalogPrice si commission 0%) | `displayedPrice`, marge plateforme |
 | Admin | Tout (E11) | — |
 
 ### Gestion des devises

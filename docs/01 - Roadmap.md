@@ -27,7 +27,7 @@
 | [[E09 - Wallet Ayants Droits]] | Dashboard financier, retraits, virements auto | P3 | 4 | ⬜ A faire |
 | [[E10 - Livraison Opérationnelle]] | Notifications ops, suivi DCP/KDM | P3 | 4 | ⬜ A faire |
 | [[E11 - Backoffice Admin]] | Dashboard admin, gestion comptes, supervision | P3 | 7 | ⬜ A faire |
-| [[E13 - Sécurité des Accès]] | MFA UI, codes de récupération, audit log | P2–P3 | 5 | ⬜ A faire |
+| [[E12 - Sécurité des Accès]] | MFA UI, codes de récupération, audit log | P2–P3 | 5 | ⬜ A faire |
 
 **Total** : 78 tickets
 
@@ -65,7 +65,7 @@
 ### P2 — Réservation (Sprint 5–7) ✅
 - ✅ Panier persistant (nb visionnages, dates, salle)
 - ✅ Demandes de réservation (films en validation requise)
-- ✅ Expiration automatique des demandes
+- ⏸️ Expiration automatique des demandes (reporté — E06-005)
 - ✅ Historique commandes exploitant
 - ✅ Workflow validation ayant droit (email + dashboard) — E07
 - ✅ Paiement Stripe Checkout — E08
@@ -76,9 +76,9 @@
 ---
 
 ### P3 — Finance & Ops (Sprint 8–10)
-- Stripe Connect : onboarding KYC ayants droits
-- Calcul TVA automatique (Stripe Tax)
-- Commissions configurables par ayant droit
+- ✅ Stripe Connect : onboarding KYC ayants droits (fait dans E03)
+- ✅ Calcul TVA automatique (Stripe Tax) (fait dans E08)
+- Commissions configurables par ayant droit (défaut 0 % — modèle marge uniquement)
 - Wallet ayant droit (solde, retrait, virement auto)
 - Dashboard backoffice admin
 - Suivi livraisons DCP/KDM par l'équipe ops

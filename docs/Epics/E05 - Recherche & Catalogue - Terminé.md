@@ -332,11 +332,11 @@ Persistance utilisateur :
 
 ##### Checklist de validation par phase
 
-- [ ] Phase 1: tests unit verts, service functions exportées
-- [ ] Phase 2: tests API verts, doc complète
-- [ ] Phase 3: UI fonctionnelle, filtres URL sync, tests components verts
-- [ ] Phase 4: E2E vert sur scénarios critiques
-- [ ] Phase 5: perf OK, accessibilité OK, indexes créés
+- [x] Phase 1: tests unit verts, service functions exportées
+- [x] Phase 2: tests API verts, doc complète
+- [x] Phase 3: UI fonctionnelle, filtres URL sync, tests components verts
+- [x] Phase 4: E2E vert sur scénarios critiques
+- [x] Phase 5: perf OK, accessibilité OK, indexes créés
 
 ---
 
