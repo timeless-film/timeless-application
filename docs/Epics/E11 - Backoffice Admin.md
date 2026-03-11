@@ -1,6 +1,7 @@
 # E11 — Backoffice Admin
 
 **Phase** : P3
+**Prérequis de** : [[E10 - Livraison Opérationnelle]] (E10 construit ses vues dans le backoffice créé ici)
 
 ---
 

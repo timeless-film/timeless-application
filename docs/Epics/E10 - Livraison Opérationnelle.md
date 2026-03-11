@@ -1,6 +1,7 @@
 # E10 — Livraison Opérationnelle
 
 **Phase** : P3
+**Dépendance** : [[E11 - Backoffice Admin]] (le backoffice admin doit exister avant — E10-002 est une vue du backoffice, E10-001/003 s'appuient sur l'infrastructure admin)
 
 ---
 
