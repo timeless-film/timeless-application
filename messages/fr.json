@@ -117,10 +117,12 @@
     "signOut": "Se déconnecter",
     "main": "Principal",
     "management": "Gestion",
+    "adminOrders": "Commandes",
     "myAccounts": "Mes comptes",
     "manageAccount": "Gérer le compte",
     "home": "Accueil",
-    "back": "Retour"
+    "back": "Retour",
+    "switchLanguage": "English"
   },
   "catalog": {
     "title": "Catalogue",
@@ -917,48 +919,105 @@
     "available": "Solde disponible",
     "pending": "En attente",
     "thisMonth": "Ce mois-ci",
-    "withdraw": "Retirer",
+    "previousMonth": "Mois précédent",
+    "withdraw": "Retirer les fonds",
+    "noBalance": "Aucun solde disponible",
+    "onboardingRequired": "Complétez votre configuration Stripe Connect pour accéder au portefeuille.",
+    "onboardingCta": "Compléter la configuration",
+    "stripeBanner": {
+      "text": "Pour gérer vos coordonnées bancaires, relevés et documents fiscaux, accédez à votre dashboard Stripe.",
+      "button": "Accéder au dashboard"
+    },
+    "revenueChart": {
+      "title": "Revenus",
+      "period30d": "30 jours",
+      "period12m": "12 mois",
+      "empty": "Aucun revenu sur cette période",
+      "tooltip": "Revenus",
+      "salesCountTitle": "Ventes",
+      "salesCount": "Ventes",
+      "totalLabel": "Total sur la période",
+      "totalSalesLabel": "Total des ventes"
+    },
     "withdrawModal": {
       "title": "Retirer des fonds",
+      "description": "Transférez votre solde disponible vers votre compte bancaire.",
       "amount": "Montant",
+      "currency": "Devise",
+      "currencySelect": "Sélectionner la devise",
       "available": "Disponible : {amount}",
       "delay": "Les fonds seront virés sous 1 à 2 jours ouvrés.",
-      "confirm": "Confirmer le retrait"
+      "confirm": "Confirmer le retrait",
+      "success": "Retrait de {amount} confirmé. Arrivée estimée : {date}.",
+      "noBankAccount": "Vous devez d'abord configurer un compte bancaire dans votre dashboard Stripe."
     },
-    "autoPayoutTitle": "Virements automatiques",
-    "autoPayoutEnable": "Activer les virements automatiques",
-    "autoPayoutFrequency": "Fréquence",
-    "autoPayoutFrequencies": {
-      "daily": "Quotidien",
-      "weekly": "Hebdomadaire",
-      "monthly": "Mensuel"
+    "errors": {
+      "insufficientBalance": "Solde insuffisant pour ce retrait.",
+      "noBankAccount": "Aucun compte bancaire configuré. Veuillez en ajouter un dans votre dashboard Stripe.",
+      "bankAccountClosed": "Votre compte bancaire est fermé. Veuillez mettre à jour vos coordonnées bancaires.",
+      "payoutFailed": "Le retrait a échoué. Veuillez réessayer ultérieurement.",
+      "onboardingIncomplete": "Veuillez d'abord compléter votre onboarding Stripe Connect."
     },
-    "autoPayoutMinimum": "Seuil minimum",
     "transactions": {
-      "title": "Historique des transactions",
+      "title": "Transactions",
+      "empty": "Aucune transaction",
       "columns": {
         "date": "Date",
         "film": "Film",
-        "exhibitor": "Exploitant",
-        "gross": "Montant brut",
+        "cinema": "Cinéma",
+        "orderNumber": "Commande",
+        "gross": "Brut",
         "commission": "Commission",
-        "net": "Montant net",
-        "status": "Statut"
+        "ht": "HT",
+        "vat": "TVA",
+        "net": "Net",
+        "transferred": "Montant versé"
       },
-      "status": {
-        "pending": "En attente",
-        "available": "Disponible",
-        "paid_out": "Versé"
-      }
+      "previous": "Précédent",
+      "next": "Suivant"
     },
     "payouts": {
       "title": "Historique des virements",
+      "empty": "Aucun virement",
       "download": "Télécharger le relevé",
+      "columns": {
+        "date": "Date",
+        "amount": "Montant",
+        "status": "Statut",
+        "arrivalDate": "Date d'arrivée"
+      },
       "status": {
+        "pending": "En attente",
         "initiated": "Initié",
         "in_transit": "En transit",
         "paid": "Versé",
-        "failed": "Échoué"
+        "failed": "Échoué",
+        "canceled": "Annulé"
+      },
+      "previous": "Précédent",
+      "next": "Suivant"
+    },
+    "csv": {
+      "download": "Télécharger le relevé",
+      "currentMonth": "Mois en cours",
+      "previousMonth": "Mois précédent",
+      "custom": "Plage personnalisée",
+      "startDate": "Date de début",
+      "endDate": "Date de fin",
+      "export": "Exporter"
+    },
+    "filmSales": {
+      "title": "Ventes",
+      "empty": "Aucune vente pour ce film",
+      "columns": {
+        "date": "Date",
+        "cinema": "Cinéma",
+        "orderNumber": "Commande",
+        "gross": "Brut",
+        "commission": "Commission",
+        "ht": "HT",
+        "vat": "TVA",
+        "transferred": "Montant versé"
       }
     }
   },
@@ -1007,6 +1066,40 @@
         "cinemas": "Cinémas",
         "volume": "Volume",
         "status": "Statut"
+      }
+    },
+    "orders": {
+      "title": "Commandes",
+      "columns": {
+        "orderNumber": "N° commande",
+        "exhibitor": "Exploitant",
+        "date": "Date",
+        "films": "Films",
+        "total": "Total",
+        "status": "Statut"
+      },
+      "status": {
+        "paid": "Payée",
+        "processing": "En traitement",
+        "delivered": "Livrée",
+        "refunded": "Remboursée"
+      },
+      "noResults": "Aucune commande trouvée.",
+      "refund": "Rembourser",
+      "refundConfirm": "Êtes-vous sûr de vouloir rembourser cette commande ? Cela remboursera la totalité du montant et annulera toutes les livraisons en attente.",
+      "refundReason": "Motif du remboursement",
+      "refundReasonPlaceholder": "Pourquoi cette commande est-elle remboursée ?",
+      "refundExpired": "Les remboursements ne sont possibles que dans les 48 heures suivant le paiement.",
+      "detail": {
+        "title": "Détails de la commande",
+        "summary": "Récapitulatif",
+        "items": "Articles de la commande",
+        "subtotal": "Sous-total",
+        "deliveryFees": "Frais de livraison",
+        "tax": "TVA",
+        "total": "Total",
+        "reverseCharge": "Autoliquidation de TVA",
+        "stripeInvoice": "Voir la facture Stripe"
       }
     },
     "deliveries": {
@@ -1364,6 +1457,26 @@
       "FORBIDDEN": "Vous n'avez pas la permission de gérer les paramètres de paiement.",
       "NOT_CONFIGURED": "Le compte de paiement n'est pas encore configuré.",
       "UNKNOWN": "Une erreur inattendue s'est produite."
+    },
+    "payoutSchedule": {
+      "title": "Calendrier des virements",
+      "description": "Configurez la fréquence d'envoi automatique de votre solde disponible vers votre compte bancaire.",
+      "interval": "Fréquence",
+      "manual": "Manuel",
+      "daily": "Quotidien",
+      "weekly": "Hebdomadaire",
+      "monthly": "Mensuel",
+      "weeklyAnchor": "Jour de la semaine",
+      "monthlyAnchor": "Jour du mois",
+      "monday": "Lundi",
+      "tuesday": "Mardi",
+      "wednesday": "Mercredi",
+      "thursday": "Jeudi",
+      "friday": "Vendredi",
+      "saturday": "Samedi",
+      "sunday": "Dimanche",
+      "success": "Calendrier des virements mis à jour.",
+      "error": "Impossible de mettre à jour le calendrier des virements."
     }
   },
   "rightsHolderDashboard": {
@@ -1395,5 +1508,11 @@
       "empty": "Aucune donnée de recherche pour le moment",
       "searches": "recherches"
     }
+  },
+  "footer": {
+    "copyright": "© {year} Timeless Cinema",
+    "searchCurrency": "Rechercher une devise...",
+    "noCurrencyFound": "Aucune devise trouvée.",
+    "currencyUpdated": "Devise mise à jour."
   }
 }

@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
+import { MarketplaceFooter } from "@/components/marketplace-footer";
 import { MarketplaceHeader } from "@/components/marketplace-header";
 import { AccountProvider } from "@/components/providers/account-provider";
 import { auth } from "@/lib/auth";
@@ -21,6 +22,8 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
     getActiveAccountCookie(),
   ]);
 
+  const activeMembership = memberships.find((m) => m.accountId === activeCookie?.accountId);
+
   // Onboarding guard — redirect to onboarding if not completed
   // Skip if already on the onboarding page to avoid redirect loop
   if (session && activeCookie) {
@@ -29,7 +32,6 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
     const isOnOnboarding = pathname.includes("/onboarding");
 
     if (!isOnOnboarding) {
-      const activeMembership = memberships.find((m) => m.accountId === activeCookie.accountId);
       if (
         activeMembership &&
         activeCookie.type === "exhibitor" &&
@@ -50,11 +52,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
       <div className="flex min-h-screen flex-col">
         <MarketplaceHeader user={user} />
         <main className="flex-1">{children}</main>
-        <footer className="">
-          <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-6 text-sm text-muted-foreground lg:px-6">
-            <p>&copy; {new Date().getFullYear()} Timeless Cinema</p>
-          </div>
-        </footer>
+        <MarketplaceFooter initialCurrency={activeMembership?.account.preferredCurrency ?? "EUR"} />
       </div>
     </AccountProvider>
   );

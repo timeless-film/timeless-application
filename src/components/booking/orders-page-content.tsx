@@ -203,14 +203,7 @@ export function OrdersPageContent({
                       {order.items.length} — {filmNames}
                     </TableCell>
                     <TableCell className="text-sm font-medium">
-                      {formatAmount(
-                        order.items.reduce(
-                          (sum, item) => sum + item.displayedPrice * item.screeningCount,
-                          0
-                        ) + order.taxAmount,
-                        order.currency,
-                        locale
-                      )}
+                      {formatAmount(order.total, order.currency, locale)}
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline" className={orderStatusBadgeClassName(order.status)}>

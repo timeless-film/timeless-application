@@ -7,107 +7,264 @@
 
 ## Contexte
 
-Le backoffice est réservé aux membres de l'équipe TIMELESS. Il centralise la supervision de la plateforme, la gestion des comptes, la configuration des commissions, et le suivi opérationnel.
+Le backoffice est réservé aux comptes de type `admin`. Il centralise la supervision de la plateforme, la gestion des comptes, la configuration tarifaire, le suivi des commandes, et le pilotage opérationnel.
+
+L'accès admin est déjà prévu dans l'architecture :
+- Le type de compte `admin` existe dans l'enum `accountType` (`exhibitor | rights_holder | admin`)
+- Le `proxy.ts` définit déjà les `ADMIN_PATHS` (`/admin/dashboard`, `/admin/exhibitors`, `/admin/rights-holders`, `/admin/orders`, `/admin/deliveries`, `/admin/settings`, `/admin/logs`) et redirige tout non-admin vers sa home
+- Le cookie `timeless_active_account` contient le type de compte et sert de guard côté routing
+
+---
+
+## Infrastructure existante
+
+Le schéma DB et les services nécessaires au backoffice sont déjà en place :
+
+| Composant | Fichier | Détail |
+|-----------|---------|--------|
+| Table `platformSettings` | `schema/settings.ts` | Ligne unique (`id="global"`) : `platformMarginRate` (20%), `deliveryFees` (5000 cts = 50 €), `defaultCommissionRate` ("0"), `opsEmail`, `requestExpirationDays`, `requestUrgencyDaysBeforeStart` |
+| Table `platformSettingsHistory` | `schema/settings.ts` | Historique de chaque modification : champ, ancienne/nouvelle valeur, date, admin |
+| Table `auditLogs` | `schema/settings.ts` | Action, entityType, entityId, performedById, metadata (JSON) |
+| Champ `accounts.commissionRate` | `schema/accounts.ts` | Override de commission par ayant droit (décimal string, ex: `"0.05"`) |
+| Champ `accounts.status` | `schema/accounts.ts` | Enum `active | suspended` — suspension déjà prévue |
+| Champ `orderItems.deliveryStatus` | `schema/orders.ts` | Enum `pending | in_progress | delivered` — suivi livraison par item |
+| Champ `orderItems.deliveryNotes` | `schema/orders.ts` | Notes ops (texte libre) |
+| Champ `orderItems.deliveredAt` | `schema/orders.ts` | Timestamp de livraison |
+| `analytics-service.ts` | `services/` | `getTotalRevenue()`, `getMonthlyRevenue()`, `getTopFilms()`, `getTopExhibitors()`, `getSalesMetrics()` |
+| `wallet-service.ts` | `services/` | Lecture soldes/transfers/payouts via API Stripe Connect |
+| `order-service.ts` | `services/` | Requêtes `orders` / `orderItems` |
+| Pricing engine | `lib/pricing/` | `calculatePricing()`, `getPlatformPricingSettings()`, `resolveCommissionRate()` |
 
 ---
 
 ## Tickets
 
-### E11-001 — Dashboard global
-**Priorité** : P1 | **Taille** : M
+### E11-001 — Layout admin & navigation
+**Priorité** : P0 | **Taille** : M
 
-Métriques principales :
-- Volume de transactions (jour / mois / cumulé)
-- Revenus TIMELESS (commissions encaissées)
-- Nombre de réservations actives / en attente de livraison
-- Nombre de demandes en attente de validation
-- Utilisateurs actifs (exploitants + ayants droits)
+Shell du backoffice : layout, sidebar, routing, guards. C'est le prérequis de tous les autres tickets.
 
-Graphiques :
-- Évolution des transactions dans le temps
-- Top films les plus réservés
-- Top exploitants par volume
+**Dossier** : `src/app/[locale]/admin/` (dossier réel, pas un route group — le préfixe `/admin` apparaît dans l'URL)
+
+**Layout** :
+- Sidebar avec navigation : Dashboard, Commandes, Exploitants, Ayants droits, Livraisons, Paramètres, Logs
+- Header avec nom de l'admin connecté
+- Responsive (collapse sidebar sur mobile)
+
+**Routing & Guards** :
+- Le `proxy.ts` redirige déjà les non-admin — vérifier que le guard fonctionne
+- Layout server component : vérifier `session` + `account.type === "admin"`, sinon redirect
+- Ajouter les entrées de navigation dans la sidebar (i18n `admin.*`)
+
+**Traductions** : namespace `admin` dans `messages/en.json` et `messages/fr.json`
 
 ---
 
-### E11-002 — Gestion des ayants droits
+### E11-002 — Dashboard global
+**Priorité** : P1 | **Taille** : M
+
+Page `/admin/dashboard` — vue d'ensemble de l'activité plateforme.
+
+**KPI Cards** (ligne du haut) :
+- Revenu TIMELESS ce mois (marge + frais de livraison — `timelessAmount` agrégé sur `orderItems`)
+- Commandes ce mois (count `orders` du mois en cours)
+- Demandes en attente (count `requests` en statut `pending`)
+- Livraisons à traiter (count `orderItems` avec `deliveryStatus = pending`)
+
+**Ligne secondaire de KPIs** :
+- Comptes exploitants actifs (count `accounts` type `exhibitor`, status `active`)
+- Comptes ayants droits actifs (count `accounts` type `rights_holder`, status `active`)
+- Films au catalogue (count `films` status `active`)
+- Onboardings en attente (count `accounts` avec `onboardingCompleted = false` ou `stripeConnectOnboardingComplete = false`)
+
+**Graphiques** :
+- Évolution du revenu mensuel (12 derniers mois — `getMonthlyRevenue()`)
+- Top 5 films les plus commandés (`getTopFilms()`)
+- Top 5 exploitants par volume (`getTopExhibitors()`)
+
+> Le service `analytics-service.ts` fournit déjà certaines requêtes. Adapter/ajouter pour les nouvelles métriques (comptes, films, onboardings).
+
+---
+
+### E11-003 — Gestion des ayants droits
 **Priorité** : P0 | **Taille** : L
 
-Liste des comptes ayants droits avec :
-- Nom, pays, statut Stripe Connect (onboarding complet / incomplet)
-- Commission configurée
-- Nombre de films dans le catalogue
-- Volume de transactions
+Page `/admin/rights-holders` — liste et gestion des comptes ayants droits.
 
-Actions :
-- **Créer un ayant droit** (formulaire + envoi invitation)
-- **Modifier** : raison sociale, commission, statut (actif / suspendu)
-- **Voir le catalogue** de l'ayant droit
-- **Voir les transactions** de l'ayant droit
-- **Suspendre** un compte (désactive l'accès et masque les films du catalogue)
+**Tableau** :
 
----
+| Colonne | Source |
+|---------|--------|
+| Raison sociale | `accounts.companyName` |
+| Pays | `accounts.country` (affiché avec `Intl.DisplayNames`) |
+| Films actifs | Count `films` avec `status = active` |
+| Stripe Connect | `accounts.stripeConnectOnboardingComplete` (badge vert/rouge) |
+| Commission | `accounts.commissionRate` ou défaut global (`platformSettings.defaultCommissionRate`) |
+| Statut | `accounts.status` (badge `active` / `suspended`) |
 
-### E11-003 — Gestion des exploitants
-**Priorité** : P1 | **Taille** : M
+**Actions** :
+- **Créer un ayant droit** : formulaire (raison sociale, pays, email de contact) → crée le compte `type = rights_holder` **sans utilisateur associé** + envoie une invitation email. Quand l'invité crée son compte utilisateur, il est rattaché au compte RH. Le premier connecté avec rôle owner/admin doit compléter l'onboarding.
+- **Inviter des membres** : depuis la fiche, envoyer des invitations à d'autres emails (même flow que les invitations existantes E01)
+- **Fiche détail** : infos du compte, commission, statut Stripe Connect, liste des films, historique des commissions
+- **Modifier la commission** → voir E11-004
+- **Suspendre / réactiver** : passe `accounts.status` à `suspended` / `active`. Un compte suspendu : ses films disparaissent du catalogue, les utilisateurs sont redirigés vers `/accounts` (le compte n'apparaît plus comme sélectionnable), les appels API pour ce compte sont bloqués. Les comptes utilisateurs ne sont pas impactés. Log dans `auditLogs`
+- **Voir le catalogue** : lien vers la liste des films de l'ayant droit (réutilise `listFilmsForAccount()`)
 
-Liste des comptes exploitants avec :
-- Nom, pays, nombre de cinémas, volume de transactions
-- Statut : actif / suspendu
-
-Actions :
-- Consulter le détail du compte
-- Suspendre / réactiver un compte
-- Voir l'historique des commandes
-
-Pas de création manuelle (les exploitants s'inscrivent eux-mêmes).
+Filtres : statut (actif / suspendu), pays, statut Stripe Connect.
+Recherche par nom.
 
 ---
 
 ### E11-004 — Configuration des commissions par ayant droit
 **Priorité** : P0 | **Taille** : S
 
-Depuis la fiche d'un ayant droit :
-- Modifier le taux de commission (%, défaut : 10%)
-- Historique des modifications (date, ancienne valeur, nouvelle valeur, admin qui a modifié)
-- Note : la modification ne s'applique qu'aux nouvelles transactions
+Depuis la fiche d'un ayant droit (E11-003), section "Commission" :
+
+- Affichage du taux actuel (`accounts.commissionRate` ou `"défaut (X%)"` si null)
+- Formulaire de modification : champ pourcentage (0-100%) avec validation Zod
+- Confirmation obligatoire avant enregistrement (dialog "Êtes-vous sûr ?")
+- La modification s'applique **uniquement aux nouvelles commandes** — les `orderItems` existants conservent leur `commissionRate` snapshotté
+- Chaque modification est loguée dans `auditLogs` avec `action: "commission.updated"`, `entityType: "account"`, metadata `{ oldRate, newRate }`
+
+**Historique des modifications** : tableau chronologique (date, ancienne valeur → nouvelle valeur, admin) — requête sur `auditLogs` filtré par `entityId` et action.
+
+> Note : le modèle actuel est "marge uniquement" (`defaultCommissionRate = "0"`). La commission est un levier futur. L'infrastructure est prête mais le taux par défaut reste 0 %.
+
+---
+
+### E11-005 — Gestion des exploitants
+**Priorité** : P1 | **Taille** : M
+
+Page `/admin/exhibitors` — liste et consultation des comptes exploitants.
+
+**Tableau** :
+
+| Colonne | Source |
+|---------|--------|
+| Raison sociale | `accounts.companyName` |
+| Pays | `accounts.country` |
+| Cinémas | Count `cinemas` (non archivés) |
+| Commandes | Count `orders` |
+| Onboarding | `accounts.onboardingCompleted` (badge) |
+| Statut | `accounts.status` |
+
+**Actions** :
+- **Créer un exploitant** : formulaire (raison sociale, pays, email de contact) → crée le compte `type = exhibitor` **sans utilisateur associé** + envoie une invitation email. Même logique que la création d'ayant droit (E11-003). Le premier connecté avec rôle owner/admin doit compléter l'onboarding.
+- **Inviter des membres** : depuis la fiche, envoyer des invitations
+- **Fiche détail** : infos du compte, liste des cinémas (+ salles), historique des commandes
+- **Suspendre / réactiver** : même logique que E11-003 (redirection `/accounts`, API bloquée, utilisateurs non impactés). Log dans `auditLogs`
+- **Voir les commandes** : lien vers la vue commandes filtrée sur cet exploitant
+
+Note : les exploitants peuvent aussi s'inscrire eux-mêmes via `/register`.
+
+Filtres : statut, pays, onboarding complété.
+Recherche par nom.
+
+---
+
+### E11-006 — Vue des commandes & remboursements
+**Priorité** : P0 | **Taille** : L
+
+Page `/admin/orders` — toutes les commandes de la plateforme.
+
+**Tableau des commandes** :
+
+| Colonne | Source |
+|---------|--------|
+| N° commande | `orders.orderNumber` (formaté `ORD-000042`) |
+| Exploitant | `accounts.companyName` (via `exhibitorAccountId`) |
+| Date | `orders.paidAt` |
+| Nb films | Count `orderItems` |
+| Total | `orders.total` (formaté avec devise) |
+| Statut | `orders.status` (`paid` / `processing` / `delivered` / `refunded`) |
+
+**Fiche commande** (détail) :
+- Récapitulatif : exploitant, date, montant, TVA (`taxAmount`, `taxRate`, `reverseCharge`), facture Stripe
+- Tableau des items : film, ayant droit, cinéma, salle, dates de diffusion, nb visionnages, prix affiché, montant ayant droit, montant TIMELESS, statut livraison
+- Lien vers la facture Stripe (`stripeInvoiceId`)
+
+**Remboursement** (action sur une commande de moins de 48h, statut `paid` ou `processing`) :
+- Remboursement **total uniquement** — pas de remboursement par item (une commande peut impliquer plusieurs ayants droits, la granularité par item est reportée au futur)
+- Condition : `paidAt` < 48h (droit de rétractation)
+- Bouton "Rembourser" → dialog de confirmation avec motif obligatoire
+- Appel `stripe.refunds.create()` sur le PaymentIntent (remboursement total)
+- Annulation de tous les transfers Stripe Connect (`stripe.transfers.createReversal()`) pour chaque `orderItem.stripeTransferId`
+- Annulation de toutes les livraisons en cours : `orderItems.deliveryStatus` → reset, notes de livraison effacées
+- Passage de `orders.status` à `refunded`
+- Email de notification à l'exploitant ("votre commande a été remboursée, vous pouvez repasser commande")
+- Log dans `auditLogs` avec `action: "order.refunded"`
+
+> Le remboursement est explicitement reporté de E09 vers E11 (voir E09 — Hors scope). Le remboursement granulaire (par item) est reporté au futur.
+
+Filtres : statut, exploitant, ayant droit, période.
+Recherche par numéro de commande.
 
 ---
 
 ### E11-007 — Configuration globale des tarifs plateforme
 **Priorité** : P0 | **Taille** : M
 
-Section "Paramètres tarifaires" dans le backoffice :
+Page `/admin/settings` — paramètres tarifaires et opérationnels.
 
-| Paramètre | Type | Défaut | Description |
+**Section "Tarification"** :
+
+| Paramètre | Champ DB | Valeur actuelle | Description |
 |---|---|---|---|
-| Marge plateforme | % | À définir | Appliquée sur tous les films |
-| Frais de livraison | Montant fixe (EUR) | 50 EUR | Ajoutés à chaque commande |
-| Commission par défaut | % | 10% | Appliquée si pas d'override sur l'ayant droit |
+| Marge plateforme | `platformMarginRate` | 20% (`"0.20"`) | Ajoutée au prix catalogue pour calculer le prix affiché |
+| Frais de livraison | `deliveryFees` | 50 € (`5000` cts) | Par film, ajoutés en ligne séparée au checkout |
+| Commission par défaut | `defaultCommissionRate` | 0% (`"0"`) | Prélevée sur le prix catalogue avant versement à l'ayant droit. Override possible par ayant droit (E11-004) |
 
-- Modification de ces paramètres avec confirmation obligatoire
-- Historique des modifications (qui, quand, ancienne/nouvelle valeur)
-- Aperçu en temps réel : "Avec ces paramètres, un film catalogué à 150 EUR sera affiché à X EUR"
-- Les paramètres en vigueur au moment d'une commande sont snapshotés (ne changent jamais rétroactivement)
+**Section "Opérations"** :
+
+| Paramètre | Champ DB | Valeur actuelle | Description |
+|---|---|---|---|
+| Email ops | `opsEmail` | `ops@timeless.film` | Destinataire des notifications internes (paiement, alertes livraison) |
+| Expiration des demandes | `requestExpirationDays` | 30 jours | Délai avant expiration d'une demande non traitée |
+| Seuil d'urgence | `requestUrgencyDaysBeforeStart` | 7 jours | Seuil pour marquer une demande/livraison comme urgente |
+
+**Comportement** :
+- Modification avec confirmation obligatoire (dialog "Ces paramètres affecteront toutes les futures commandes")
+- Aperçu en temps réel : "Avec ces paramètres, un film catalogué à 150 € sera affiché à **X €** pour l'exploitant, l'ayant droit recevra **Y €**, TIMELESS percevra **Z €**"
+- Historique des modifications : table `platformSettingsHistory` (champ, ancienne/nouvelle valeur, date, admin)
+- Les paramètres en vigueur au moment d'une commande sont **snapshotés** dans `orderItems` / `requests` — une modification ne change jamais rétroactivement les commandes passées
 
 ---
 
-### E11-005 — Supervision des livraisons
-**Priorité** : P0 | **Taille** : S
-
-Intégration de la vue E10-002 dans le backoffice.
-Voir [[E10 - Livraison Opérationnelle]].
-
----
-
-### E11-006 — Logs et audit trail
+### E11-008 — Logs et audit trail
 **Priorité** : P2 | **Taille** : M
 
-Journal des actions sensibles :
-- Création / modification / suspension de comptes
-- Modifications de commissions
-- Remboursements initiés
-- Changements de statut de livraison
+Page `/admin/logs` — journal des actions sensibles.
 
-Chaque entrée : date, admin concerné, action, entité modifiée, anciennes/nouvelles valeurs.
-Filtres : type d'action, admin, période.
+La table `auditLogs` existe déjà avec : `action`, `entityType`, `entityId`, `performedById`, `metadata` (JSON), `createdAt`.
+
+**Actions loguées** :
+
+| Action | Déclencheur |
+|--------|-------------|
+| `account.created` | Création d'un ayant droit (E11-003) |
+| `account.suspended` | Suspension d'un compte (E11-003, E11-005) |
+| `account.reactivated` | Réactivation d'un compte |
+| `commission.updated` | Modification de commission par ayant droit (E11-004) |
+| `settings.updated` | Modification des paramètres plateforme (E11-007) |
+| `order.refunded` | Remboursement d'une commande (E11-006) |
+| `delivery.status_changed` | Changement de statut de livraison (E10-002) |
+
+**Interface** :
+- Tableau chronologique (plus récent en premier)
+- Colonnes : date/heure, admin, action (badge), entité (lien vers la fiche), détail (anciennes/nouvelles valeurs)
+- Filtres : type d'action, admin, période
+- Recherche par entité (ID ou nom)
+
+---
+
+## Ordre d'implémentation recommandé
+
+1. **E11-001** — Layout admin (prérequis de tout)
+2. **E11-007** — Paramètres plateforme (critique — valeurs existantes, peu de code nouveau)
+3. **E11-003** — Gestion ayants droits + **E11-004** commissions (création de comptes RH = flow business principal)
+4. **E11-005** — Gestion exploitants
+5. **E11-006** — Vue commandes & remboursements
+6. **E11-002** — Dashboard global (dernière passe — les données existent, c'est de la visualisation)
+7. **E11-008** — Audit trail (P2, non bloquant)
+
+> E10 (Livraison Opérationnelle) se branche après E11-001 : la vue livraisons (E10-002) s'intègre dans le layout admin.

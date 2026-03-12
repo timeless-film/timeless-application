@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { calculatePricing, formatAmount, resolveCommissionRate } from "@/lib/pricing";
+import {
+  calculatePricing,
+  calculateRightsHolderTaxAmount,
+  formatAmount,
+  resolveCommissionRate,
+} from "@/lib/pricing";
 
 describe("calculatePricing", () => {
   it("calculates basic pricing without delivery fees", () => {
@@ -193,5 +198,92 @@ describe("formatAmount", () => {
   it("formats with specified locale", () => {
     const result = formatAmount(15000, "EUR", "fr-FR");
     expect(result).toContain("150");
+  });
+});
+
+describe("calculateRightsHolderTaxAmount", () => {
+  it("calculates proportional RH tax share", () => {
+    // Order: subtotal=12000 + delivery=5000 = 17000 HT
+    // RH amount: 9000 × 1 screening = 9000
+    // Tax: 3400 (20%)
+    // RH share: round(3400 × 9000/17000) = round(1800) = 1800
+    const result = calculateRightsHolderTaxAmount({
+      taxAmount: 3400,
+      rightsHolderAmount: 9000,
+      screeningCount: 1,
+      subtotal: 12000,
+      deliveryFeesTotal: 5000,
+    });
+
+    expect(result).toBe(1800);
+  });
+
+  it("multiplies by screeningCount", () => {
+    const result = calculateRightsHolderTaxAmount({
+      taxAmount: 3400,
+      rightsHolderAmount: 9000,
+      screeningCount: 3,
+      subtotal: 36000, // 12000 × 3
+      deliveryFeesTotal: 5000,
+    });
+
+    // rhHtAmount = 9000 × 3 = 27000
+    // htBase = 36000 + 5000 = 41000
+    // round(3400 × 27000 / 41000) = round(2239.02...) = 2239
+    expect(result).toBe(2239);
+  });
+
+  it("returns 0 when taxAmount is 0 (reverse charge)", () => {
+    const result = calculateRightsHolderTaxAmount({
+      taxAmount: 0,
+      rightsHolderAmount: 9000,
+      screeningCount: 1,
+      subtotal: 12000,
+      deliveryFeesTotal: 5000,
+    });
+
+    expect(result).toBe(0);
+  });
+
+  it("returns 0 when htBase is 0", () => {
+    const result = calculateRightsHolderTaxAmount({
+      taxAmount: 1000,
+      rightsHolderAmount: 0,
+      screeningCount: 1,
+      subtotal: 0,
+      deliveryFeesTotal: 0,
+    });
+
+    expect(result).toBe(0);
+  });
+
+  it("rounds to nearest cent", () => {
+    // rhHtAmount = 7777 × 1 = 7777
+    // htBase = 10000 + 3000 = 13000
+    // 2000 × 7777 / 13000 = 1196.46... → 1196
+    const result = calculateRightsHolderTaxAmount({
+      taxAmount: 2000,
+      rightsHolderAmount: 7777,
+      screeningCount: 1,
+      subtotal: 10000,
+      deliveryFeesTotal: 3000,
+    });
+
+    expect(result).toBe(1196);
+  });
+
+  it("handles no delivery fees", () => {
+    // htBase = 12000 + 0 = 12000
+    // rhHtAmount = 9000
+    // 2400 × 9000/12000 = 1800
+    const result = calculateRightsHolderTaxAmount({
+      taxAmount: 2400,
+      rightsHolderAmount: 9000,
+      screeningCount: 1,
+      subtotal: 12000,
+      deliveryFeesTotal: 0,
+    });
+
+    expect(result).toBe(1800);
   });
 });

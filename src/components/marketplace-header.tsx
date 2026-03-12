@@ -23,7 +23,6 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { useAccountContext } from "@/components/providers/account-provider";
-import { LanguageSwitcher } from "@/components/shared/language-switcher";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -220,8 +219,6 @@ export function MarketplaceHeader({ user }: MarketplaceHeaderProps) {
               <span className="sr-only">{t("cart")}</span>
             </Link>
           </Button>
-
-          <LanguageSwitcher />
 
           {/* User menu */}
           <DropdownMenu>

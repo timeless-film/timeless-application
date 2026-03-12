@@ -110,3 +110,34 @@ export async function loginAsRightsHolder(page: Page, context: RightsHolderConte
   await page.goto("/en/home");
   await expect(page).toHaveURL(/\/en\//, { timeout: 15000 });
 }
+
+/**
+ * E2E Stripe Connect test account for wallet tests.
+ * NEVER delete this account in Stripe Dashboard.
+ */
+const STRIPE_TEST_CONNECT_ACCOUNT_ID = "acct_1T9Xa2Fg5bm7UN8b";
+
+/**
+ * Creates a rights holder E2E context with Stripe Connect account attached.
+ * Used for wallet/payout E2E tests that need a real Stripe Connect account.
+ */
+export async function createRightsHolderWithStripeAccount(
+  request: APIRequestContext,
+  testId: string,
+  prefix: string
+): Promise<RightsHolderContext> {
+  const ctx = await createRightsHolderContext(request, testId, prefix);
+
+  const sql = postgres(DB_URL, { max: 1 });
+
+  await sql`
+    UPDATE accounts
+    SET stripe_connect_account_id = ${STRIPE_TEST_CONNECT_ACCOUNT_ID},
+        stripe_connect_onboarding_complete = true
+    WHERE id = ${ctx.accountId}
+  `;
+
+  await sql.end();
+
+  return ctx;
+}

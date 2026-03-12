@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
 import { RightsHolderSidebar } from "@/components/layout/rights-holder-sidebar";
+import { MarketplaceFooter } from "@/components/marketplace-footer";
 import { MarketplaceHeader } from "@/components/marketplace-header";
 import { AccountProvider } from "@/components/providers/account-provider";
 import { StripeConnectBanner } from "@/components/shared/stripe-connect-banner";
@@ -57,11 +58,9 @@ export default async function HomeLayout({ children }: { children: ReactNode }) 
         <div className="flex min-h-screen flex-col">
           <MarketplaceHeader user={user} />
           <main className="flex-1">{children}</main>
-          <footer className="">
-            <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-6 text-sm text-muted-foreground lg:px-6">
-              <p>&copy; {new Date().getFullYear()} Timeless Cinema</p>
-            </div>
-          </footer>
+          <MarketplaceFooter
+            initialCurrency={activeMembership?.account.preferredCurrency ?? "EUR"}
+          />
         </div>
       </AccountProvider>
     );
@@ -118,9 +117,10 @@ export default async function HomeLayout({ children }: { children: ReactNode }) 
             profileHref="/account/profile"
             accountHref="/account/information"
             canManageAccount={canManageAccount}
+            showLanguageSwitcher
           />
           <SidebarInset>
-            <SiteHeader />
+            <SiteHeader showLanguageSwitcher={false} />
             {showBanner && <StripeConnectBanner canManage={canManageAccount} />}
             <div className="flex flex-1 flex-col">
               <div className="flex flex-1 flex-col gap-4 p-4 lg:p-6">{children}</div>
@@ -132,5 +132,5 @@ export default async function HomeLayout({ children }: { children: ReactNode }) 
   }
 
   // Admin — redirect to dashboard
-  redirect("/dashboard");
+  redirect("/admin/dashboard");
 }

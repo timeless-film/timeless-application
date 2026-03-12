@@ -45,7 +45,7 @@ test.describe("Route protection by account type", () => {
   });
 
   test("admin paths redirect unauthenticated to login", async ({ page }) => {
-    const adminPaths = ["/en/dashboard", "/en/exhibitors", "/en/rights-holders", "/en/settings"];
+    const adminPaths = ["/en/admin/dashboard", "/en/admin/exhibitors", "/en/admin/rights-holders", "/en/admin/settings"];
 
     for (const path of adminPaths) {
       await page.goto(path);

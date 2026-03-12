@@ -25,12 +25,13 @@ export const UNPROTECTED_API_PATHS = ["/api/auth", "/api/webhooks", "/api/debug"
 export const EXHIBITOR_PATHS = ["/catalog", "/cart", "/orders", "/requests", "/accept-invitation"];
 export const RIGHTS_HOLDER_PATHS = ["/films", "/validation-requests", "/wallet"];
 export const ADMIN_PATHS = [
-  "/dashboard",
-  "/exhibitors",
-  "/rights-holders",
-  "/deliveries",
-  "/settings",
-  "/logs",
+  "/admin/dashboard",
+  "/admin/exhibitors",
+  "/admin/rights-holders",
+  "/admin/orders",
+  "/admin/deliveries",
+  "/admin/settings",
+  "/admin/logs",
 ];
 
 const SUPPORTED_LOCALES = ["en", "fr"];

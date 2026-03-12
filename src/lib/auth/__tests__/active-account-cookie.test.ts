@@ -83,7 +83,7 @@ describe("getHomePathForType", () => {
     expect(getHomePathForType("rights_holder")).toBe("/home");
   });
 
-  it("returns /dashboard for admin", () => {
-    expect(getHomePathForType("admin")).toBe("/dashboard");
+  it("returns /admin/dashboard for admin", () => {
+    expect(getHomePathForType("admin")).toBe("/admin/dashboard");
   });
 });

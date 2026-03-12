@@ -82,6 +82,7 @@ interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   profileHref: string;
   accountHref?: string;
   canManageAccount?: boolean;
+  showLanguageSwitcher?: boolean;
 }
 
 export function AppSidebar({
@@ -90,6 +91,7 @@ export function AppSidebar({
   profileHref,
   accountHref,
   canManageAccount,
+  showLanguageSwitcher,
   ...props
 }: AppSidebarProps) {
   return (
@@ -121,6 +123,7 @@ export function AppSidebar({
           profileHref={profileHref}
           accountHref={accountHref}
           canManageAccount={canManageAccount}
+          showLanguageSwitcher={showLanguageSwitcher}
         />
       </SidebarFooter>
     </Sidebar>

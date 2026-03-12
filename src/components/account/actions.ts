@@ -137,6 +137,20 @@ export async function updateAccountInfo(input: {
   return { success: true };
 }
 
+// ─── Preferred Currency ───────────────────────────────────────────────────────
+
+export async function updatePreferredCurrency(currency: string) {
+  const ctx = await getCurrentMembership();
+  if (!ctx) return { error: "UNAUTHORIZED" as const };
+
+  await db
+    .update(accounts)
+    .set({ preferredCurrency: currency, updatedAt: new Date() })
+    .where(eq(accounts.id, ctx.accountId));
+
+  return { success: true };
+}
+
 // ─── VAT Validation ───────────────────────────────────────────────────────────
 
 /**

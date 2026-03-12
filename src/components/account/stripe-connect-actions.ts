@@ -8,7 +8,10 @@ import { auth } from "@/lib/auth";
 import { getCurrentMembership } from "@/lib/auth/membership";
 import { db } from "@/lib/db";
 import { accounts } from "@/lib/db/schema";
+import { getPayoutSchedule, updatePayoutSchedule } from "@/lib/services/wallet-service";
 import { createConnectOnboardingLink, stripe } from "@/lib/stripe";
+
+import type { PayoutScheduleInput } from "@/lib/services/wallet-service";
 
 /**
  * Creates (or reuses) a Stripe Connect Express account and returns the onboarding URL.
@@ -153,4 +156,57 @@ export async function detachStripeConnectAccount() {
   revalidatePath("/account/information");
 
   return { success: true as const };
+}
+
+/**
+ * Fetches the current payout schedule for the connected Stripe account.
+ */
+export async function fetchPayoutSchedule() {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) return { error: "UNAUTHORIZED" as const };
+
+  const ctx = await getCurrentMembership();
+  if (!ctx) return { error: "UNAUTHORIZED" as const };
+
+  if (ctx.account.type !== "rights_holder") {
+    return { error: "FORBIDDEN" as const };
+  }
+
+  if (!ctx.account.stripeConnectAccountId || !ctx.account.stripeConnectOnboardingComplete) {
+    return { error: "NOT_CONFIGURED" as const };
+  }
+
+  const schedule = await getPayoutSchedule(ctx.account.stripeConnectAccountId);
+  return { success: true as const, schedule };
+}
+
+/**
+ * Updates the payout schedule for the connected Stripe account.
+ */
+export async function updatePayoutSettings(input: PayoutScheduleInput) {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) return { error: "UNAUTHORIZED" as const };
+
+  const ctx = await getCurrentMembership();
+  if (!ctx) return { error: "UNAUTHORIZED" as const };
+
+  if (ctx.account.type !== "rights_holder") {
+    return { error: "FORBIDDEN" as const };
+  }
+
+  if (ctx.role !== "owner" && ctx.role !== "admin") {
+    return { error: "FORBIDDEN" as const };
+  }
+
+  if (!ctx.account.stripeConnectAccountId || !ctx.account.stripeConnectOnboardingComplete) {
+    return { error: "NOT_CONFIGURED" as const };
+  }
+
+  try {
+    await updatePayoutSchedule(ctx.account.stripeConnectAccountId, input);
+    return { success: true as const };
+  } catch (error) {
+    console.error("Failed to update payout schedule:", error);
+    return { error: "UNKNOWN" as const };
+  }
 }

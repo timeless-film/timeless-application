@@ -59,8 +59,8 @@ test.describe("Auth redirects (unauthenticated)", () => {
     await expect(page).toHaveURL(/\/en\/login/);
   });
 
-  test("redirects /en/dashboard to login when not authenticated", async ({ page }) => {
-    await page.goto("/en/dashboard");
+  test("redirects /en/admin/dashboard to login when not authenticated", async ({ page }) => {
+    await page.goto("/en/admin/dashboard");
     await expect(page).toHaveURL(/\/en\/login/);
   });
 

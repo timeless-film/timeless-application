@@ -1,7 +1,9 @@
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 
 import { FilmForm } from "@/components/catalog/film-form";
+import { FilmSalesSection } from "@/components/wallet/film-sales-section";
 import { auth } from "@/lib/auth";
 import { getCurrentMembership } from "@/lib/auth/membership";
 import { getFilmById } from "@/lib/services/film-service";
@@ -43,5 +45,12 @@ export default async function EditFilmPage({ params }: { params: Promise<{ filmI
     notFound();
   }
 
-  return <FilmForm mode="edit" film={result.film} />;
+  return (
+    <div className="space-y-8">
+      <FilmForm mode="edit" film={result.film} />
+      <Suspense>
+        <FilmSalesSection accountId={ctx.accountId} filmId={filmId} />
+      </Suspense>
+    </div>
+  );
 }

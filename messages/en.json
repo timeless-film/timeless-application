@@ -117,10 +117,12 @@
     "signOut": "Sign out",
     "main": "Main",
     "management": "Management",
+    "adminOrders": "Orders",
     "myAccounts": "My accounts",
     "manageAccount": "Manage account",
     "home": "Home",
-    "back": "Back"
+    "back": "Back",
+    "switchLanguage": "Français"
   },
   "catalog": {
     "title": "Catalog",
@@ -917,48 +919,105 @@
     "available": "Available balance",
     "pending": "Pending",
     "thisMonth": "This month",
-    "withdraw": "Withdraw",
+    "previousMonth": "Previous month",
+    "withdraw": "Withdraw funds",
+    "noBalance": "No balance available",
+    "onboardingRequired": "Complete your Stripe Connect setup to access the wallet.",
+    "onboardingCta": "Complete setup",
+    "stripeBanner": {
+      "text": "To manage your bank details, statements, and tax documents, access your Stripe dashboard.",
+      "button": "Access dashboard"
+    },
+    "revenueChart": {
+      "title": "Revenue",
+      "period30d": "30 days",
+      "period12m": "12 months",
+      "empty": "No revenue for this period",
+      "tooltip": "Revenue",
+      "salesCountTitle": "Sales",
+      "salesCount": "Sales",
+      "totalLabel": "Total for period",
+      "totalSalesLabel": "Total sales"
+    },
     "withdrawModal": {
       "title": "Withdraw funds",
+      "description": "Transfer your available balance to your bank account.",
       "amount": "Amount",
+      "currency": "Currency",
+      "currencySelect": "Select currency",
       "available": "Available: {amount}",
       "delay": "Funds will be transferred within 1–2 business days.",
-      "confirm": "Confirm withdrawal"
+      "confirm": "Confirm withdrawal",
+      "success": "Withdrawal of {amount} confirmed. Estimated arrival: {date}.",
+      "noBankAccount": "You need to configure a bank account in your Stripe dashboard first."
     },
-    "autoPayoutTitle": "Automatic payouts",
-    "autoPayoutEnable": "Enable automatic payouts",
-    "autoPayoutFrequency": "Frequency",
-    "autoPayoutFrequencies": {
-      "daily": "Daily",
-      "weekly": "Weekly",
-      "monthly": "Monthly"
+    "errors": {
+      "insufficientBalance": "Insufficient balance for this withdrawal.",
+      "noBankAccount": "No bank account configured. Please set one up in your Stripe dashboard.",
+      "bankAccountClosed": "Your bank account is closed. Please update your banking details.",
+      "payoutFailed": "Withdrawal failed. Please try again later.",
+      "onboardingIncomplete": "Please complete your Stripe Connect onboarding first."
     },
-    "autoPayoutMinimum": "Minimum threshold",
     "transactions": {
-      "title": "Transaction history",
+      "title": "Transactions",
+      "empty": "No transactions yet",
       "columns": {
         "date": "Date",
         "film": "Film",
-        "exhibitor": "Exhibitor",
-        "gross": "Gross amount",
+        "cinema": "Cinema",
+        "orderNumber": "Order",
+        "gross": "Gross",
         "commission": "Commission",
-        "net": "Net amount",
-        "status": "Status"
+        "ht": "Excl. tax",
+        "vat": "VAT",
+        "net": "Net",
+        "transferred": "Transferred"
       },
-      "status": {
-        "pending": "Pending",
-        "available": "Available",
-        "paid_out": "Paid out"
-      }
+      "previous": "Previous",
+      "next": "Next"
     },
     "payouts": {
       "title": "Payout history",
+      "empty": "No payouts yet",
       "download": "Download statement",
+      "columns": {
+        "date": "Date",
+        "amount": "Amount",
+        "status": "Status",
+        "arrivalDate": "Arrival date"
+      },
       "status": {
+        "pending": "Pending",
         "initiated": "Initiated",
         "in_transit": "In transit",
         "paid": "Paid",
-        "failed": "Failed"
+        "failed": "Failed",
+        "canceled": "Canceled"
+      },
+      "previous": "Previous",
+      "next": "Next"
+    },
+    "csv": {
+      "download": "Download statement",
+      "currentMonth": "Current month",
+      "previousMonth": "Previous month",
+      "custom": "Custom range",
+      "startDate": "Start date",
+      "endDate": "End date",
+      "export": "Export"
+    },
+    "filmSales": {
+      "title": "Sales",
+      "empty": "No sales for this film yet",
+      "columns": {
+        "date": "Date",
+        "cinema": "Cinema",
+        "orderNumber": "Order",
+        "gross": "Gross",
+        "commission": "Commission",
+        "ht": "Excl. tax",
+        "vat": "VAT",
+        "transferred": "Transferred"
       }
     }
   },
@@ -1007,6 +1066,40 @@
         "cinemas": "Cinemas",
         "volume": "Volume",
         "status": "Status"
+      }
+    },
+    "orders": {
+      "title": "Orders",
+      "columns": {
+        "orderNumber": "Order #",
+        "exhibitor": "Exhibitor",
+        "date": "Date",
+        "films": "Films",
+        "total": "Total",
+        "status": "Status"
+      },
+      "status": {
+        "paid": "Paid",
+        "processing": "Processing",
+        "delivered": "Delivered",
+        "refunded": "Refunded"
+      },
+      "noResults": "No orders found.",
+      "refund": "Refund",
+      "refundConfirm": "Are you sure you want to refund this order? This will refund the full amount and cancel all pending deliveries.",
+      "refundReason": "Refund reason",
+      "refundReasonPlaceholder": "Why is this order being refunded?",
+      "refundExpired": "Refunds are only available within 48 hours of payment.",
+      "detail": {
+        "title": "Order details",
+        "summary": "Summary",
+        "items": "Order items",
+        "subtotal": "Subtotal",
+        "deliveryFees": "Delivery fees",
+        "tax": "Tax",
+        "total": "Total",
+        "reverseCharge": "Reverse charge",
+        "stripeInvoice": "View Stripe invoice"
       }
     },
     "deliveries": {
@@ -1364,6 +1457,26 @@
       "FORBIDDEN": "You do not have permission to manage payment settings.",
       "NOT_CONFIGURED": "Payment account is not configured yet.",
       "UNKNOWN": "An unexpected error occurred."
+    },
+    "payoutSchedule": {
+      "title": "Payout schedule",
+      "description": "Configure how often your available balance is automatically sent to your bank account.",
+      "interval": "Frequency",
+      "manual": "Manual",
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "monthly": "Monthly",
+      "weeklyAnchor": "Day of week",
+      "monthlyAnchor": "Day of month",
+      "monday": "Monday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday",
+      "thursday": "Thursday",
+      "friday": "Friday",
+      "saturday": "Saturday",
+      "sunday": "Sunday",
+      "success": "Payout schedule updated.",
+      "error": "Failed to update payout schedule."
     }
   },
   "rightsHolderDashboard": {
@@ -1395,5 +1508,11 @@
         "empty": "No search data yet",
         "searches": "searches"
       }
+  },
+  "footer": {
+    "copyright": "© {year} Timeless Cinema",
+    "searchCurrency": "Search currency...",
+    "noCurrencyFound": "No currency found.",
+    "currencyUpdated": "Currency updated."
   }
 }

@@ -161,6 +161,7 @@ export const orderItems = pgTable("order_items", {
   commissionRate: text("commission_rate").notNull(),
   displayedPrice: integer("displayed_price").notNull(),
   rightsHolderAmount: integer("rights_holder_amount").notNull(),
+  rightsHolderTaxAmount: integer("rights_holder_tax_amount").notNull().default(0), // RH's share of VAT (agent model)
   timelessAmount: integer("timeless_amount").notNull(),
   currency: text("currency").notNull(), // Exhibitor's preferred currency
 

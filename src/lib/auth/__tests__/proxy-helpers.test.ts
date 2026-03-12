@@ -215,28 +215,32 @@ describe("getRequiredAccountType", () => {
   });
 
   // Admin paths
-  it("returns 'admin' for /en/dashboard", () => {
-    expect(getRequiredAccountType("/en/dashboard")).toBe("admin");
+  it("returns 'admin' for /en/admin/dashboard", () => {
+    expect(getRequiredAccountType("/en/admin/dashboard")).toBe("admin");
   });
 
-  it("returns 'admin' for /en/exhibitors", () => {
-    expect(getRequiredAccountType("/en/exhibitors")).toBe("admin");
+  it("returns 'admin' for /en/admin/orders", () => {
+    expect(getRequiredAccountType("/en/admin/orders")).toBe("admin");
   });
 
-  it("returns 'admin' for /en/rights-holders", () => {
-    expect(getRequiredAccountType("/en/rights-holders")).toBe("admin");
+  it("returns 'admin' for /en/admin/exhibitors", () => {
+    expect(getRequiredAccountType("/en/admin/exhibitors")).toBe("admin");
   });
 
-  it("returns 'admin' for /en/deliveries", () => {
-    expect(getRequiredAccountType("/en/deliveries")).toBe("admin");
+  it("returns 'admin' for /en/admin/rights-holders", () => {
+    expect(getRequiredAccountType("/en/admin/rights-holders")).toBe("admin");
   });
 
-  it("returns 'admin' for /en/settings", () => {
-    expect(getRequiredAccountType("/en/settings")).toBe("admin");
+  it("returns 'admin' for /en/admin/deliveries", () => {
+    expect(getRequiredAccountType("/en/admin/deliveries")).toBe("admin");
   });
 
-  it("returns 'admin' for /en/logs", () => {
-    expect(getRequiredAccountType("/en/logs")).toBe("admin");
+  it("returns 'admin' for /en/admin/settings", () => {
+    expect(getRequiredAccountType("/en/admin/settings")).toBe("admin");
+  });
+
+  it("returns 'admin' for /en/admin/logs", () => {
+    expect(getRequiredAccountType("/en/admin/logs")).toBe("admin");
   });
 
   // Shared paths

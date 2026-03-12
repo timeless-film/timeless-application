@@ -1,0 +1,1 @@
+ALTER TABLE "order_items" ADD COLUMN "rights_holder_tax_amount" integer DEFAULT 0 NOT NULL;

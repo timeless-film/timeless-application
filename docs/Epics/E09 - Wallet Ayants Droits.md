@@ -1,14 +1,22 @@
 # E09 — Wallet Ayants Droits
 
 **Phase** : P3
-**Statut** : ⬜ A faire
+**Statut** : ✅ Done
 **Outils** : Stripe Connect (Balance, Payouts, Transfers)
 
 ---
 
 ## Contexte
 
-Après chaque paiement (E08), Stripe Connect transfère la part de l'ayant droit (`rightsHolderAmount`) vers son compte Connect Express via `stripe.transfers.create()` (avec `source_transaction` = Charge ID). Le `stripeTransferId` est stocké sur chaque `orderItem`.
+Après chaque paiement (E08), Stripe Connect transfère la part de l'ayant droit vers son compte Connect Express via `stripe.transfers.create()` (avec `source_transaction` = Charge ID). Le `stripeTransferId` est stocké sur chaque `orderItem`.
+
+**Modèle fiscal : Agent (intermédiaire)**. TIMELESS agit comme intermédiaire et collecte la TVA pour le compte de l'ayant droit. Le montant transféré au RH inclut donc :
+- Sa part HT : `rightsHolderAmount × screeningCount`
+- Sa part de TVA proportionnelle : `round(taxAmount × rhHtAmount / htBase)`
+
+Où `rhHtAmount = rightsHolderAmount × screeningCount` et `htBase = subtotal + deliveryFeesTotal`. TIMELESS conserve la TVA sur sa marge (timelessAmount) et sur les delivery fees.
+
+> **TVA — règle du lieu de prestation** : pour les services immatériels B2B (cession de droits de diffusion), la TVA applicable est celle du pays de l'acheteur (l'exhibitor), pas du vendeur (le RH). C'est conforme à l'article 259 B du CGI / article 44 de la directive TVA. Stripe Tax (`automatic_tax: { enabled: true }`) calcule correctement la TVA en se basant sur l'adresse du Customer Stripe (l'exhibitor). La localisation du RH ne change pas le taux de TVA.
 
 L'ayant droit a besoin d'un dashboard financier pour :
 
@@ -30,7 +38,8 @@ L'ayant droit a besoin d'un dashboard financier pour :
 | `accounts` | `stripeConnectAccountId` | ID du compte Stripe Connect Express de l'ayant droit |
 | `accounts` | `stripeConnectOnboardingComplete` | Pré-requis : doit être `true` pour accéder au wallet |
 | `orderItems` | `stripeTransferId` | Rattache un transfer Stripe à un item de commande |
-| `orderItems` | `rightsHolderAmount` | Montant net reçu par l'ayant droit (centimes) |
+| `orderItems` | `rightsHolderAmount` | Montant HT net reçu par l'ayant droit par séance (centimes) |
+| `orderItems` | `rightsHolderTaxAmount` | Part de TVA du RH (centimes) — modèle agent |
 | `orderItems` | `catalogPrice`, `commissionRate` | Pour afficher le détail : brut / commission / net |
 | `orderItems` | `currency` | Devise de la transaction |
 | `orderItems` | `filmId`, `cinemaId`, `rightsHolderAccountId` | Jointure pour enrichir les données Stripe |
@@ -38,7 +47,15 @@ L'ayant droit a besoin d'un dashboard financier pour :
 | `films` | `title`, `originalTitle` | Nom du film dans le tableau des transactions |
 | `cinemas` | `name` | Nom du cinéma dans le tableau des transactions |
 
-### Aucune nouvelle table
+### Colonne ajoutée
+
+| Table | Colonne | Type | Description |
+|-------|---------|------|-------------|
+| `order_items` | `rights_holder_tax_amount` | `integer NOT NULL DEFAULT 0` | Part de TVA du RH calculée au prorata de sa part HT (modèle agent) |
+
+Migration : `drizzle/0012_overjoyed_gertrude_yorkes.sql`
+
+### Pas de nouvelle table
 
 Les soldes viennent de Stripe (`stripe.balance.retrieve({ stripeAccount })`), pas d'une table locale. Les transactions sont la jointure entre `stripe.transfers.list()` et `orderItems.stripeTransferId`. Les virements viennent de `stripe.payouts.list({ stripeAccount })`.
 
@@ -53,7 +70,7 @@ Les soldes viennent de Stripe (`stripe.balance.retrieve({ stripeAccount })`), pa
 | Épic | Composant | Détail |
 |------|-----------|--------|
 | E03-002 | Onboarding Stripe Connect | `stripeConnectAccountId` + onboarding Express + webhook `account.updated` |
-| E08-001 | Transfers après paiement | `transferToRightsHolder()` → `stripeTransferId` sur `orderItems` |
+| E08-001 | Transfers après paiement | `transferToRightsHolder()` → montant = `rhAmount × qty + rhTaxAmount` → `stripeTransferId` sur `orderItems` |
 | E08-001 | Webhook signature | Vérification des webhooks Stripe déjà en place |
 | E08-003 | Order service | `order-service.ts` avec requêtes sur `orders` / `orderItems` |
 
@@ -75,8 +92,9 @@ Les soldes viennent de Stripe (`stripe.balance.retrieve({ stripeAccount })`), pa
 6. **Retrait manuel = payout instantané** — `stripe.payouts.create()` sur le compte Connect. L'ayant droit choisit le montant (max = solde disponible).
 7. **Onboarding requis** — si `stripeConnectOnboardingComplete === false`, la page wallet affiche un message avec un CTA vers l'onboarding (comme le banner existant).
 8. **Commission visible** — l'ayant droit voit le montant brut (`catalogPrice`), la commission TIMELESS (`commissionRate`), et le net (`rightsHolderAmount`). Transparence totale sur sa part.
-9. **Export CSV formaté** — montants en format lisible (`150.00`, pas `15000`). Pas de PDF en P0. Le CSV couvre les besoins comptables de base.
-10. **Ventes par film** — la page détail d'un film côté ayant droit affiche aussi les transactions liées (même service `getWalletTransactions()` filtré par `filmId`). Permet d'identifier les films les plus vendus.
+9. **Export CSV formaté** — montants en format lisible (`150.00`, pas `15000`). Pas de PDF en P0. Le CSV couvre les besoins comptables de base. Inclut les colonnes VAT (part TVA du RH) et Transfer (montant total transféré = net + TVA).
+10. **Modèle fiscal : Agent (intermédiaire)** — TIMELESS collecte la TVA pour le compte du RH et la lui reverse au prorata de sa part HT dans le transfer Stripe. Formule : `transferAmount = rightsHolderAmount × screeningCount + round(taxAmount × rhHtAmount / htBase)`. TIMELESS conserve uniquement la TVA sur sa propre marge (`timelessAmount`) et les delivery fees. La TVA applicable est déterminée par la localisation de l'exhibitor (règle du lieu de prestation B2B, art. 259 B CGI / art. 44 directive TVA), pas par la localisation du RH.
+11. **Ventes par film** — la page détail d'un film côté ayant droit affiche aussi les transactions liées (même service `getWalletTransactions()` filtré par `filmId`). Permet d'identifier les films les plus vendus.
 
 ---
 
@@ -95,7 +113,7 @@ Les soldes viennent de Stripe (`stripe.balance.retrieve({ stripeAccount })`), pa
 | Composant | Fichier | Statut | Détail |
 |-----------|---------|--------|--------|
 | Stripe SDK | `src/lib/stripe/index.ts` | ✅ Done | Instance `stripe` configurée, API `2026-02-25.clover` |
-| Transfer après paiement | `src/lib/stripe/index.ts` | ✅ Done | `transferToRightsHolder()` → crée un transfer avec `source_transaction` (Charge ID) |
+| Transfer après paiement | `src/lib/stripe/index.ts` | ✅ Done | `transferToRightsHolder()` → crée un transfer avec `source_transaction` (Charge ID). Montant = `rightsHolderAmount × screeningCount + rightsHolderTaxAmount` (modèle agent : inclut la part de TVA du RH) |
 | Webhook Stripe | `src/app/api/webhooks/stripe/route.ts` | ✅ Done | `checkout.session.completed`, `checkout.session.expired`, `account.updated` |
 | Page wallet (stub) | `src/app/[locale]/(rights-holder)/wallet/page.tsx` | ✅ Done | Stub vide — titre seulement |
 | Sidebar RH — lien wallet | `src/app/[locale]/(rights-holder)/layout.tsx` | ✅ Done | Icône `wallet`, lien `/wallet` |
@@ -112,7 +130,7 @@ Les soldes viennent de Stripe (`stripe.balance.retrieve({ stripeAccount })`), pa
 ---
 
 ### E09-001 — Service wallet (couche Stripe Connect)
-**Priorité** : P0 | **Taille** : M | **Statut** : ⬜ A faire
+**Priorité** : P0 | **Taille** : M | **Statut** : ✅ Done
 
 **Pré-requis** : E08 ✅
 
@@ -137,9 +155,10 @@ Créer `src/lib/services/wallet-service.ts` — une couche d'abstraction au-dess
        filmTitle: string;
        cinemaName: string;
        orderNumber: string;         // "ORD-000042" (via formatOrderNumber())
-       grossAmount: number;         // catalogPrice (centimes)
-       commissionAmount: number;    // catalogPrice - rightsHolderAmount
-       netAmount: number;           // rightsHolderAmount (centimes)
+       grossAmount: number;         // catalogPrice × screeningCount (centimes)
+       commissionAmount: number;    // (catalogPrice - rightsHolderAmount) × screeningCount
+       netAmount: number;           // rightsHolderAmount × screeningCount (centimes, HT)
+       taxAmount: number;           // rightsHolderTaxAmount (part de TVA du RH, modèle agent)
        currency: string;            // orderItems.currency (devise de la charge)
      }
      ```
@@ -217,23 +236,23 @@ Créer `src/lib/services/wallet-service.ts` — une couche d'abstraction au-dess
 
 #### Checklist
 
-- [ ] Créer `src/lib/services/wallet-service.ts`
-- [ ] `getWalletBalance()` — Stripe `balance.retrieve`
-- [ ] `getWalletTransactions()` — Stripe `transfers.list` + enrichissement DB
-- [ ] `getPayoutHistory()` — Stripe `payouts.list`
-- [ ] `createManualPayout()` — Stripe `payouts.create` avec vérification solde
-- [ ] `getPayoutSchedule()` / `updatePayoutSchedule()` — Stripe `accounts.retrieve/update`
-- [ ] `getRevenueStats()` — query DB `orderItems`
-- [ ] `getRevenueChart()` — query DB agrégée par jour/mois
-- [ ] `getTransactionsForFilm()` — query DB filtrée par film
-- [ ] Types TypeScript : `WalletTransaction`, `WalletPayout`, `FilmTransaction`, `AmountByCurrency`, `RevenueChartSeries`, `PayoutScheduleInput`
-- [ ] Tests unitaires : `getRevenueStats()`, `getRevenueChart()` (fonctions pures testables sans Stripe)
-- [ ] Fonction utilitaire `formatAmountForDisplay(cents: number): string` — centimes → `"150.00"` (réutilisée dans CSV + export)
+- [x] Créer `src/lib/services/wallet-service.ts`
+- [x] `getWalletBalance()` — Stripe `balance.retrieve`
+- [x] `getWalletTransactions()` — Stripe `transfers.list` + enrichissement DB
+- [x] `getPayoutHistory()` — Stripe `payouts.list`
+- [x] `createManualPayout()` — Stripe `payouts.create` avec vérification solde
+- [x] `getPayoutSchedule()` / `updatePayoutSchedule()` — Stripe `accounts.retrieve/update`
+- [x] `getRevenueStats()` — query DB `orderItems`
+- [x] `getRevenueChart()` — query DB agrégée par jour/mois
+- [x] `getTransactionsForFilm()` — query DB filtrée par film
+- [x] Types TypeScript : `WalletTransaction`, `WalletPayout`, `FilmTransaction`, `AmountByCurrency`, `RevenueChartSeries`, `PayoutScheduleInput`
+- [x] Tests unitaires : `getRevenueStats()`, `getRevenueChart()` (fonctions pures testables sans Stripe)
+- [x] Fonction utilitaire `formatAmountForDisplay(cents: number): string` — centimes → `"150.00"` (réutilisée dans CSV + export)
 
 ---
 
 ### E09-002 — Dashboard financier (page wallet)
-**Priorité** : P0 | **Taille** : L | **Statut** : ⬜ A faire
+**Priorité** : P0 | **Taille** : L | **Statut** : ✅ Done
 
 **Pré-requis** : E09-001
 
@@ -366,25 +385,25 @@ Tous les montants formatés avec `formatAmount()` (devise du compte Connect).
 
 #### Checklist
 
-- [ ] Page wallet : requête SSR initiale (balance, stats, chart 30d, transactions page 1, payouts page 1)
-- [ ] Guard onboarding : si `stripeConnectOnboardingComplete === false`, afficher CTA onboarding au lieu du dashboard
-- [ ] Bannière Stripe Express : composant `Alert` avec CTA permanent vers le dashboard Express (nouvel onglet)
-- [ ] KPI Cards : 4 `Card` responsive avec montants formatés, icônes lucide, support multi-devise
-- [ ] Graphique revenus : recharts `BarChart`, toggle `Tabs` 30j/12m, responsive `ResponsiveContainer`, empty state
-- [ ] Server action `fetchRevenueChart(period)` pour le toggle de période
-- [ ] Tableau transactions : `Table` avec 7 colonnes (pas de statut), pagination forward-only, cache client-side des pages, skeletons
-- [ ] Colonnes responsive : masquer Brut/Commission sur mobile (`hidden md:table-cell`)
-- [ ] Tableau payouts : `Table` + `Badge` colorés par statut, `Tooltip` sur `failed`, même pagination
-- [ ] Server actions : `fetchWalletTransactions(cursor)`, `fetchWalletPayouts(cursor)`
-- [ ] Bouton "Retirer les fonds" conditionnel (solde > 0 + `external_accounts.data.length > 0`)
-- [ ] Empty states : transactions vides, payouts vides, graphique vide
-- [ ] Responsive : mobile (1 col), tablette (2 col), desktop (4 col pour KPI)
-- [ ] Accessibilité : `aria-label` sur badges, `<table>` sémantique, `scope="col"` sur `<TableHead>`
+- [x] Page wallet : requête SSR initiale (balance, stats, chart 30d, transactions page 1, payouts page 1)
+- [x] Guard onboarding : si `stripeConnectOnboardingComplete === false`, afficher CTA onboarding au lieu du dashboard
+- [x] Bannière Stripe Express : composant `Alert` avec CTA permanent vers le dashboard Express (nouvel onglet)
+- [x] KPI Cards : 4 `Card` responsive avec montants formatés, icônes lucide, support multi-devise
+- [x] Graphique revenus : recharts `BarChart`, toggle `Tabs` 30j/12m, responsive `ResponsiveContainer`, empty state
+- [x] Server action `fetchRevenueChart(period)` pour le toggle de période
+- [x] Tableau transactions : `Table` avec 7 colonnes (pas de statut), pagination forward-only, cache client-side des pages, skeletons
+- [x] Colonnes responsive : masquer Brut/Commission sur mobile (`hidden md:table-cell`)
+- [x] Tableau payouts : `Table` + `Badge` colorés par statut, `Tooltip` sur `failed`, même pagination
+- [x] Server actions : `fetchWalletTransactions(cursor)`, `fetchWalletPayouts(cursor)`
+- [x] Bouton "Retirer les fonds" conditionnel (solde > 0 + `external_accounts.data.length > 0`)
+- [x] Empty states : transactions vides, payouts vides, graphique vide
+- [x] Responsive : mobile (1 col), tablette (2 col), desktop (4 col pour KPI)
+- [x] Accessibilité : `aria-label` sur badges, `<table>` sémantique, `scope="col"` sur `<TableHead>`
 
 ---
 
 ### E09-003 — Retrait manuel
-**Priorité** : P0 | **Taille** : M | **Statut** : ⬜ A faire
+**Priorité** : P0 | **Taille** : M | **Statut** : ✅ Done
 
 **Pré-requis** : E09-001, E09-002
 
@@ -458,22 +477,22 @@ export async function sendWithdrawalConfirmationEmail(params: {
 
 #### Checklist
 
-- [ ] Modal `Dialog` avec champ montant pré-rempli + sélecteur devise si multi-devise
-- [ ] Validation Zod du montant (int, positif, <= solde disponible)
-- [ ] Server action `withdrawFunds()` avec auth + vérification complète
-- [ ] Mapping erreurs Stripe → codes internes (5 codes documentés ci-dessus)
-- [ ] Appel `walletService.createManualPayout()`
-- [ ] Vérification du solde disponible avant le payout (re-fetch `getWalletBalance()`)
-- [ ] Toast succès avec montant + date d'arrivée → fermer modal → revalidate
-- [ ] Toast erreur avec codes traduits (`wallet.errors.*`)
-- [ ] Créer `src/lib/email/wallet-emails.ts` — `sendWithdrawalConfirmationEmail()`
-- [ ] Refresh des KPI cards et du tableau payouts après retrait réussi (`revalidatePath` ou `router.refresh()`)
-- [ ] Clés i18n : `wallet.withdrawModal.*` ✅ existantes, ajouter `wallet.errors.*`, `wallet.withdrawModal.success`, `wallet.withdrawModal.currencySelect`
+- [x] Modal `Dialog` avec champ montant pré-rempli + sélecteur devise si multi-devise
+- [x] Validation Zod du montant (int, positif, <= solde disponible)
+- [x] Server action `withdrawFunds()` avec auth + vérification complète
+- [x] Mapping erreurs Stripe → codes internes (5 codes documentés ci-dessus)
+- [x] Appel `walletService.createManualPayout()`
+- [x] Vérification du solde disponible avant le payout (re-fetch `getWalletBalance()`)
+- [x] Toast succès avec montant + date d'arrivée → fermer modal → revalidate
+- [x] Toast erreur avec codes traduits (`wallet.errors.*`)
+- [x] Créer `src/lib/email/wallet-emails.ts` — `sendWithdrawalConfirmationEmail()`
+- [x] Refresh des KPI cards et du tableau payouts après retrait réussi (`revalidatePath` ou `router.refresh()`)
+- [x] Clés i18n : `wallet.withdrawModal.*` ✅ existantes, ajouter `wallet.errors.*`, `wallet.withdrawModal.success`, `wallet.withdrawModal.currencySelect`
 
 ---
 
 ### E09-004 — Configuration des virements automatiques (page Stripe Connect)
-**Priorité** : P1 | **Taille** : M | **Statut** : ⬜ A faire
+**Priorité** : P1 | **Taille** : M | **Statut** : ✅ Done
 
 **Pré-requis** : E09-001
 
@@ -563,23 +582,23 @@ const payoutScheduleSchema = z.discriminatedUnion("interval", [
 
 #### Checklist
 
-- [ ] Section paramètres payout dans la page Stripe Connect (sous le statut d'onboarding, visible si `complete`)
-- [ ] Toggle `Switch` activé/désactivé (manual vs scheduled)
-- [ ] `Select` de fréquence conditionnel (daily/weekly/monthly)
-- [ ] `Select` jour de la semaine (si weekly)
-- [ ] `Select` jour du mois (si monthly, 1–28)
-- [ ] Bouton sauvegarder visible uniquement si changement détecté
-- [ ] Server action `updatePayoutSettings()` dans `stripe-connect-actions.ts`
-- [ ] Validation Zod discriminée
-- [ ] Appel `walletService.updatePayoutSchedule()`
-- [ ] Charger le schedule actuel au mount (SSR via `getPayoutSchedule()`)
-- [ ] Toast succès / erreur
-- [ ] Clés i18n : `stripeConnect.payoutSchedule.*` (nouveau namespace, pas `wallet.*`)
+- [x] Section paramètres payout dans la page Stripe Connect (sous le statut d'onboarding, visible si `complete`)
+- [x] Toggle `Switch` activé/désactivé (manual vs scheduled)
+- [x] `Select` de fréquence conditionnel (daily/weekly/monthly)
+- [x] `Select` jour de la semaine (si weekly)
+- [x] `Select` jour du mois (si monthly, 1–28)
+- [x] Bouton sauvegarder visible uniquement si changement détecté
+- [x] Server action `updatePayoutSettings()` dans `stripe-connect-actions.ts`
+- [x] Validation Zod discriminée
+- [x] Appel `walletService.updatePayoutSchedule()`
+- [x] Charger le schedule actuel au mount (SSR via `getPayoutSchedule()`)
+- [x] Toast succès / erreur
+- [x] Clés i18n : `stripeConnect.payoutSchedule.*` (nouveau namespace, pas `wallet.*`)
 
 ---
 
 ### E09-005 — Webhooks payout (suivi temps réel)
-**Priorité** : P1 | **Taille** : S | **Statut** : ⬜ A faire
+**Priorité** : P1 | **Taille** : S | **Statut** : ✅ Done
 
 **Pré-requis** : E08 ✅ (webhook infra)
 
@@ -669,22 +688,22 @@ Ajouter dans `src/lib/email/wallet-emails.ts` :
 
 #### Checklist
 
-- [ ] Handler `payout.paid` dans le webhook route — switch case avec `event.account` extraction
-- [ ] Handler `payout.failed` dans le webhook route — logging `failure_code` + `failure_message`
-- [ ] Retrouver l'ayant droit via `db.query.accounts.findFirst({ where: eq(stripeConnectAccountId, connectAccountId) })`
-- [ ] Retrouver l'email du owner via la table `members` + `users`
-- [ ] Créer `sendPayoutPaidEmail()` dans `src/lib/email/wallet-emails.ts`
-- [ ] Créer `sendPayoutFailedEmail()` dans `src/lib/email/wallet-emails.ts`
-- [ ] Créer `sendOpsPayoutFailedEmail()` — email technique aux ops
-- [ ] Guard `event.account` : ignorer si absent (event plateforme, pas Connect)
-- [ ] Logging structuré avec contexte (payout ID, montant, account, failure_code si applicable)
-- [ ] Clés i18n pour emails : `email.payoutPaid.subject`, `email.payoutFailed.subject` (en + fr)
-- [ ] Note dans CLAUDE.md/copilot-instructions : nouveau `STRIPE_CONNECT_WEBHOOK_SECRET` env var nécessaire en production
+- [x] Handler `payout.paid` dans le webhook route — switch case avec `event.account` extraction
+- [x] Handler `payout.failed` dans le webhook route — logging `failure_code` + `failure_message`
+- [x] Retrouver l'ayant droit via `db.query.accounts.findFirst({ where: eq(stripeConnectAccountId, connectAccountId) })`
+- [x] Retrouver l'email du owner via la table `members` + `users`
+- [x] Créer `sendPayoutPaidEmail()` dans `src/lib/email/wallet-emails.ts`
+- [x] Créer `sendPayoutFailedEmail()` dans `src/lib/email/wallet-emails.ts`
+- [x] Créer `sendOpsPayoutFailedEmail()` — email technique aux ops
+- [x] Guard `event.account` : ignorer si absent (event plateforme, pas Connect)
+- [x] Logging structuré avec contexte (payout ID, montant, account, failure_code si applicable)
+- [x] Clés i18n pour emails : `email.payoutPaid.subject`, `email.payoutFailed.subject` (en + fr)
+- [x] Note dans CLAUDE.md/copilot-instructions : nouveau `STRIPE_CONNECT_WEBHOOK_SECRET` env var nécessaire en production
 
 ---
 
 ### E09-006 — Export CSV des transactions
-**Priorité** : P1 | **Taille** : S | **Statut** : ⬜ A faire
+**Priorité** : P1 | **Taille** : S | **Statut** : ✅ Done
 
 **Pré-requis** : E09-001, E09-002
 
@@ -730,10 +749,13 @@ const url = URL.createObjectURL(blob);
 - **Pas de dépendance externe** : string concatenation manuelle suffisante pour ce format simple. Fonction utilitaire `escapeCsvField(value: string): string`
 
 ```
-Date,Order,Film,Cinema,Gross Amount,Commission,Net Amount,Currency
-2026-03-10,ORD-000042,Vertigo,Le Rex,150.00,0.00,150.00,EUR
-2026-03-08,ORD-000041,"2001, A Space Odyssey",Lumière,200.00,0.00,200.00,EUR
+Date,Film,Cinema,Order,Gross,Commission,Net,VAT,Transfer,Currency
+2026-03-10,Vertigo,Le Rex,ORD-000042,150.00,0.00,150.00,30.00,180.00,EUR
+2026-03-08,"2001, A Space Odyssey",Lumière,ORD-000041,200.00,0.00,200.00,40.00,240.00,EUR
 ```
+
+- **VAT** : part de TVA du RH (`rightsHolderTaxAmount`) — modèle agent
+- **Transfer** : montant total transféré au RH (`netAmount + taxAmount`)
 
 - **Montants** : formatés avec `formatAmountForDisplay()` — centimes → `"150.00"` (pas `15000`, pas `150`)
 - **Dates** : format ISO `YYYY-MM-DD`
@@ -741,21 +763,21 @@ Date,Order,Film,Cinema,Gross Amount,Commission,Net Amount,Currency
 
 #### Checklist
 
-- [ ] Server action `exportTransactionsCsv(startDate, endDate)` dans `wallet-actions.ts`
-- [ ] Sélecteur de période : 3 presets (`Popover` + `Calendar`) + plage personnalisée
-- [ ] Validation Zod : dates ISO, endDate >= startDate, plage max 1 an
-- [ ] Génération CSV : UTF-8 BOM, virgule séparateur, échappement guillemets doubles
-- [ ] Fonction `escapeCsvField()` pour les champs avec virgules/guillemets
-- [ ] Montants formatés via `formatAmountForDisplay()` (centimes → `"150.00"`)
-- [ ] Download côté client via `Blob` + `URL.createObjectURL`
-- [ ] Nom de fichier dynamique avec la plage de dates
-- [ ] Auto-pagination Stripe si > 100 transfers sur la période
-- [ ] Clés i18n : `wallet.csv.currentMonth`, `wallet.csv.previousMonth`, `wallet.csv.custom`, `wallet.csv.download`
+- [x] Server action `exportTransactionsCsv(startDate, endDate)` dans `wallet-actions.ts`
+- [x] Sélecteur de période : 3 presets (`Popover` + `Calendar`) + plage personnalisée
+- [x] Validation Zod : dates ISO, endDate >= startDate, plage max 1 an
+- [x] Génération CSV : UTF-8 BOM, virgule séparateur, échappement guillemets doubles
+- [x] Fonction `escapeCsvField()` pour les champs avec virgules/guillemets
+- [x] Montants formatés via `formatAmountForDisplay()` (centimes → `"150.00"`)
+- [x] Download côté client via `Blob` + `URL.createObjectURL`
+- [x] Nom de fichier dynamique avec la plage de dates
+- [x] Auto-pagination Stripe si > 100 transfers sur la période
+- [x] Clés i18n : `wallet.csv.currentMonth`, `wallet.csv.previousMonth`, `wallet.csv.custom`, `wallet.csv.download`
 
 ---
 
 ### E09-007 — Ventes par film (fiche film RH)
-**Priorité** : P1 | **Taille** : S | **Statut** : ⬜ A faire
+**Priorité** : P1 | **Taille** : S | **Statut** : ✅ Done
 
 **Pré-requis** : E09-001
 
@@ -783,17 +805,17 @@ Ajouter une section "Ventes" dans la page détail d'un film côté ayant droit (
 
 #### Checklist
 
-- [ ] Section "Ventes" dans la fiche film RH
-- [ ] Tableau avec colonnes : Date, Cinéma, N° commande, Brut, Commission, Net
-- [ ] Compteur total + revenu cumulé
-- [ ] Pagination (10 par page)
-- [ ] Empty state si aucune vente
-- [ ] Clés i18n : `films.transactions.*`
+- [x] Section "Ventes" dans la fiche film RH
+- [x] Tableau avec colonnes : Date, Cinéma, N° commande, Brut, Commission, Net
+- [x] Compteur total + revenu cumulé
+- [x] Pagination (10 par page)
+- [x] Empty state si aucune vente
+- [x] Clés i18n : `films.transactions.*`
 
 ---
 
 ### E09-008 — Tests
-**Priorité** : P0 | **Taille** : M | **Statut** : ⬜ A faire
+**Priorité** : P0 | **Taille** : M | **Statut** : ✅ Done
 
 **Pré-requis** : E09-001 à E09-007
 
@@ -832,10 +854,10 @@ L'ayant droit E2E sera rattaché à ce compte Stripe via `accounts.stripeConnect
 
 #### Checklist
 
-- [ ] Tests unitaires : `getRevenueStats()`, `getRevenueChart()`, schemas Zod, `escapeCsvField()`, `formatAmountForDisplay()`
-- [ ] Helper E2E : `setupRightsHolderWithStripeAccount()` dans `e2e/helpers/rights-holder.ts` (utilise `acct_1T9Xa2Fg5bm7UN8b`)
-- [ ] Tests E2E : tous les scénarios listés ci-dessus
-- [ ] Pas de `test.skip`, pas de `waitForTimeout()`
+- [x] Tests unitaires : `getRevenueStats()`, `getRevenueChart()`, schemas Zod, `escapeCsvField()`, `formatAmountForDisplay()`
+- [x] Helper E2E : `setupRightsHolderWithStripeAccount()` dans `e2e/helpers/rights-holder.ts` (utilise `acct_1T9Xa2Fg5bm7UN8b`)
+- [x] Tests E2E : tous les scénarios listés ci-dessus
+- [x] Pas de `test.skip`, pas de `waitForTimeout()`
 
 ---
 
@@ -1005,6 +1027,7 @@ films.transactions.empty              "No sales for this film" / "Aucune vente p
 - **Payout schedule** : modifiable via `stripe.accounts.update()`. Les comptes Express nouvellement créés ont par défaut un schedule `daily` avec une période de rétention (rolling 2-7 jours selon le pays).
 - **External accounts** (comptes bancaires) : gérés par Stripe lors de l'onboarding KYC. L'ayant droit peut ajouter/modifier son compte via le dashboard Express (lien `createStripeConnectDashboardLink()`). TIMELESS ne gère pas les comptes bancaires directement.
 - **Transfers vs Payouts** : un **transfer** est de la plateforme vers le compte Connect (E08). Un **payout** est du compte Connect vers le compte bancaire de l'ayant droit (E09). Ce sont deux flux distincts.
+- **Transfers — modèle agent (TVA incluse)** : le montant du transfer inclut la part HT du RH + sa part de TVA proportionnelle. Formule dans le webhook : `amount = rightsHolderAmount × screeningCount + rightsHolderTaxAmount`. Le `rightsHolderTaxAmount` est calculé comme `round(taxAmount × (rhHtAmount / htBase))` où `htBase = subtotal + deliveryFeesTotal`. En cas de reverse charge (intra-UE B2B avec TVA intracommunautaire), `taxAmount = 0` et le transfer = part HT seule. Le `rightsHolderTaxAmount` est stocké sur chaque `orderItem` pour traçabilité comptable.
 - **Transfers.list** : appelé **depuis la plateforme** avec `stripe.transfers.list({ destination: connectAccountId })` — renvoie les transfers de la plateforme vers ce Connect account. Le `metadata.order_item_id` est disponible sur chaque transfer.
 
 ### Enrichissement des transactions (algorithme batch)

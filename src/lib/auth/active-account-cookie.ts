@@ -47,6 +47,6 @@ export function getHomePathForType(type: AccountType): string {
     case "rights_holder":
       return "/home";
     case "admin":
-      return "/dashboard";
+      return "/admin/dashboard";
   }
 }

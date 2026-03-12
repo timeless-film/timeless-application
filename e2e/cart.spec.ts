@@ -159,7 +159,7 @@ test.describe("Cart functionality", () => {
 
   test("Get cart summary", async ({ request }) => {
     // Add item to cart
-    await request.post("/api/v1/cart/items", {
+    const addResponse = await request.post("/api/v1/cart/items", {
       headers: { Authorization: `Bearer ${exhibitorToken}` },
       data: {
         filmId: directFilmId,
@@ -168,6 +168,7 @@ test.describe("Cart functionality", () => {
         quantity: 2,
       },
     });
+    expect(addResponse.status()).toBe(201);
 
     // Get cart summary
     const response = await request.get("/api/v1/cart", {

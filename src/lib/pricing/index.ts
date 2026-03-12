@@ -85,6 +85,37 @@ export async function getPlatformPricingSettings() {
   };
 }
 
+// ─── Agent model: RH tax share ────────────────────────────────────────────────
+
+export interface RightsHolderTaxParams {
+  taxAmount: number; // Total VAT on the order (cents)
+  rightsHolderAmount: number; // RH per-screening HT amount (cents)
+  screeningCount: number;
+  subtotal: number; // Sum of displayedPrice × screeningCount for all items (cents)
+  deliveryFeesTotal: number; // Total delivery fees for the order (cents)
+}
+
+/**
+ * Calculates the rights holder's proportional share of VAT (agent model).
+ *
+ * Formula: round(taxAmount × (rhHtAmount / htBase))
+ * Where rhHtAmount = rightsHolderAmount × screeningCount
+ *       htBase     = subtotal + deliveryFeesTotal
+ *
+ * Returns 0 when taxAmount is 0 (reverse charge) or htBase is 0.
+ */
+export function calculateRightsHolderTaxAmount(params: RightsHolderTaxParams): number {
+  const { taxAmount, rightsHolderAmount, screeningCount, subtotal, deliveryFeesTotal } = params;
+
+  if (taxAmount === 0) return 0;
+
+  const htBase = subtotal + deliveryFeesTotal;
+  if (htBase === 0) return 0;
+
+  const rhHtAmount = rightsHolderAmount * screeningCount;
+  return Math.round(taxAmount * (rhHtAmount / htBase));
+}
+
 /**
  * Returns the commission rate for a given rights holder.
  * Uses the account-specific rate if set, falls back to the global default.

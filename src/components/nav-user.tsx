@@ -1,13 +1,14 @@
 "use client";
 
 import {
+  GlobeIcon,
   LayersIcon,
   LogOutIcon,
   MoreVerticalIcon,
   SettingsIcon,
   UserCircleIcon,
 } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -24,8 +25,10 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { Link } from "@/i18n/navigation";
+import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { signOutAndCleanup } from "@/lib/auth/client";
+
+import type { Locale } from "@/i18n/routing";
 
 function getInitials(name: string): string {
   return name
@@ -37,6 +40,11 @@ function getInitials(name: string): string {
     .toUpperCase();
 }
 
+const LOCALE_TARGETS: Record<Locale, Locale> = {
+  en: "fr",
+  fr: "en",
+};
+
 interface NavUserProps {
   user: {
     name: string;
@@ -45,14 +53,29 @@ interface NavUserProps {
   profileHref: string;
   accountHref?: string;
   canManageAccount?: boolean;
+  showLanguageSwitcher?: boolean;
 }
 
-export function NavUser({ user, profileHref, accountHref, canManageAccount }: NavUserProps) {
+export function NavUser({
+  user,
+  profileHref,
+  accountHref,
+  canManageAccount,
+  showLanguageSwitcher,
+}: NavUserProps) {
   const { isMobile } = useSidebar();
   const t = useTranslations("navigation");
+  const locale = useLocale() as Locale;
+  const pathname = usePathname();
+  const router = useRouter();
 
   function handleSignOut() {
     signOutAndCleanup();
+  }
+
+  function handleSwitchLanguage() {
+    const target = LOCALE_TARGETS[locale];
+    router.replace(pathname, { locale: target });
   }
 
   return (
@@ -116,6 +139,15 @@ export function NavUser({ user, profileHref, accountHref, canManageAccount }: Na
                 {t("myAccounts")}
               </Link>
             </DropdownMenuItem>
+            {showLanguageSwitcher && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleSwitchLanguage}>
+                  <GlobeIcon />
+                  {t("switchLanguage")}
+                </DropdownMenuItem>
+              </>
+            )}
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleSignOut}>
               <LogOutIcon />

@@ -9,6 +9,12 @@ import {
   sendRightsHolderOrderNotificationEmail,
   sendOpsOrderNotificationEmail,
 } from "@/lib/email/order-emails";
+import {
+  sendPayoutFailedEmail,
+  sendPayoutPaidEmail,
+  sendOpsPayoutFailedEmail,
+} from "@/lib/email/wallet-emails";
+import { calculateRightsHolderTaxAmount } from "@/lib/pricing";
 import { isStripeConnectComplete } from "@/lib/services/rights-holder-service";
 import { stripe, transferToRightsHolder } from "@/lib/stripe";
 
@@ -56,6 +62,16 @@ export async function POST(req: NextRequest) {
         if (updated.length > 0) {
           revalidatePath("/", "layout");
         }
+        break;
+      }
+
+      case "payout.paid": {
+        await handlePayoutPaid(event.data.object as Stripe.Payout, event.account);
+        break;
+      }
+
+      case "payout.failed": {
+        await handlePayoutFailed(event.data.object as Stripe.Payout, event.account);
         break;
       }
 
@@ -164,6 +180,15 @@ async function handleRequestPayment(
   const deliveryFeesTotal = request.deliveryFees; // 1 film per request
   const total = subtotal + deliveryFeesTotal + taxAmount;
 
+  // Agent model: calculate RH's share of VAT proportional to their HT amount
+  const rightsHolderTaxAmount = calculateRightsHolderTaxAmount({
+    taxAmount,
+    rightsHolderAmount: request.rightsHolderAmount,
+    screeningCount: request.screeningCount,
+    subtotal,
+    deliveryFeesTotal,
+  });
+
   const exhibitorAccount = await db.query.accounts.findFirst({
     where: eq(accounts.id, exhibitorAccountId),
   });
@@ -208,6 +233,7 @@ async function handleRequestPayment(
       commissionRate: request.commissionRate,
       displayedPrice: request.displayedPrice,
       rightsHolderAmount: request.rightsHolderAmount,
+      rightsHolderTaxAmount,
       timelessAmount: request.timelessAmount,
       currency: request.currency,
       originalCatalogPrice: request.originalCatalogPrice,
@@ -247,7 +273,7 @@ async function handleRequestPayment(
       if (createdItem) {
         try {
           const transfer = await transferToRightsHolder({
-            amount: request.rightsHolderAmount,
+            amount: request.rightsHolderAmount * request.screeningCount + rightsHolderTaxAmount,
             currency: request.currency,
             stripeConnectAccountId: request.rightsHolderAccount.stripeConnectAccountId,
             chargeId,
@@ -371,6 +397,7 @@ async function handleCartPayment(
     commissionRate: string;
     displayedPrice: number;
     rightsHolderAmount: number;
+    rightsHolderTaxAmount: number;
     timelessAmount: number;
     currency: string;
     originalCatalogPrice: number | null;
@@ -437,6 +464,7 @@ async function handleCartPayment(
       commissionRate: pricing.commissionRate.toString(),
       displayedPrice: pricing.displayedPrice,
       rightsHolderAmount: pricing.rightsHolderAmount,
+      rightsHolderTaxAmount: 0, // Calculated after subtotal + deliveryFeesTotal are known
       timelessAmount: pricing.timelessAmount,
       currency: preferredCurrency,
       originalCatalogPrice: needsConversion ? filmPrice.price : null,
@@ -449,6 +477,17 @@ async function handleCartPayment(
   const deliveryFeesPerItem = settings.deliveryFees;
   const deliveryFeesTotal = deliveryFeesPerItem * orderItemsData.length;
   const total = subtotal + deliveryFeesTotal + taxAmount;
+
+  // Agent model: calculate each item's RH tax share proportional to their HT amount
+  for (const item of orderItemsData) {
+    item.rightsHolderTaxAmount = calculateRightsHolderTaxAmount({
+      taxAmount,
+      rightsHolderAmount: item.rightsHolderAmount,
+      screeningCount: item.screeningCount,
+      subtotal,
+      deliveryFeesTotal,
+    });
+  }
 
   // Create order + items + clear cart in a single transaction
   const createdOrder = await db.transaction(async (tx) => {
@@ -494,6 +533,7 @@ async function handleCartPayment(
           commissionRate: item.commissionRate,
           displayedPrice: item.displayedPrice,
           rightsHolderAmount: item.rightsHolderAmount,
+          rightsHolderTaxAmount: item.rightsHolderTaxAmount,
           timelessAmount: item.timelessAmount,
           currency: item.currency,
           originalCatalogPrice: item.originalCatalogPrice,
@@ -532,7 +572,9 @@ async function handleCartPayment(
 
         try {
           const transfer = await transferToRightsHolder({
-            amount: itemData.rightsHolderAmount,
+            amount:
+              itemData.rightsHolderAmount * itemData.screeningCount +
+              itemData.rightsHolderTaxAmount,
             currency: itemData.currency,
             stripeConnectAccountId: itemData.stripeConnectAccountId,
             chargeId,
@@ -673,5 +715,88 @@ async function sendOrderEmails(params: {
   } catch (error) {
     // Emails are best-effort — log but don't fail the webhook
     console.error("Failed to send order emails:", error);
+  }
+}
+
+// ─── Payout paid handler ──────────────────────────────────────────────────────
+
+async function handlePayoutPaid(payout: Stripe.Payout, connectAccountId?: string) {
+  if (!connectAccountId) return;
+
+  const account = await db.query.accounts.findFirst({
+    where: eq(accounts.stripeConnectAccountId, connectAccountId),
+  });
+
+  if (!account) {
+    console.error(`No account found for Stripe Connect ID ${connectAccountId} (payout.paid)`);
+    return;
+  }
+
+  const email = account.contactEmail;
+  if (!email) return;
+
+  try {
+    await sendPayoutPaidEmail({
+      to: email,
+      name: account.companyName ?? "Rights Holder",
+      amount: payout.amount,
+      currency: payout.currency,
+      arrivalDate: new Date(payout.arrival_date * 1000).toISOString(),
+    });
+  } catch (error) {
+    console.error("Failed to send payout paid email:", error);
+  }
+}
+
+// ─── Payout failed handler ────────────────────────────────────────────────────
+
+async function handlePayoutFailed(payout: Stripe.Payout, connectAccountId?: string) {
+  if (!connectAccountId) return;
+
+  const account = await db.query.accounts.findFirst({
+    where: eq(accounts.stripeConnectAccountId, connectAccountId),
+  });
+
+  if (!account) {
+    console.error(`No account found for Stripe Connect ID ${connectAccountId} (payout.failed)`);
+    return;
+  }
+
+  const failureCode = payout.failure_code ?? "unknown";
+  const failureMessage = payout.failure_message ?? "Unknown failure";
+
+  // Notify the rights holder
+  const email = account.contactEmail;
+  if (email) {
+    try {
+      await sendPayoutFailedEmail({
+        to: email,
+        name: account.companyName ?? "Rights Holder",
+        amount: payout.amount,
+        currency: payout.currency,
+        failureMessage,
+      });
+    } catch (error) {
+      console.error("Failed to send payout failed email to rights holder:", error);
+    }
+  }
+
+  // Notify ops
+  try {
+    const { getPlatformPricingSettings } = await import("@/lib/pricing");
+    const settings = await getPlatformPricingSettings();
+
+    if (settings.opsEmail) {
+      await sendOpsPayoutFailedEmail({
+        opsEmail: settings.opsEmail,
+        connectAccountId,
+        amount: payout.amount,
+        currency: payout.currency,
+        failureCode,
+        failureMessage,
+      });
+    }
+  } catch (error) {
+    console.error("Failed to send payout failed email to ops:", error);
   }
 }
