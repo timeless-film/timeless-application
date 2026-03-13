@@ -21,12 +21,14 @@ test.describe("Wallet — Rights Holder Dashboard", () => {
 
     // KPI cards should be visible
     await expect(page.getByText("Available balance")).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText("Pending balance")).toBeVisible();
+    await expect(page.getByText("Pending")).toBeVisible();
     await expect(page.getByText("This month")).toBeVisible();
     await expect(page.getByText("Previous month")).toBeVisible();
 
     // Withdraw button should be visible
-    await expect(page.getByRole("button", { name: /withdraw/i })).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: /withdraw funds/i, exact: false })
+    ).toBeVisible();
   });
 
   test("wallet page shows onboarding CTA when Stripe Connect not configured", async ({
@@ -51,7 +53,7 @@ test.describe("Wallet — Rights Holder Dashboard", () => {
     await page.goto("/en/wallet");
     await expect(page).toHaveURL(/\/en\/wallet/, { timeout: 15000 });
 
-    const withdrawButton = page.getByRole("button", { name: /withdraw/i });
+    const withdrawButton = page.getByRole("button", { name: "Withdraw funds" });
     await expect(withdrawButton).toBeVisible({ timeout: 10000 });
     await withdrawButton.click();
 
@@ -68,7 +70,7 @@ test.describe("Wallet — Rights Holder Dashboard", () => {
     await expect(page).toHaveURL(/\/en\/wallet/, { timeout: 15000 });
 
     // Revenue chart section with period tabs
-    await expect(page.getByText("Revenue overview")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("Revenue", { exact: true })).toBeVisible({ timeout: 10000 });
     await expect(page.getByRole("tab", { name: /30/i })).toBeVisible();
     await expect(page.getByRole("tab", { name: /12/i })).toBeVisible();
   });
@@ -85,8 +87,9 @@ test.describe("Wallet — Rights Holder Dashboard", () => {
     await csvButton.click();
 
     // Popover should show date presets
-    await expect(page.getByText("Current month")).toBeVisible({ timeout: 5000 });
-    await expect(page.getByText("Previous month")).toBeVisible();
-    await expect(page.getByText("Custom range")).toBeVisible();
+    const popover = page.locator("[data-radix-popper-content-wrapper]");
+    await expect(popover.getByText("Current month")).toBeVisible({ timeout: 5000 });
+    await expect(popover.getByText("Previous month")).toBeVisible();
+    await expect(popover.getByText("Custom range")).toBeVisible();
   });
 });
