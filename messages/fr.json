@@ -118,6 +118,8 @@
     "main": "Principal",
     "management": "Gestion",
     "adminOrders": "Commandes",
+    "adminRequests": "Demandes",
+    "adminFilms": "Films",
     "myAccounts": "Mes comptes",
     "manageAccount": "Gérer le compte",
     "home": "Accueil",
@@ -1029,10 +1031,49 @@
     "dashboard": {
       "title": "Tableau de bord",
       "metrics": {
-        "revenue": "Revenus (Timeless)",
+        "businessVolume": "Volume d'affaires HT",
+        "timelessMargin": "Marge Timeless HT",
         "transactions": "Transactions",
         "pendingDeliveries": "Livraisons en attente",
-        "pendingRequests": "Demandes en attente"
+        "pendingRequests": "Demandes en attente",
+        "activeExhibitors": "Exploitants actifs",
+        "activeRightsHolders": "Ayants droits actifs",
+        "activeFilms": "Films actifs",
+        "pendingOnboardings": "Onboardings en attente"
+      },
+      "chart": {
+        "title": "Marge",
+        "total": "Total :",
+        "empty": "Aucune donnée de revenu.",
+        "granularity": {
+          "day": "Jour",
+          "week": "Semaine",
+          "month": "Mois",
+          "year": "Année"
+        },
+        "period": {
+          "7d": "7 jours",
+          "30d": "30 jours",
+          "90d": "90 jours",
+          "12m": "12 mois",
+          "ytd": "Depuis janvier",
+          "all": "Tout"
+        }
+      },
+      "ordersChart": {
+        "title": "Commandes",
+        "total": "Total :",
+        "empty": "Aucune donnée de commande."
+      },
+      "topFilms": {
+        "title": "Top 10 des films",
+        "empty": "Aucune donnée de film.",
+        "columns": {
+          "title": "Film",
+          "rightsHolder": "Ayant droit",
+          "orders": "Commandes",
+          "volume": "Volume HT"
+        }
       }
     },
     "rightsHolders": {
@@ -1051,6 +1092,87 @@
         "complete": "Complet",
         "incomplete": "Incomplet"
       },
+      "status": {
+        "active": "Actif",
+        "suspended": "Suspendu"
+      },
+      "searchPlaceholder": "Rechercher des ayants droits…",
+      "noResults": "Aucun ayant droit trouvé.",
+      "empty": "Aucun ayant droit pour le moment.",
+      "defaultRate": "défaut",
+      "suspend": "Suspendre",
+      "reactivate": "Réactiver",
+      "suspended": "Compte suspendu.",
+      "reactivated": "Compte réactivé.",
+      "suspendConfirm": "Suspendre {name} ? Ses films seront masqués du catalogue et ses utilisateurs perdront l'accès.",
+      "reactivateConfirm": "Réactiver {name} ? Ses films seront de nouveau visibles dans le catalogue.",
+      "editCommission": "Modifier la commission",
+      "commissionUpdated": "Taux de commission mis à jour.",
+      "cancel": "Annuler",
+      "commissionDialog": {
+        "title": "Modifier le taux de commission",
+        "description": "Définir un taux de commission personnalisé pour {name}. Laisser vide pour utiliser le taux par défaut de la plateforme ({default}).",
+        "rate": "Taux de commission (%)",
+        "placeholder": "ex. 15",
+        "hint": "Laisser vide pour utiliser le taux global par défaut.",
+        "save": "Enregistrer"
+      },
+      "detail": {
+        "info": "Informations de l'entreprise",
+        "email": "Email de contact",
+        "phone": "Téléphone",
+        "address": "Adresse",
+        "vat": "Numéro de TVA",
+        "created": "Créé le",
+        "stats": "Statistiques",
+        "activeFilms": "Films actifs",
+        "totalSales": "Ventes totales (articles)",
+        "volume": "Volume HT",
+        "members": "Membres",
+        "memberName": "Nom",
+        "memberEmail": "Email",
+        "memberRole": "Rôle",
+        "memberSince": "Membre depuis",
+        "commissionHistory": "Historique commissions",
+        "date": "Date",
+        "change": "Changement",
+        "orderList": "Commandes",
+        "noOrders": "Aucune commande pour le moment.",
+        "orderNumber": "N° commande",
+        "orderDate": "Date",
+        "items": "Articles",
+        "total": "Total",
+        "orderStatus": "Statut",
+        "orderStatusValues": {
+          "paid": "Payée",
+          "processing": "En cours",
+          "delivered": "Livrée",
+          "refunded": "Remboursée"
+        },
+        "requestList": "Demandes",
+        "noRequests": "Aucune demande pour le moment.",
+        "film": "Film",
+        "counterparty": "Exploitant",
+        "amount": "Montant",
+        "requestStatusCol": "Statut",
+        "requestDate": "Date",
+        "reqStatus": {
+          "pending_rh": "En attente (AD)",
+          "approved": "Approuvée",
+          "rejected": "Refusée",
+          "cancelled": "Annulée",
+          "paid": "Payée"
+        }
+      },
+      "pagination": {
+        "info": "Page {page} sur {total}",
+        "previous": "Précédent",
+        "next": "Suivant"
+      },
+      "error": {
+        "unexpected": "Une erreur inattendue s'est produite.",
+        "invalidCommission": "Le taux de commission doit être entre 0 et 100."
+      },
       "form": {
         "companyName": "Raison sociale",
         "country": "Pays",
@@ -1064,8 +1186,81 @@
         "name": "Nom",
         "country": "Pays",
         "cinemas": "Cinémas",
+        "orders": "Commandes",
+        "onboarding": "Onboarding",
         "volume": "Volume",
         "status": "Statut"
+      },
+      "searchPlaceholder": "Rechercher des exploitants…",
+      "view": "Voir les détails",
+      "empty": "Aucun compte exploitant pour le moment.",
+      "noResults": "Aucun exploitant trouvé.",
+      "status": {
+        "active": "Actif",
+        "suspended": "Suspendu"
+      },
+      "onboarding": {
+        "complete": "Terminé",
+        "incomplete": "En attente"
+      },
+      "suspend": "Suspendre",
+      "reactivate": "Réactiver",
+      "suspended": "Compte suspendu",
+      "reactivated": "Compte réactivé",
+      "suspendConfirm": "Suspendre {name} ? L'équipe perdra l'accès à la plateforme.",
+      "reactivateConfirm": "Réactiver {name} ? L'accès à la plateforme sera rétabli.",
+      "cancel": "Annuler",
+      "detail": {
+        "info": "Informations de l'entreprise",
+        "email": "Email de contact",
+        "phone": "Téléphone",
+        "address": "Adresse",
+        "vat": "Numéro de TVA",
+        "created": "Créé le",
+        "stats": "Statistiques",
+        "cinemas": "Cinémas",
+        "orders": "Articles commandés",
+        "volume": "Volume HT",
+        "members": "Membres",
+        "memberName": "Nom",
+        "memberEmail": "Email",
+        "memberRole": "Rôle",
+        "memberSince": "Membre depuis",
+        "orderList": "Commandes",
+        "noOrders": "Aucune commande pour le moment.",
+        "orderNumber": "N° commande",
+        "date": "Date",
+        "items": "Articles",
+        "total": "Total",
+        "status": "Statut",
+        "orderStatus": {
+          "paid": "Payée",
+          "processing": "En cours",
+          "delivered": "Livrée",
+          "refunded": "Remboursée"
+        },
+        "requestList": "Demandes",
+        "noRequests": "Aucune demande pour le moment.",
+        "film": "Film",
+        "counterparty": "Ayant droit",
+        "amount": "Montant",
+        "requestStatus": "Statut",
+        "requestDate": "Date",
+        "reqStatus": {
+          "pending_rh": "En attente (AD)",
+          "approved": "Approuvée",
+          "rejected": "Refusée",
+          "cancelled": "Annulée",
+          "paid": "Payée"
+        }
+      },
+      "pagination": {
+        "info": "Page {page} sur {total}",
+        "previous": "Précédent",
+        "next": "Suivant"
+      },
+      "error": {
+        "unexpected": "Une erreur inattendue s'est produite."
       }
     },
     "orders": {
@@ -1078,18 +1273,32 @@
         "total": "Total",
         "status": "Statut"
       },
+      "searchPlaceholder": "Rechercher par numéro ou exploitant…",
+      "empty": "Aucune commande pour le moment.",
+      "noResults": "Aucune commande trouvée.",
+      "filter": {
+        "allStatuses": "Tous les statuts"
+      },
       "status": {
         "paid": "Payée",
         "processing": "En traitement",
         "delivered": "Livrée",
         "refunded": "Remboursée"
       },
-      "noResults": "Aucune commande trouvée.",
       "refund": "Rembourser",
-      "refundConfirm": "Êtes-vous sûr de vouloir rembourser cette commande ? Cela remboursera la totalité du montant et annulera toutes les livraisons en attente.",
+      "refundConfirm": "Êtes-vous sûr de vouloir rembourser la commande {orderNumber} ? Cela remboursera la totalité du montant et annulera toutes les livraisons en attente.",
       "refundReason": "Motif du remboursement",
       "refundReasonPlaceholder": "Pourquoi cette commande est-elle remboursée ?",
       "refundExpired": "Les remboursements ne sont possibles que dans les 48 heures suivant le paiement.",
+      "refundSuccess": "Commande remboursée avec succès.",
+      "cancel": "Annuler",
+      "pagination": {
+        "page": "{current} / {total}"
+      },
+      "error": {
+        "unexpected": "Une erreur inattendue s'est produite."
+      },
+      "view": "Voir les détails",
       "detail": {
         "title": "Détails de la commande",
         "summary": "Récapitulatif",
@@ -1099,7 +1308,20 @@
         "tax": "TVA",
         "total": "Total",
         "reverseCharge": "Autoliquidation de TVA",
-        "stripeInvoice": "Voir la facture Stripe"
+        "stripeInvoice": "Voir la facture Stripe",
+        "film": "Film",
+        "rightsHolder": "Ayant droit",
+        "cinema": "Cinéma / Salle",
+        "screenings": "Séances",
+        "price": "Prix",
+        "rhAmount": "Montant AD",
+        "timelessAmount": "Timeless",
+        "delivery": "Livraison",
+        "deliveryStatus": {
+          "pending": "En attente",
+          "in_progress": "En cours",
+          "delivered": "Livré"
+        }
       }
     },
     "deliveries": {
@@ -1135,7 +1357,7 @@
         "platformMargin": "Marge plateforme (%)",
         "deliveryFees": "Frais de livraison (EUR)",
         "defaultCommission": "Commission par défaut (%)",
-        "preview": "Avec ces paramètres, un film à {catalogPrice} sera affiché à {displayed}.",
+        "preview": "Avec ces paramètres, un film à {catalogPrice} sera affiché à {displayed} pour l'exploitant. L'ayant droit recevra {rightsHolder}. TIMELESS percevra {timeless}.",
         "save": "Enregistrer les paramètres",
         "history": "Historique des modifications"
       },
@@ -1144,6 +1366,32 @@
         "opsEmail": "Email opérations",
         "requestExpiration": "Expiration des demandes (jours)",
         "urgencyDays": "Seuil d'urgence (jours avant début)"
+      },
+      "confirmTitle": "Mettre à jour les paramètres ?",
+      "confirmDescription": "Ces paramètres affecteront toutes les futures commandes. Les commandes existantes ne sont pas impactées.",
+      "confirmButton": "Mettre à jour",
+      "saved": "Paramètres de la plateforme mis à jour.",
+      "noChanges": "Aucun changement détecté.",
+      "historyField": {
+        "platformMarginRate": "Marge plateforme",
+        "deliveryFees": "Frais de livraison",
+        "defaultCommissionRate": "Commission par défaut",
+        "opsEmail": "Email opérations",
+        "requestExpirationDays": "Expiration des demandes",
+        "requestUrgencyDaysBeforeStart": "Seuil d'urgence"
+      },
+      "historyEmpty": "Aucune modification enregistrée.",
+      "error": {
+        "UNAUTHORIZED": "Vous devez être connecté.",
+        "FORBIDDEN": "Seuls les admins peuvent modifier les paramètres.",
+        "SETTINGS_NOT_FOUND": "Paramètres de la plateforme introuvables.",
+        "INTERNAL_ERROR": "Une erreur inattendue est survenue.",
+        "INVALID_MARGIN_RATE": "La marge doit être entre 0 et 100%.",
+        "INVALID_DELIVERY_FEES": "Les frais de livraison ne peuvent pas être négatifs.",
+        "INVALID_COMMISSION_RATE": "La commission doit être entre 0 et 100%.",
+        "INVALID_OPS_EMAIL": "Veuillez saisir une adresse email valide.",
+        "INVALID_EXPIRATION_DAYS": "L'expiration doit être entre 1 et 365 jours.",
+        "INVALID_URGENCY_DAYS": "Le seuil d'urgence doit être entre 1 et 90 jours."
       }
     },
     "logs": {
@@ -1154,6 +1402,177 @@
         "entity": "Entité",
         "performedBy": "Effectué par",
         "details": "Détails"
+      },
+      "searchPlaceholder": "Rechercher par entité ou action…",
+      "empty": "Aucun journal d'audit enregistré.",
+      "noResults": "Aucun journal trouvé.",
+      "filter": {
+        "allActions": "Toutes les actions"
+      },
+      "actions": {
+        "account_suspended": "Compte suspendu",
+        "account_reactivated": "Compte réactivé",
+        "commission_updated": "Commission modifiée",
+        "request_force_approved": "Demande approuvée (forcé)",
+        "request_force_rejected": "Demande rejetée (forcé)",
+        "request_cancelled": "Demande annulée",
+        "order_refunded": "Commande remboursée",
+        "settings_updated": "Paramètres modifiés"
+      },
+      "pagination": {
+        "info": "Page {page} sur {total}",
+        "previous": "Précédent",
+        "next": "Suivant"
+      },
+      "error": {
+        "unexpected": "Une erreur inattendue s'est produite."
+      }
+    },
+    "requests": {
+      "title": "Demandes",
+      "columns": {
+        "id": "ID",
+        "exhibitor": "Exploitant",
+        "rightsHolder": "Ayant droit",
+        "film": "Film",
+        "dates": "Dates",
+        "amount": "Montant",
+        "status": "Statut",
+        "createdAt": "Créée le"
+      },
+      "searchPlaceholder": "Rechercher par film, cinéma ou exploitant…",
+      "view": "Voir les détails",
+      "empty": "Aucune demande pour le moment.",
+      "noResults": "Aucune demande trouvée.",
+      "status": {
+        "pending": "En attente",
+        "approved": "Approuvée",
+        "rejected": "Rejetée",
+        "cancelled": "Annulée",
+        "paid": "Payée"
+      },
+      "filter": {
+        "allStatuses": "Tous les statuts"
+      },
+      "actions": {
+        "forceApprove": "Forcer l'approbation",
+        "forceReject": "Forcer le rejet",
+        "cancel": "Annuler la demande"
+      },
+      "actionSuccess": {
+        "approve": "Demande approuvée",
+        "reject": "Demande rejetée",
+        "cancel": "Demande annulée"
+      },
+      "dialog": {
+        "approve": {
+          "title": "Forcer l'approbation",
+          "description": "Forcer l'approbation de la demande pour « {film} » de {exhibitor} ? L'exploitant pourra procéder au paiement.",
+          "confirm": "Approuver"
+        },
+        "reject": {
+          "title": "Forcer le rejet",
+          "description": "Forcer le rejet de la demande pour « {film} » de {exhibitor} ? Cette action est irréversible.",
+          "confirm": "Rejeter"
+        },
+        "cancel": {
+          "title": "Annuler la demande",
+          "description": "Annuler la demande pour « {film} » de {exhibitor} ? Cette action est irréversible.",
+          "confirm": "Annuler la demande"
+        }
+      },
+      "cancel": "Annuler",
+      "pagination": {
+        "info": "Page {page} sur {total}",
+        "previous": "Précédent",
+        "next": "Suivant"
+      },
+      "detail": {
+        "booking": "Informations de réservation",
+        "film": "Film",
+        "exhibitor": "Exploitant",
+        "rightsHolder": "Ayant droit",
+        "cinema": "Cinéma / Salle",
+        "screenings": "Séances",
+        "dates": "Dates",
+        "note": "Note",
+        "created": "Créée le",
+        "pricing": "Détail des prix",
+        "catalogPrice": "Prix catalogue",
+        "displayedPrice": "Prix affiché",
+        "rhAmount": "Montant ayant droit",
+        "timelessAmount": "Commission Timeless",
+        "deliveryFees": "Frais de livraison",
+        "margin": "Marge plateforme",
+        "commission": "Commission AD",
+        "timeline": "Chronologie"
+      },
+      "error": {
+        "unexpected": "Une erreur inattendue s'est produite."
+      }
+    },
+    "films": {
+      "title": "Films",
+      "view": "Voir les détails",
+      "columns": {
+        "title": "Titre",
+        "rightsHolder": "Ayant droit",
+        "year": "Année",
+        "status": "Statut",
+        "tmdb": "TMDB",
+        "priceZones": "Zones de prix",
+        "orders": "Commandes"
+      },
+      "searchPlaceholder": "Rechercher par titre ou réalisateur…",
+      "empty": "Aucun film dans le catalogue.",
+      "noResults": "Aucun film trouvé.",
+      "filter": {
+        "allStatuses": "Tous les statuts"
+      },
+      "status": {
+        "active": "Actif",
+        "inactive": "Inactif",
+        "retired": "Retiré"
+      },
+      "tmdb": {
+        "matched": "Matché",
+        "pending": "En attente",
+        "no_match": "Non trouvé",
+        "manual": "Manuel"
+      },
+      "pagination": {
+        "info": "Page {page} sur {total}",
+        "previous": "Précédent",
+        "next": "Suivant"
+      },
+      "error": {
+        "unexpected": "Une erreur inattendue s'est produite."
+      },
+      "detail": {
+        "info": "Informations du film",
+        "rightsHolder": "Ayant droit",
+        "year": "Année de sortie",
+        "directors": "Réalisateurs",
+        "duration": "Durée",
+        "created": "Ajouté le",
+        "stats": "Ventes",
+        "orderCount": "Commandes",
+        "volume": "Volume d'affaires HT",
+        "margin": "Marge Timeless HT",
+        "orders": "Commandes associées",
+        "noOrders": "Aucune commande pour ce film.",
+        "orderNumber": "Commande #",
+        "exhibitor": "Exploitant",
+        "cinema": "Cinéma",
+        "date": "Date",
+        "price": "Prix",
+        "timeless": "Timeless",
+        "delivery": "Livraison",
+        "deliveryStatus": {
+          "pending": "En attente",
+          "in_progress": "En cours",
+          "delivered": "Livré"
+        }
       }
     }
   },
@@ -1481,7 +1900,46 @@
   },
   "rightsHolderDashboard": {
     "title": "Tableau de bord",
-    "placeholder": "Votre tableau de bord sera disponible prochainement."
+    "placeholder": "Votre tableau de bord sera disponible prochainement.",
+    "metrics": {
+      "revenueThisMonth": "Revenus ce mois",
+      "totalSales": "Ventes totales",
+      "pendingRequests": "Demandes en attente",
+      "activeFilms": "Films actifs",
+      "filmViewsThisMonth": "Vues des films ce mois",
+      "cartAdditionsThisMonth": "Ajouts au panier ce mois"
+    },
+    "revenueChart": {
+      "title": "Revenus",
+      "total": "Total :",
+      "empty": "Aucune donnée de revenus."
+    },
+    "salesChart": {
+      "title": "Ventes",
+      "total": "Total :",
+      "empty": "Aucune donnée de ventes."
+    },
+    "topFilms": {
+      "title": "Meilleurs films",
+      "empty": "Aucune donnée de films.",
+      "sales": "ventes"
+    },
+    "chart": {
+      "granularity": {
+        "day": "Jour",
+        "week": "Semaine",
+        "month": "Mois",
+        "year": "Année"
+      },
+      "period": {
+        "7d": "7 jours",
+        "30d": "30 jours",
+        "90d": "90 jours",
+        "12m": "12 mois",
+        "ytd": "Depuis janvier",
+        "all": "Tout"
+      }
+    }
   },
   "analytics": {
     "title": "Analytiques",

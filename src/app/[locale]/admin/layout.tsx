@@ -35,6 +35,8 @@ export default async function AdminLayout({ children }: { children: ReactNode })
       items: [
         { title: t("dashboard"), href: "/admin/dashboard", icon: "gauge" },
         { title: t("adminOrders"), href: "/admin/orders", icon: "shopping-cart" },
+        { title: t("adminRequests"), href: "/admin/requests", icon: "clipboard-list" },
+        { title: t("adminFilms"), href: "/admin/films", icon: "film" },
         { title: t("exhibitors"), href: "/admin/exhibitors", icon: "users" },
         { title: t("rightsHolders"), href: "/admin/rights-holders", icon: "shield-check" },
         { title: t("deliveries"), href: "/admin/deliveries", icon: "truck" },
@@ -69,9 +71,10 @@ export default async function AdminLayout({ children }: { children: ReactNode })
           sections={sections}
           profileHref="/account/profile"
           canManageAccount={canManageAccount}
+          showLanguageSwitcher
         />
         <SidebarInset className="overflow-hidden">
-          <SiteHeader />
+          <SiteHeader showLanguageSwitcher={false} />
           <div className="flex min-w-0 flex-1 flex-col">
             <div className="flex min-w-0 flex-1 flex-col gap-4 overflow-hidden p-4 lg:p-6">
               {children}

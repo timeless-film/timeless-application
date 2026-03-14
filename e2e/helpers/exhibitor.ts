@@ -1,6 +1,6 @@
 import { expect } from "@playwright/test";
+import { createHash, randomBytes } from "node:crypto";
 import postgres from "postgres";
-import { randomBytes } from "node:crypto";
 
 import type { APIRequestContext, Page } from "@playwright/test";
 
@@ -112,4 +112,64 @@ export async function setupExhibitor(
   await registerAndLogin(page, request, user);
   await completeOnboarding(page, companyName);
   return { companyName, cinemaName: `Cinema ${companyName}` };
+}
+
+// ─── API-based exhibitor context (for admin E2E tests) ─────────────────────
+
+export interface ExhibitorContext {
+  email: string;
+  password: string;
+  userId: string;
+  accountId: string;
+}
+
+/**
+ * Create an exhibitor account directly via API + DB without UI.
+ * Used by admin tests that need an exhibitor to appear in the list.
+ */
+export async function createExhibitorContext(
+  request: APIRequestContext,
+  testId: string,
+  prefix: string
+): Promise<ExhibitorContext> {
+  const uniqueSuffix = randomBytes(4).toString("hex");
+  const email = `${prefix}-${testId}-${uniqueSuffix}@e2e-test.local`;
+  const password = "StrongPass123!";
+
+  const signupRes = await request.post("/api/auth/sign-up/email", {
+    data: { name: `Exh ${prefix}`, email, password },
+    headers: { "Content-Type": "application/json" },
+  });
+  expect(signupRes.ok()).toBeTruthy();
+
+  const sql = postgres(DB_URL, { max: 1 });
+
+  await sql`UPDATE better_auth_users SET email_verified = true WHERE email = ${email}`;
+
+  const users = await sql`SELECT id FROM better_auth_users WHERE email = ${email}`;
+  const userId = users[0]?.id as string | undefined;
+  if (!userId) {
+    await sql.end();
+    throw new Error("Failed to retrieve created user id for exhibitor E2E setup.");
+  }
+
+  const accountRows = await sql`
+    INSERT INTO accounts (type, company_name, country, onboarding_completed)
+    VALUES ('exhibitor', ${`Exh ${prefix} ${testId}`}, 'FR', true)
+    RETURNING id
+  `;
+  const accountId = accountRows[0]?.id as string | undefined;
+  if (!accountId) {
+    await sql.end();
+    throw new Error("Failed to create exhibitor account for E2E setup.");
+  }
+
+  await sql`
+    INSERT INTO account_members (account_id, user_id, role)
+    VALUES (${accountId}, ${userId}, 'owner')
+  `;
+
+  await sql.end();
+
+  return { email, password, userId, accountId };
 }

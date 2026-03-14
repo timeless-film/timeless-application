@@ -29,6 +29,8 @@ export const ADMIN_PATHS = [
   "/admin/exhibitors",
   "/admin/rights-holders",
   "/admin/orders",
+  "/admin/requests",
+  "/admin/films",
   "/admin/deliveries",
   "/admin/settings",
   "/admin/logs",

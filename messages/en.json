@@ -118,6 +118,8 @@
     "main": "Main",
     "management": "Management",
     "adminOrders": "Orders",
+    "adminRequests": "Requests",
+    "adminFilms": "Films",
     "myAccounts": "My accounts",
     "manageAccount": "Manage account",
     "home": "Home",
@@ -1029,10 +1031,49 @@
     "dashboard": {
       "title": "Dashboard",
       "metrics": {
-        "revenue": "Revenue (Timeless)",
+        "businessVolume": "Business volume (excl. VAT)",
+        "timelessMargin": "Timeless margin (excl. VAT)",
         "transactions": "Transactions",
         "pendingDeliveries": "Pending deliveries",
-        "pendingRequests": "Pending requests"
+        "pendingRequests": "Pending requests",
+        "activeExhibitors": "Active exhibitors",
+        "activeRightsHolders": "Active rights holders",
+        "activeFilms": "Active films",
+        "pendingOnboardings": "Pending onboardings"
+      },
+      "chart": {
+        "title": "Margin",
+        "total": "Total:",
+        "empty": "No revenue data yet.",
+        "granularity": {
+          "day": "Day",
+          "week": "Week",
+          "month": "Month",
+          "year": "Year"
+        },
+        "period": {
+          "7d": "7 days",
+          "30d": "30 days",
+          "90d": "90 days",
+          "12m": "12 months",
+          "ytd": "Year to date",
+          "all": "All time"
+        }
+      },
+      "ordersChart": {
+        "title": "Orders",
+        "total": "Total:",
+        "empty": "No order data yet."
+      },
+      "topFilms": {
+        "title": "Top 10 films",
+        "empty": "No film data yet.",
+        "columns": {
+          "title": "Film",
+          "rightsHolder": "Rights holder",
+          "orders": "Orders",
+          "volume": "Volume (excl. VAT)"
+        }
       }
     },
     "rightsHolders": {
@@ -1051,6 +1092,88 @@
         "complete": "Complete",
         "incomplete": "Incomplete"
       },
+      "status": {
+        "active": "Active",
+        "suspended": "Suspended"
+      },
+      "searchPlaceholder": "Search rights holders…",
+      "view": "View details",
+      "noResults": "No rights holders found.",
+      "empty": "No rights holders yet.",
+      "defaultRate": "default",
+      "suspend": "Suspend",
+      "reactivate": "Reactivate",
+      "suspended": "Account suspended.",
+      "reactivated": "Account reactivated.",
+      "suspendConfirm": "Suspend {name}? Their films will be hidden from the catalog and their users will lose access.",
+      "reactivateConfirm": "Reactivate {name}? Their films will be visible again in the catalog.",
+      "editCommission": "Edit commission",
+      "commissionUpdated": "Commission rate updated.",
+      "cancel": "Cancel",
+      "commissionDialog": {
+        "title": "Edit commission rate",
+        "description": "Set a custom commission rate for {name}. Leave empty to use the platform default ({default}).",
+        "rate": "Commission rate (%)",
+        "placeholder": "e.g. 15",
+        "hint": "Leave empty to use the global default rate.",
+        "save": "Save"
+      },
+      "detail": {
+        "info": "Company information",
+        "email": "Contact email",
+        "phone": "Phone",
+        "address": "Address",
+        "vat": "VAT number",
+        "created": "Created",
+        "stats": "Statistics",
+        "activeFilms": "Active films",
+        "totalSales": "Total sales (items)",
+        "volume": "Volume excl. VAT",
+        "members": "Members",
+        "memberName": "Name",
+        "memberEmail": "Email",
+        "memberRole": "Role",
+        "memberSince": "Member since",
+        "commissionHistory": "Commission history",
+        "date": "Date",
+        "change": "Change",
+        "orderList": "Orders",
+        "noOrders": "No orders yet.",
+        "orderNumber": "Order #",
+        "orderDate": "Date",
+        "items": "Items",
+        "total": "Total",
+        "orderStatus": "Status",
+        "orderStatusValues": {
+          "paid": "Paid",
+          "processing": "Processing",
+          "delivered": "Delivered",
+          "refunded": "Refunded"
+        },
+        "requestList": "Requests",
+        "noRequests": "No requests yet.",
+        "film": "Film",
+        "counterparty": "Exhibitor",
+        "amount": "Amount",
+        "requestStatusCol": "Status",
+        "requestDate": "Date",
+        "reqStatus": {
+          "pending_rh": "Pending (RH)",
+          "approved": "Approved",
+          "rejected": "Rejected",
+          "cancelled": "Cancelled",
+          "paid": "Paid"
+        }
+      },
+      "pagination": {
+        "info": "Page {page} of {total}",
+        "previous": "Previous",
+        "next": "Next"
+      },
+      "error": {
+        "unexpected": "An unexpected error occurred.",
+        "invalidCommission": "Commission rate must be between 0 and 100."
+      },
       "form": {
         "companyName": "Company name",
         "country": "Country",
@@ -1064,8 +1187,81 @@
         "name": "Name",
         "country": "Country",
         "cinemas": "Cinemas",
+        "orders": "Orders",
+        "onboarding": "Onboarding",
         "volume": "Volume",
         "status": "Status"
+      },
+      "searchPlaceholder": "Search exhibitors…",
+      "view": "View details",
+      "empty": "No exhibitor accounts yet.",
+      "noResults": "No exhibitors found.",
+      "status": {
+        "active": "Active",
+        "suspended": "Suspended"
+      },
+      "onboarding": {
+        "complete": "Complete",
+        "incomplete": "Incomplete"
+      },
+      "suspend": "Suspend",
+      "reactivate": "Reactivate",
+      "suspended": "Account suspended",
+      "reactivated": "Account reactivated",
+      "suspendConfirm": "Suspend {name}? Their team will lose access to the platform.",
+      "reactivateConfirm": "Reactivate {name}? Their access to the platform will be restored.",
+      "cancel": "Cancel",
+      "detail": {
+        "info": "Company information",
+        "email": "Contact email",
+        "phone": "Phone",
+        "address": "Address",
+        "vat": "VAT number",
+        "created": "Created",
+        "stats": "Statistics",
+        "cinemas": "Cinemas",
+        "orders": "Order items",
+        "volume": "Volume excl. VAT",
+        "members": "Members",
+        "memberName": "Name",
+        "memberEmail": "Email",
+        "memberRole": "Role",
+        "memberSince": "Member since",
+        "orderList": "Orders",
+        "noOrders": "No orders yet.",
+        "orderNumber": "Order #",
+        "date": "Date",
+        "items": "Items",
+        "total": "Total",
+        "status": "Status",
+        "orderStatus": {
+          "paid": "Paid",
+          "processing": "Processing",
+          "delivered": "Delivered",
+          "refunded": "Refunded"
+        },
+        "requestList": "Requests",
+        "noRequests": "No requests yet.",
+        "film": "Film",
+        "counterparty": "Rights holder",
+        "amount": "Amount",
+        "requestStatus": "Status",
+        "requestDate": "Date",
+        "reqStatus": {
+          "pending_rh": "Pending (RH)",
+          "approved": "Approved",
+          "rejected": "Rejected",
+          "cancelled": "Cancelled",
+          "paid": "Paid"
+        }
+      },
+      "pagination": {
+        "info": "Page {page} of {total}",
+        "previous": "Previous",
+        "next": "Next"
+      },
+      "error": {
+        "unexpected": "An unexpected error occurred."
       }
     },
     "orders": {
@@ -1078,18 +1274,32 @@
         "total": "Total",
         "status": "Status"
       },
+      "searchPlaceholder": "Search by order number or exhibitor…",
+      "empty": "No orders yet.",
+      "noResults": "No orders found.",
+      "filter": {
+        "allStatuses": "All statuses"
+      },
       "status": {
         "paid": "Paid",
         "processing": "Processing",
         "delivered": "Delivered",
         "refunded": "Refunded"
       },
-      "noResults": "No orders found.",
       "refund": "Refund",
-      "refundConfirm": "Are you sure you want to refund this order? This will refund the full amount and cancel all pending deliveries.",
+      "refundConfirm": "Are you sure you want to refund order {orderNumber}? This will refund the full amount and cancel all pending deliveries.",
       "refundReason": "Refund reason",
       "refundReasonPlaceholder": "Why is this order being refunded?",
       "refundExpired": "Refunds are only available within 48 hours of payment.",
+      "refundSuccess": "Order refunded successfully.",
+      "cancel": "Cancel",
+      "pagination": {
+        "page": "{current} / {total}"
+      },
+      "error": {
+        "unexpected": "An unexpected error occurred."
+      },
+      "view": "View details",
       "detail": {
         "title": "Order details",
         "summary": "Summary",
@@ -1099,7 +1309,20 @@
         "tax": "Tax",
         "total": "Total",
         "reverseCharge": "Reverse charge",
-        "stripeInvoice": "View Stripe invoice"
+        "stripeInvoice": "View Stripe invoice",
+        "film": "Film",
+        "rightsHolder": "Rights holder",
+        "cinema": "Cinema / Room",
+        "screenings": "Screenings",
+        "price": "Price",
+        "rhAmount": "RH amount",
+        "timelessAmount": "Timeless",
+        "delivery": "Delivery",
+        "deliveryStatus": {
+          "pending": "Pending",
+          "in_progress": "In progress",
+          "delivered": "Delivered"
+        }
       }
     },
     "deliveries": {
@@ -1135,7 +1358,7 @@
         "platformMargin": "Platform margin (%)",
         "deliveryFees": "Delivery fees (EUR)",
         "defaultCommission": "Default commission (%)",
-        "preview": "With these settings, a film priced at {catalogPrice} will be displayed at {displayed}.",
+        "preview": "With these settings, a film priced at {catalogPrice} will be displayed at {displayed} for the exhibitor. The rights holder will receive {rightsHolder}. TIMELESS will retain {timeless}.",
         "save": "Save settings",
         "history": "Change history"
       },
@@ -1144,6 +1367,32 @@
         "opsEmail": "Operations email",
         "requestExpiration": "Request expiration (days)",
         "urgencyDays": "Urgency threshold (days before start)"
+      },
+      "confirmTitle": "Update platform settings?",
+      "confirmDescription": "These settings will affect all future orders. Existing orders are not impacted.",
+      "confirmButton": "Update settings",
+      "saved": "Platform settings updated successfully.",
+      "noChanges": "No changes detected.",
+      "historyField": {
+        "platformMarginRate": "Platform margin",
+        "deliveryFees": "Delivery fees",
+        "defaultCommissionRate": "Default commission",
+        "opsEmail": "Operations email",
+        "requestExpirationDays": "Request expiration",
+        "requestUrgencyDaysBeforeStart": "Urgency threshold"
+      },
+      "historyEmpty": "No changes recorded yet.",
+      "error": {
+        "UNAUTHORIZED": "You must be signed in.",
+        "FORBIDDEN": "Only admins can modify settings.",
+        "SETTINGS_NOT_FOUND": "Platform settings not found.",
+        "INTERNAL_ERROR": "An unexpected error occurred.",
+        "INVALID_MARGIN_RATE": "Margin rate must be between 0 and 100%.",
+        "INVALID_DELIVERY_FEES": "Delivery fees cannot be negative.",
+        "INVALID_COMMISSION_RATE": "Commission rate must be between 0 and 100%.",
+        "INVALID_OPS_EMAIL": "Please enter a valid email address.",
+        "INVALID_EXPIRATION_DAYS": "Expiration must be between 1 and 365 days.",
+        "INVALID_URGENCY_DAYS": "Urgency threshold must be between 1 and 90 days."
       }
     },
     "logs": {
@@ -1154,6 +1403,177 @@
         "entity": "Entity",
         "performedBy": "Performed by",
         "details": "Details"
+      },
+      "searchPlaceholder": "Search by entity or action…",
+      "empty": "No audit logs recorded yet.",
+      "noResults": "No logs found.",
+      "filter": {
+        "allActions": "All actions"
+      },
+      "actions": {
+        "account_suspended": "Account suspended",
+        "account_reactivated": "Account reactivated",
+        "commission_updated": "Commission updated",
+        "request_force_approved": "Request force-approved",
+        "request_force_rejected": "Request force-rejected",
+        "request_cancelled": "Request cancelled",
+        "order_refunded": "Order refunded",
+        "settings_updated": "Settings updated"
+      },
+      "pagination": {
+        "info": "Page {page} of {total}",
+        "previous": "Previous",
+        "next": "Next"
+      },
+      "error": {
+        "unexpected": "An unexpected error occurred."
+      }
+    },
+    "requests": {
+      "title": "Requests",
+      "columns": {
+        "id": "ID",
+        "exhibitor": "Exhibitor",
+        "rightsHolder": "Rights holder",
+        "film": "Film",
+        "dates": "Dates",
+        "amount": "Amount",
+        "status": "Status",
+        "createdAt": "Created"
+      },
+      "searchPlaceholder": "Search by film, cinema, or exhibitor…",
+      "view": "View details",
+      "empty": "No requests yet.",
+      "noResults": "No requests found.",
+      "status": {
+        "pending": "Pending",
+        "approved": "Approved",
+        "rejected": "Rejected",
+        "cancelled": "Cancelled",
+        "paid": "Paid"
+      },
+      "filter": {
+        "allStatuses": "All statuses"
+      },
+      "actions": {
+        "forceApprove": "Force approve",
+        "forceReject": "Force reject",
+        "cancel": "Cancel request"
+      },
+      "actionSuccess": {
+        "approve": "Request approved",
+        "reject": "Request rejected",
+        "cancel": "Request cancelled"
+      },
+      "dialog": {
+        "approve": {
+          "title": "Force approve",
+          "description": "Force approve the request for \"{film}\" from {exhibitor}? The exhibitor will be able to proceed to payment.",
+          "confirm": "Approve"
+        },
+        "reject": {
+          "title": "Force reject",
+          "description": "Force reject the request for \"{film}\" from {exhibitor}? This action cannot be undone.",
+          "confirm": "Reject"
+        },
+        "cancel": {
+          "title": "Cancel request",
+          "description": "Cancel the request for \"{film}\" from {exhibitor}? This action cannot be undone.",
+          "confirm": "Cancel request"
+        }
+      },
+      "cancel": "Cancel",
+      "pagination": {
+        "info": "Page {page} of {total}",
+        "previous": "Previous",
+        "next": "Next"
+      },
+      "detail": {
+        "booking": "Booking information",
+        "film": "Film",
+        "exhibitor": "Exhibitor",
+        "rightsHolder": "Rights holder",
+        "cinema": "Cinema / Room",
+        "screenings": "Screenings",
+        "dates": "Dates",
+        "note": "Note",
+        "created": "Created",
+        "pricing": "Pricing breakdown",
+        "catalogPrice": "Catalog price",
+        "displayedPrice": "Displayed price",
+        "rhAmount": "Rights holder amount",
+        "timelessAmount": "Timeless commission",
+        "deliveryFees": "Delivery fees",
+        "margin": "Platform margin",
+        "commission": "RH commission",
+        "timeline": "Timeline"
+      },
+      "error": {
+        "unexpected": "An unexpected error occurred."
+      }
+    },
+    "films": {
+      "title": "Films",
+      "view": "View details",
+      "columns": {
+        "title": "Title",
+        "rightsHolder": "Rights holder",
+        "year": "Year",
+        "status": "Status",
+        "tmdb": "TMDB",
+        "priceZones": "Price zones",
+        "orders": "Orders"
+      },
+      "searchPlaceholder": "Search by title or director…",
+      "empty": "No films in the catalog yet.",
+      "noResults": "No films found.",
+      "filter": {
+        "allStatuses": "All statuses"
+      },
+      "status": {
+        "active": "Active",
+        "inactive": "Inactive",
+        "retired": "Retired"
+      },
+      "tmdb": {
+        "matched": "Matched",
+        "pending": "Pending",
+        "no_match": "No match",
+        "manual": "Manual"
+      },
+      "pagination": {
+        "info": "Page {page} of {total}",
+        "previous": "Previous",
+        "next": "Next"
+      },
+      "error": {
+        "unexpected": "An unexpected error occurred."
+      },
+      "detail": {
+        "info": "Film information",
+        "rightsHolder": "Rights holder",
+        "year": "Release year",
+        "directors": "Directors",
+        "duration": "Duration",
+        "created": "Added on",
+        "stats": "Sales",
+        "orderCount": "Orders",
+        "volume": "Business volume (excl. VAT)",
+        "margin": "Timeless margin (excl. VAT)",
+        "orders": "Associated orders",
+        "noOrders": "No orders for this film yet.",
+        "orderNumber": "Order #",
+        "exhibitor": "Exhibitor",
+        "cinema": "Cinema",
+        "date": "Date",
+        "price": "Price",
+        "timeless": "Timeless",
+        "delivery": "Delivery",
+        "deliveryStatus": {
+          "pending": "Pending",
+          "in_progress": "In progress",
+          "delivered": "Delivered"
+        }
       }
     }
   },
@@ -1481,8 +1901,47 @@
   },
   "rightsHolderDashboard": {
     "title": "Dashboard",
-    "placeholder": "Your dashboard will be available soon."
+    "placeholder": "Your dashboard will be available soon.",
+    "metrics": {
+      "revenueThisMonth": "Revenue this month",
+      "totalSales": "Total sales",
+      "pendingRequests": "Pending requests",
+      "activeFilms": "Active films",
+      "filmViewsThisMonth": "Film views this month",
+      "cartAdditionsThisMonth": "Cart additions this month"
     },
+    "revenueChart": {
+      "title": "Revenue",
+      "total": "Total:",
+      "empty": "No revenue data yet."
+    },
+    "salesChart": {
+      "title": "Sales",
+      "total": "Total:",
+      "empty": "No sales data yet."
+    },
+    "topFilms": {
+      "title": "Top films",
+      "empty": "No film data yet.",
+      "sales": "sales"
+    },
+    "chart": {
+      "granularity": {
+        "day": "Day",
+        "week": "Week",
+        "month": "Month",
+        "year": "Year"
+      },
+      "period": {
+        "7d": "7 days",
+        "30d": "30 days",
+        "90d": "90 days",
+        "12m": "12 months",
+        "ytd": "Year to date",
+        "all": "All time"
+      }
+    }
+  },
     "analytics": {
       "title": "Analytics",
       "description": "View performance metrics for your catalog",

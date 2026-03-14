@@ -235,6 +235,14 @@ describe("getRequiredAccountType", () => {
     expect(getRequiredAccountType("/en/admin/deliveries")).toBe("admin");
   });
 
+  it("returns 'admin' for /en/admin/requests", () => {
+    expect(getRequiredAccountType("/en/admin/requests")).toBe("admin");
+  });
+
+  it("returns 'admin' for /en/admin/films", () => {
+    expect(getRequiredAccountType("/en/admin/films")).toBe("admin");
+  });
+
   it("returns 'admin' for /en/admin/settings", () => {
     expect(getRequiredAccountType("/en/admin/settings")).toBe("admin");
   });

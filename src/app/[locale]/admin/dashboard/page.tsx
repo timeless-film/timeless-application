@@ -1,5 +1,13 @@
 import { getTranslations } from "next-intl/server";
 
+import { DashboardContent } from "@/components/admin/dashboard-content";
+import {
+  getDashboardKpis,
+  getOrdersOverTime,
+  getRevenue,
+  getTopFilms,
+} from "@/lib/services/admin-dashboard-service";
+
 import type { Metadata } from "next";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -10,11 +18,21 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function DashboardPage() {
-  const t = await getTranslations("admin.dashboard");
+  const [kpis, initialRevenue, initialOrders, initialTopFilms] = await Promise.all([
+    getDashboardKpis("12m"),
+    getRevenue("month", "12m"),
+    getOrdersOverTime("month", "12m"),
+    getTopFilms("12m"),
+  ]);
 
   return (
-    <div className="space-y-4">
-      <h1 className="font-heading text-2xl">{t("title")}</h1>
-    </div>
+    <DashboardContent
+      initialKpis={kpis}
+      initialRevenue={initialRevenue}
+      initialOrdersOverTime={initialOrders}
+      initialTopFilms={initialTopFilms}
+      initialGranularity="month"
+      initialPeriod="12m"
+    />
   );
 }
