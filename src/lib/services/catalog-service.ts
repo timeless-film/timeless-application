@@ -1,4 +1,18 @@
-import { and, asc, count, desc, eq, gte, inArray, ilike, isNull, lte, or, sql } from "drizzle-orm";
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  gte,
+  inArray,
+  ilike,
+  isNotNull,
+  isNull,
+  lte,
+  or,
+  sql,
+} from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import { accounts, cinemas, filmPrices, films } from "@/lib/db/schema";
@@ -90,7 +104,17 @@ export interface CatalogResult {
 export interface CatalogFilterOptions {
   genres: string[];
   totalFilms: number;
+  releaseYearRange: CatalogRangeFacet | null;
+  durationRange: CatalogRangeFacet | null;
 }
+
+export interface CatalogRangeFacet {
+  min: number;
+  max: number;
+  buckets: number[];
+}
+
+type CatalogNumericField = "releaseYear" | "duration";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -249,16 +273,91 @@ function buildCatalogQueryConditions(filters: CatalogFilters, accountCountries: 
   return and(...conditions);
 }
 
+function removeRangeFilter(filters: CatalogFilters, field: CatalogNumericField): CatalogFilters {
+  if (field === "releaseYear") {
+    return {
+      ...filters,
+      yearMin: undefined,
+      yearMax: undefined,
+    };
+  }
+
+  return {
+    ...filters,
+    durationMin: undefined,
+    durationMax: undefined,
+  };
+}
+
+function buildRangeFacet(values: number[]): CatalogRangeFacet | null {
+  if (values.length === 0) {
+    return null;
+  }
+
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const buckets = Array.from({ length: 10 }, () => 0);
+
+  if (min === max) {
+    buckets[0] = values.length;
+    return { min, max, buckets };
+  }
+
+  const span = max - min;
+
+  for (const value of values) {
+    const bucketIndex = Math.min(9, Math.floor(((value - min) / span) * 10));
+    const currentCount = buckets[bucketIndex];
+
+    if (currentCount !== undefined) {
+      buckets[bucketIndex] = currentCount + 1;
+    }
+  }
+
+  return { min, max, buckets };
+}
+
+async function getRangeFacetForField(
+  accountId: string,
+  filters: CatalogFilters,
+  field: CatalogNumericField
+): Promise<CatalogRangeFacet | null> {
+  const accountCountries = await getAccountCinemaCountries(accountId);
+  const rangeFreeFilters = removeRangeFilter(filters, field);
+  const whereCondition = buildCatalogQueryConditions(rangeFreeFilters, accountCountries);
+
+  if (field === "releaseYear") {
+    const rows = await db
+      .select({ value: films.releaseYear })
+      .from(films)
+      .where(and(whereCondition, isNotNull(films.releaseYear)));
+
+    return buildRangeFacet(rows.flatMap((row) => (row.value === null ? [] : [row.value])));
+  }
+
+  const rows = await db
+    .select({ value: films.duration })
+    .from(films)
+    .where(and(whereCondition, isNotNull(films.duration)));
+
+  return buildRangeFacet(rows.flatMap((row) => (row.value === null ? [] : [row.value])));
+}
+
 /**
  * Fetches distinct filter options for the catalog UI.
  */
-export async function getCatalogFilterOptions(): Promise<CatalogFilterOptions> {
-  const [genreRows, countResult] = await Promise.all([
+export async function getCatalogFilterOptions(
+  accountId: string,
+  filters: CatalogFilters = {}
+): Promise<CatalogFilterOptions> {
+  const [genreRows, countResult, releaseYearRange, durationRange] = await Promise.all([
     db
       .select({ genre: sql<string>`DISTINCT UNNEST(${films.genres})` })
       .from(films)
       .where(eq(films.status, "active")),
     db.select({ count: count() }).from(films).where(eq(films.status, "active")),
+    getRangeFacetForField(accountId, filters, "releaseYear"),
+    getRangeFacetForField(accountId, filters, "duration"),
   ]);
 
   const genres = [...new Set(genreRows.map((row) => row.genre?.trim()).filter(Boolean))].sort(
@@ -267,7 +366,7 @@ export async function getCatalogFilterOptions(): Promise<CatalogFilterOptions> {
 
   const totalFilms = countResult[0]?.count ?? 0;
 
-  return { genres, totalFilms };
+  return { genres, totalFilms, releaseYearRange, durationRange };
 }
 
 // ─── Catalog for Exhibitor ────────────────────────────────────────────────────

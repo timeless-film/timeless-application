@@ -248,6 +248,8 @@ pnpm db:studio        # Drizzle Studio
 
 `DATABASE_URL` · `BETTER_AUTH_SECRET` · `STRIPE_SECRET_KEY` · `STRIPE_WEBHOOK_SECRET` · `RESEND_API_KEY` · `TMDB_API_KEY` · `NEXT_PUBLIC_APP_URL`
 
+Production only (Scaleway Object Storage): `STORAGE_DRIVER` · `S3_ACCESS_KEY` · `S3_SECRET_KEY` · `S3_BUCKET_NAME` · `S3_BUCKET_REGION`
+
 ## Progress tracking
 
 - Epics: `docs/Epics/E*.md`. Roadmap: `docs/01 - Roadmap.md`.

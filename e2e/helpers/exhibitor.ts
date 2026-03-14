@@ -94,7 +94,7 @@ export async function completeOnboarding(page: Page, companyName: string): Promi
   // Step 3: Skip invitations
   await expect(page.getByText(/invite your team/i)).toBeVisible({ timeout: 15000 });
   await page.getByRole("button", { name: /skip this step/i }).click();
-  await expect(page).toHaveURL(/\/en\/catalog/, { timeout: 30000 });
+  await expect(page).toHaveURL(/\/en\/home/, { timeout: 30000 });
 }
 
 /**

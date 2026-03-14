@@ -511,6 +511,16 @@ Required in `.env.local`:
 | `NEXT_PUBLIC_APP_URL`           | App URL (default: `http://localhost:3000`)          |
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe publishable key (baked at build time)  |
 
+Optional — production only (Scaleway Object Storage):
+
+| Variable                        | Purpose                                             |
+|---------------------------------|-----------------------------------------------------|
+| `STORAGE_DRIVER`                | `"s3"` for Object Storage, omit for local filesystem |
+| `S3_ACCESS_KEY`                 | Scaleway API access key                             |
+| `S3_SECRET_KEY`                 | Scaleway API secret key                             |
+| `S3_BUCKET_NAME`                | Object Storage bucket name (e.g. `timeless-uploads`)|
+| `S3_BUCKET_REGION`              | Bucket region (e.g. `fr-par`)                       |
+
 ---
 
 ## Progress tracking

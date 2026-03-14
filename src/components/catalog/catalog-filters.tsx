@@ -4,6 +4,7 @@ import { Check, ChevronsUpDown, Filter, RotateCcw, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
+import { CatalogRangeFilter } from "@/components/catalog/catalog-range-filter";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,14 +29,21 @@ import { useCatalogFilters } from "@/hooks/use-catalog-filters";
 import { cn } from "@/lib/utils";
 
 import type { CatalogFiltersState } from "@/hooks/use-catalog-filters";
+import type { CatalogRangeFacet } from "@/lib/services/catalog-service";
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 interface CatalogFiltersProps {
   genreOptions: string[];
+  releaseYearRange: CatalogRangeFacet | null;
+  durationRange: CatalogRangeFacet | null;
 }
 
-export function CatalogFilters({ genreOptions }: CatalogFiltersProps) {
+export function CatalogFilters({
+  genreOptions,
+  releaseYearRange,
+  durationRange,
+}: CatalogFiltersProps) {
   const t = useTranslations("catalog.filters");
   const { filters, setFilters, clearFilters } = useCatalogFilters();
   const [isGenrePopoverOpen, setIsGenrePopoverOpen] = useState(false);
@@ -184,79 +192,25 @@ export function CatalogFilters({ genreOptions }: CatalogFiltersProps) {
         </Label>
       </div>
 
-      {/* Year Range */}
-      <div className="space-y-2">
-        <Label>{t("releaseYear")}</Label>
-        <div className="grid grid-cols-2 gap-2">
-          <div>
-            <Label htmlFor="yearMin" className="text-xs text-muted-foreground">
-              {t("yearMin")}
-            </Label>
-            <Input
-              id="yearMin"
-              type="number"
-              placeholder="1900"
-              value={filters.yearMin || ""}
-              onChange={(e) =>
-                void setFilters({ yearMin: e.target.value ? parseInt(e.target.value, 10) : null })
-              }
-            />
-          </div>
-          <div>
-            <Label htmlFor="yearMax" className="text-xs text-muted-foreground">
-              {t("yearMax")}
-            </Label>
-            <Input
-              id="yearMax"
-              type="number"
-              placeholder="2026"
-              value={filters.yearMax || ""}
-              onChange={(e) =>
-                void setFilters({ yearMax: e.target.value ? parseInt(e.target.value, 10) : null })
-              }
-            />
-          </div>
-        </div>
-      </div>
+      <CatalogRangeFilter
+        title={t("releaseYear")}
+        minLabel={t("yearMin")}
+        maxLabel={t("yearMax")}
+        facet={releaseYearRange}
+        selectedMin={filters.yearMin}
+        selectedMax={filters.yearMax}
+        onChange={(yearMin, yearMax) => setFilters({ yearMin, yearMax })}
+      />
 
-      {/* Duration Range */}
-      <div className="space-y-2">
-        <Label>{t("duration")}</Label>
-        <div className="grid grid-cols-2 gap-2">
-          <div>
-            <Label htmlFor="durationMin" className="text-xs text-muted-foreground">
-              {t("durationMin")}
-            </Label>
-            <Input
-              id="durationMin"
-              type="number"
-              placeholder="0"
-              value={filters.durationMin || ""}
-              onChange={(e) =>
-                void setFilters({
-                  durationMin: e.target.value ? parseInt(e.target.value, 10) : null,
-                })
-              }
-            />
-          </div>
-          <div>
-            <Label htmlFor="durationMax" className="text-xs text-muted-foreground">
-              {t("durationMax")}
-            </Label>
-            <Input
-              id="durationMax"
-              type="number"
-              placeholder="300"
-              value={filters.durationMax || ""}
-              onChange={(e) =>
-                void setFilters({
-                  durationMax: e.target.value ? parseInt(e.target.value, 10) : null,
-                })
-              }
-            />
-          </div>
-        </div>
-      </div>
+      <CatalogRangeFilter
+        title={t("duration")}
+        minLabel={t("durationMin")}
+        maxLabel={t("durationMax")}
+        facet={durationRange}
+        selectedMin={filters.durationMin}
+        selectedMax={filters.durationMax}
+        onChange={(durationMin, durationMax) => setFilters({ durationMin, durationMax })}
+      />
 
       {/* Active Filters Summary */}
       {activeCount > 0 && (

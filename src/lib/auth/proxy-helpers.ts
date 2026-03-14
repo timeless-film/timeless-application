@@ -22,7 +22,14 @@ export const ACCOUNT_OPTIONAL_PATHS = ["/no-account", "/onboarding", "/accounts"
 export const UNPROTECTED_API_PATHS = ["/api/auth", "/api/webhooks", "/api/debug", "/api/v1"];
 
 // Map path prefixes to the account type that can access them
-export const EXHIBITOR_PATHS = ["/catalog", "/cart", "/orders", "/requests", "/accept-invitation"];
+export const EXHIBITOR_PATHS = [
+  "/catalog",
+  "/cart",
+  "/orders",
+  "/requests",
+  "/accept-invitation",
+  "/playlist",
+];
 export const RIGHTS_HOLDER_PATHS = ["/films", "/validation-requests", "/wallet"];
 export const ADMIN_PATHS = [
   "/admin",
@@ -35,6 +42,7 @@ export const ADMIN_PATHS = [
   "/admin/deliveries",
   "/admin/settings",
   "/admin/logs",
+  "/admin/editorial",
 ];
 
 const SUPPORTED_LOCALES = ["en", "fr"];

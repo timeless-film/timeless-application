@@ -6,6 +6,7 @@ import {
   ClipboardListIcon,
   FilmIcon,
   GaugeIcon,
+  LayoutDashboardIcon,
   ScrollTextIcon,
   SettingsIcon,
   ShieldCheckIcon,
@@ -37,6 +38,7 @@ export type IconName =
   | "clipboard-list"
   | "film"
   | "gauge"
+  | "layout-dashboard"
   | "scroll-text"
   | "settings"
   | "shield-check"
@@ -52,6 +54,7 @@ const ICON_MAP: Record<IconName, LucideIcon> = {
   "clipboard-list": ClipboardListIcon,
   film: FilmIcon,
   gauge: GaugeIcon,
+  "layout-dashboard": LayoutDashboardIcon,
   "scroll-text": ScrollTextIcon,
   settings: SettingsIcon,
   "shield-check": ShieldCheckIcon,

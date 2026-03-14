@@ -7,7 +7,7 @@ import {
   ChevronsUpDownIcon,
   ClipboardListIcon,
   FilmIcon,
-  GaugeIcon,
+  HomeIcon,
   LayersIcon,
   LogOutIcon,
   MenuIcon,
@@ -90,7 +90,7 @@ export function MarketplaceHeader({ user }: MarketplaceHeaderProps) {
   const canManageAccount = activeMembership?.role === "owner" || activeMembership?.role === "admin";
 
   const mainNav: NavLink[] = [
-    { title: t("dashboard"), href: "/home", icon: GaugeIcon },
+    { title: t("home"), href: "/home", icon: HomeIcon },
     { title: t("catalog"), href: "/catalog", icon: BookOpenIcon },
     { title: t("orders"), href: "/orders", icon: TicketIcon },
     { title: t("requests"), href: "/requests", icon: ClipboardListIcon },

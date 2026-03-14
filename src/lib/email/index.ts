@@ -48,7 +48,15 @@ export async function sendInvitationEmail(params: {
 
 // ─── HTML templates ───────────────────────────────────────────────────────────
 
-function emailLayout(content: string): string {
+export function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+export function emailLayout(content: string): string {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>

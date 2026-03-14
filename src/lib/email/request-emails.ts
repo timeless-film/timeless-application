@@ -2,6 +2,8 @@ import { formatAmount } from "@/lib/pricing/format";
 
 import { safeEmail } from "./safe-email";
 
+import { emailLayout, escapeHtml } from "./index";
+
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -87,6 +89,12 @@ const translations = {
       subject: "Your request for {filmTitle} has been approved",
       title: "Request approved",
       intro: "Great news! Your booking request has been approved by the rights holder.",
+      filmLabel: "Film",
+      cinemaLabel: "Cinema",
+      roomLabel: "Screen",
+      screeningsLabel: "Screenings",
+      datesLabel: "Dates",
+      priceLabel: "Price",
       noteLabel: "Note from rights holder",
       ctaButton: "View my request",
       paymentNote: "You will be able to proceed to payment shortly.",
@@ -95,6 +103,8 @@ const translations = {
       subject: "Your request for {filmTitle} has been declined",
       title: "Request declined",
       intro: "Unfortunately, your booking request has been declined by the rights holder.",
+      filmLabel: "Film",
+      cinemaLabel: "Cinema",
       reasonLabel: "Reason",
       noReason: "No reason provided.",
       ctaButton: "View my requests",
@@ -130,6 +140,12 @@ const translations = {
       subject: "Votre demande pour {filmTitle} a été acceptée",
       title: "Demande acceptée",
       intro: "Bonne nouvelle ! Votre demande de réservation a été acceptée par l'ayant droit.",
+      filmLabel: "Film",
+      cinemaLabel: "Cinéma",
+      roomLabel: "Salle",
+      screeningsLabel: "Visionnages",
+      datesLabel: "Dates",
+      priceLabel: "Prix",
       noteLabel: "Commentaire de l'ayant droit",
       ctaButton: "Voir ma demande",
       paymentNote: "Vous pourrez prochainement procéder au paiement.",
@@ -138,6 +154,8 @@ const translations = {
       subject: "Votre demande pour {filmTitle} a été refusée",
       title: "Demande refusée",
       intro: "Malheureusement, votre demande de réservation a été refusée par l'ayant droit.",
+      filmLabel: "Film",
+      cinemaLabel: "Cinéma",
       reasonLabel: "Motif",
       noReason: "Aucun motif communiqué.",
       ctaButton: "Voir mes demandes",
@@ -155,32 +173,6 @@ function getTranslation(locale: string): Translations {
 
 function localeForFormat(locale: string): string {
   return locale === "fr" ? "fr-FR" : "en-US";
-}
-
-// ─── Email layout (same as main email module) ─────────────────────────────────
-
-function emailLayout(content: string): string {
-  return `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-</head>
-<body style="margin:0;padding:0;background:#f5f5f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:48px 16px">
-    <tr><td align="center">
-      <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:8px;padding:40px">
-        <tr><td>
-          <p style="margin:0 0 32px 0;font-size:18px;font-weight:600;letter-spacing:0.05em;color:#111111">Timeless</p>
-          ${content}
-          <hr style="border:none;border-top:1px solid #eeeeee;margin:32px 0">
-          <p style="margin:0;font-size:12px;color:#999999">&copy; Timeless &mdash; <a href="https://timeless.film" style="color:#999999">timeless.film</a></p>
-        </td></tr>
-      </table>
-    </td></tr>
-  </table>
-</body>
-</html>`;
 }
 
 function formatDates(
@@ -309,12 +301,12 @@ export async function sendRequestApprovedToExhibitor(
     <p style="margin:0 0 8px 0;font-size:22px;font-weight:600;color:#16a34a">${t.approved.title}</p>
     <p style="margin:0 0 24px 0;font-size:15px;color:#555555;line-height:1.5">${t.approved.intro}</p>
     <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px 0">
-      ${infoRow("Film", `<strong>${escapeHtml(params.filmTitle)}</strong>`)}
-      ${infoRow("Cinema", escapeHtml(params.cinemaName))}
-      ${infoRow("Screen", escapeHtml(params.roomName))}
-      ${infoRow("Screenings", String(params.screeningCount))}
-      ${infoRow("Dates", dateStr)}
-      ${infoRow("Price", formatAmount(params.displayedPrice, params.currency, fmtLocale))}
+      ${infoRow(t.approved.filmLabel, `<strong>${escapeHtml(params.filmTitle)}</strong>`)}
+      ${infoRow(t.approved.cinemaLabel, escapeHtml(params.cinemaName))}
+      ${infoRow(t.approved.roomLabel, escapeHtml(params.roomName))}
+      ${infoRow(t.approved.screeningsLabel, String(params.screeningCount))}
+      ${infoRow(t.approved.datesLabel, dateStr)}
+      ${infoRow(t.approved.priceLabel, formatAmount(params.displayedPrice, params.currency, fmtLocale))}
     </table>
     ${noteSection}
     <p style="margin:0 0 24px 0;font-size:14px;color:#555555">${t.approved.paymentNote}</p>
@@ -350,8 +342,8 @@ export async function sendRequestRejectedToExhibitor(
     <p style="margin:0 0 8px 0;font-size:22px;font-weight:600;color:#dc2626">${t.rejected.title}</p>
     <p style="margin:0 0 24px 0;font-size:15px;color:#555555;line-height:1.5">${t.rejected.intro}</p>
     <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px 0">
-      ${infoRow("Film", `<strong>${escapeHtml(params.filmTitle)}</strong>`)}
-      ${infoRow("Cinema", escapeHtml(params.cinemaName))}
+      ${infoRow(t.rejected.filmLabel, `<strong>${escapeHtml(params.filmTitle)}</strong>`)}
+      ${infoRow(t.rejected.cinemaLabel, escapeHtml(params.cinemaName))}
     </table>
     ${reasonSection}
     <p style="margin:0 0 24px 0;font-size:14px;color:#555555">${t.rejected.resubmitNote}</p>
@@ -366,14 +358,4 @@ export async function sendRequestRejectedToExhibitor(
     subject: t.rejected.subject.replace("{filmTitle}", params.filmTitle),
     html,
   });
-}
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
 }

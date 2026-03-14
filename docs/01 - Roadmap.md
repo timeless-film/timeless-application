@@ -28,8 +28,9 @@
 | [[E11 - Backoffice Admin]] | Dashboard admin, gestion comptes, supervision | P3 | 7 | ✅ Done |
 | [[E10 - Livraison Opérationnelle - Terminé]] | Notifications ops, suivi DCP/KDM (dépend E11) | P3 | 4 | ✅ Done |
 | [[E12 - Sécurité des Accès]] | MFA UI, codes de récupération, audit log | P2–P3 | 5 | ⬜ A faire |
+| [[E13 - Home Exploitant - Terminé]] | Page d'accueil éditorialisée, collections, posters | P4 | 14 | ✅ Done |
 
-**Total** : 78 tickets
+**Total** : 92 tickets
 
 ---
 
@@ -90,6 +91,7 @@
 ### P4 — Polish (Sprint 11–12)
 - Devise de préférence exploitant + taux de change temps réel
 - TVA internationale (hors EU)
+- **Page d'accueil exploitant éditorialisée** (E13) — slideshow, collections, cartes, catalogue par décennie
 - Analytics et reporting
 - Optimisations UX
 

@@ -22,7 +22,7 @@ import {
 import { useCatalogFilters } from "@/hooks/use-catalog-filters";
 
 import type { CatalogFiltersState } from "@/hooks/use-catalog-filters";
-import type { FilmWithAvailability } from "@/lib/services/catalog-service";
+import type { CatalogRangeFacet, FilmWithAvailability } from "@/lib/services/catalog-service";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -33,6 +33,8 @@ interface CatalogPageContentProps {
   initialLimit: number;
   genreOptions: string[];
   totalPlatformFilms: number;
+  releaseYearRange: CatalogRangeFacet | null;
+  durationRange: CatalogRangeFacet | null;
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -44,6 +46,8 @@ export function CatalogPageContent({
   initialLimit,
   genreOptions,
   totalPlatformFilms,
+  releaseYearRange,
+  durationRange,
 }: CatalogPageContentProps) {
   const t = useTranslations("catalog");
   const locale = useLocale();
@@ -112,7 +116,11 @@ export function CatalogPageContent({
       <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
         {/* Sidebar: Filters */}
         <aside className="space-y-4">
-          <CatalogFilters genreOptions={genreOptions} />
+          <CatalogFilters
+            genreOptions={genreOptions}
+            releaseYearRange={releaseYearRange}
+            durationRange={durationRange}
+          />
         </aside>
 
         {/* Main: Results */}

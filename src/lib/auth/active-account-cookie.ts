@@ -43,7 +43,7 @@ export function encodeActiveAccountCookie(accountId: string, type: AccountType):
 export function getHomePathForType(type: AccountType): string {
   switch (type) {
     case "exhibitor":
-      return "/catalog";
+      return "/home";
     case "rights_holder":
       return "/home";
     case "admin":

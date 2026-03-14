@@ -28,7 +28,7 @@
     "alreadyConnected": {
       "title": "Déjà connecté",
       "message": "Vous êtes connecté en tant que {name} ({email}).",
-      "dashboard": "Accéder au tableau de bord",
+      "home": "Accéder à l'accueil",
       "signOut": "Se déconnecter"
     },
     "login": {
@@ -123,8 +123,23 @@
     "myAccounts": "Mes comptes",
     "manageAccount": "Gérer le compte",
     "home": "Accueil",
+    "editorial": "Éditorial",
     "back": "Retour",
     "switchLanguage": "English"
+  },
+  "home": {
+    "title": "Accueil",
+    "subtitle": "Découvrez notre sélection de films patrimoniaux et classiques",
+    "slideshow": {
+      "viewFilm": "Voir le film"
+    },
+    "decade": {
+      "label": "Années {decade}",
+      "viewMore": "Voir plus"
+    },
+    "playlist": {
+      "empty": "Aucun film dans cette collection pour le moment."
+    }
   },
   "catalog": {
     "title": "Catalogue",
@@ -1627,6 +1642,68 @@
           "delivered": "Livré"
         }
       }
+    },
+    "editorial": {
+      "title": "Éditorial",
+      "description": "Gérez le contenu éditorial de la page d'accueil : diaporama, collections de films, cartes éditoriales et catalogues par décennie.",
+      "addSection": "Ajouter une section",
+      "sectionCreated": "Section créée",
+      "sectionDeleted": "Section supprimée",
+      "deleteConfirmTitle": "Supprimer la section ?",
+      "deleteConfirmDescription": "Cette action supprimera définitivement cette section et tout son contenu. Cette action est irréversible.",
+      "edit": "Modifier",
+      "hidden": "Masquée",
+      "cancel": "Annuler",
+      "confirmDelete": "Supprimer",
+      "save": "Enregistrer",
+      "saved": "Modifications enregistrées",
+      "typeSlideshow": "Diaporama",
+      "typeCollection": "Collection de films",
+      "typeCardGrid": "Cartes éditoriales",
+      "typeDecadeCatalog": "Catalogue par décennie",
+      "searchFilms": "Rechercher des films...",
+      "filmAdded": "Film ajouté",
+      "filmRemoved": "Film retiré",
+      "itemDeleted": "Élément supprimé",
+      "slideshowTitle": "Diaporama",
+      "slideshowDescription": "Gérez les diapositives du diaporama. Ajoutez des films et personnalisez les titres.",
+      "addFilmToSlideshow": "Ajouter un film au diaporama",
+      "slideshowEmpty": "Aucune diapositive. Recherchez un film ci-dessus pour ajouter la première.",
+      "editSlide": "Modifier la diapositive",
+      "headline": "Titre principal",
+      "headlineHint": "Titre personnalisé affiché sur l'image de fond",
+      "subtitleField": "Sous-titre",
+      "subtitlePlaceholder": "Texte de sous-titre optionnel",
+      "collectionTitle": "Collection",
+      "collectionDescription": "Gérez les films de cette collection. Ajoutez, supprimez et réordonnez les films.",
+      "collectionDetails": "Détails de la collection",
+      "collectionName": "Nom",
+      "collectionSlug": "Slug",
+      "slugHint": "Identifiant URL (ex. classiques-film-noir)",
+      "collectionDesc": "Description",
+      "coverUrl": "URL de l'image de couverture",
+      "collectionFilms": "Films de la collection",
+      "noFilmsInCollection": "Aucun film dans cette collection. Recherchez un film ci-dessus pour en ajouter.",
+      "noCollection": "Aucune collection trouvée pour cette section.",
+      "loadError": "Échec du chargement des données de la section.",
+      "cardsTitle": "Cartes éditoriales",
+      "cardsDescription": "Gérez les cartes éditoriales de cette section. Chaque carte renvoie vers une page.",
+      "addCard": "Ajouter une carte",
+      "editCard": "Modifier la carte",
+      "cardTitle": "Titre",
+      "cardImageUrl": "URL de l'image",
+      "cardHref": "URL du lien",
+      "cardAdded": "Carte ajoutée",
+      "cardDeleted": "Carte supprimée",
+      "noCards": "Aucune carte. Cliquez sur \"Ajouter une carte\" pour créer la première.",
+      "cardImage": "Image",
+      "coverImage": "Image de couverture",
+      "uploading": "Envoi en cours…",
+      "uploadHint": "Cliquez ou glissez une image ici",
+      "uploadError": "Échec de l'envoi de l'image",
+      "sectionTitleLabel": "Titre de la section",
+      "sectionTitlePlaceholder": "Titre optionnel affiché au-dessus de la section",
+      "frenchTranslation": "Traduction française (optionnel)"
     }
   },
   "onboarding": {

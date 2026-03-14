@@ -197,6 +197,10 @@ describe("getRequiredAccountType", () => {
     expect(getRequiredAccountType("/en/home/sub-page")).toBeNull();
   });
 
+  it("returns 'exhibitor' for /en/playlist/my-collection", () => {
+    expect(getRequiredAccountType("/en/playlist/my-collection")).toBe("exhibitor");
+  });
+
   // Rights holder paths
   it("returns 'rights_holder' for /en/films", () => {
     expect(getRequiredAccountType("/en/films")).toBe("rights_holder");

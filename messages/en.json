@@ -28,7 +28,7 @@
     "alreadyConnected": {
       "title": "Already signed in",
       "message": "You are signed in as {name} ({email}).",
-      "dashboard": "Go to dashboard",
+      "home": "Go to home",
       "signOut": "Sign out"
     },
     "login": {
@@ -123,8 +123,23 @@
     "myAccounts": "My accounts",
     "manageAccount": "Manage account",
     "home": "Home",
+    "editorial": "Editorial",
     "back": "Back",
     "switchLanguage": "Français"
+  },
+  "home": {
+    "title": "Home",
+    "subtitle": "Discover our curated selection of classic and heritage films",
+    "slideshow": {
+      "viewFilm": "View film"
+    },
+    "decade": {
+      "label": "{decade}s",
+      "viewMore": "View more"
+    },
+    "playlist": {
+      "empty": "No films in this collection yet."
+    }
   },
   "catalog": {
     "title": "Catalog",
@@ -1628,6 +1643,68 @@
           "delivered": "Delivered"
         }
       }
+    },
+    "editorial": {
+      "title": "Editorial",
+      "description": "Manage home page editorial content: hero slideshow, film collections, editorial cards, and decade catalogs.",
+      "addSection": "Add section",
+      "sectionCreated": "Section created",
+      "sectionDeleted": "Section deleted",
+      "deleteConfirmTitle": "Delete section?",
+      "deleteConfirmDescription": "This will permanently delete this section and all its content. This action cannot be undone.",
+      "edit": "Edit",
+      "hidden": "Hidden",
+      "cancel": "Cancel",
+      "confirmDelete": "Delete",
+      "save": "Save",
+      "saved": "Changes saved",
+      "typeSlideshow": "Hero slideshow",
+      "typeCollection": "Film collection",
+      "typeCardGrid": "Editorial cards",
+      "typeDecadeCatalog": "Decade catalog",
+      "searchFilms": "Search films...",
+      "filmAdded": "Film added",
+      "filmRemoved": "Film removed",
+      "itemDeleted": "Item deleted",
+      "slideshowTitle": "Slideshow",
+      "slideshowDescription": "Manage the hero slideshow slides. Add films and customize headlines.",
+      "addFilmToSlideshow": "Add a film to the slideshow",
+      "slideshowEmpty": "No slides yet. Search for a film above to add the first slide.",
+      "editSlide": "Edit slide",
+      "headline": "Headline",
+      "headlineHint": "Custom headline displayed over the backdrop image",
+      "subtitleField": "Subtitle",
+      "subtitlePlaceholder": "Optional subtitle text",
+      "collectionTitle": "Collection",
+      "collectionDescription": "Manage the films in this collection. Add, remove, and reorder films.",
+      "collectionDetails": "Collection details",
+      "collectionName": "Name",
+      "collectionSlug": "Slug",
+      "slugHint": "URL-friendly identifier (e.g. film-noir-classics)",
+      "collectionDesc": "Description",
+      "coverUrl": "Cover image URL",
+      "collectionFilms": "Films in collection",
+      "noFilmsInCollection": "No films in this collection yet. Search for a film above to add one.",
+      "noCollection": "No collection found for this section.",
+      "loadError": "Failed to load section data.",
+      "cardsTitle": "Editorial cards",
+      "cardsDescription": "Manage the editorial cards displayed in this section. Each card links to a page.",
+      "addCard": "Add card",
+      "editCard": "Edit card",
+      "cardTitle": "Title",
+      "cardImageUrl": "Image URL",
+      "cardHref": "Link URL",
+      "cardAdded": "Card added",
+      "cardDeleted": "Card deleted",
+      "noCards": "No cards yet. Click \"Add card\" to create the first one.",
+      "cardImage": "Image",
+      "coverImage": "Cover image",
+      "uploading": "Uploading…",
+      "uploadHint": "Click or drag an image here",
+      "uploadError": "Failed to upload image",
+      "sectionTitleLabel": "Section title",
+      "sectionTitlePlaceholder": "Optional title displayed above the section",
+      "frenchTranslation": "French translation (optional)"
     }
   },
   "onboarding": {

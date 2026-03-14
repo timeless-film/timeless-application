@@ -75,8 +75,8 @@ describe("encodeActiveAccountCookie", () => {
 });
 
 describe("getHomePathForType", () => {
-  it("returns /catalog for exhibitor", () => {
-    expect(getHomePathForType("exhibitor")).toBe("/catalog");
+  it("returns /home for exhibitor", () => {
+    expect(getHomePathForType("exhibitor")).toBe("/home");
   });
 
   it("returns /home for rights_holder", () => {

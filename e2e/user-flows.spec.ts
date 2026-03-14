@@ -41,7 +41,7 @@ test.describe("Onboarding flow", () => {
   };
   const companyName = `E2E Cinema ${TEST_ID}`;
 
-  test("new user goes through onboarding and lands on catalog", async ({ page, request }) => {
+  test("new user goes through onboarding and lands on home", async ({ page, request }) => {
     await registerAndLogin(page, request, user);
     await completeOnboarding(page, companyName);
 

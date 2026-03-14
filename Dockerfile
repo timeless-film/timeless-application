@@ -57,6 +57,9 @@ RUN addgroup --system --gid 1001 nodejs \
 # Static public assets
 COPY --from=builder /app/public ./public
 
+# Uploads directory (mount a persistent volume here in production)
+RUN mkdir -p /app/uploads && chown nextjs:nodejs /app/uploads
+
 # Next.js standalone output (server.js + minimal node_modules)
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 # Next.js generated static assets (_next/static)

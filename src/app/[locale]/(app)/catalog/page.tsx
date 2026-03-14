@@ -116,7 +116,7 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
   // Fetch catalog data + filter options (server-side)
   const [catalogResult, filterOptions] = await Promise.all([
     getCatalogForExhibitor(accountId, filters, pagination, sort),
-    getCatalogFilterOptions(),
+    getCatalogFilterOptions(accountId, filters),
   ]);
 
   return (
@@ -127,6 +127,8 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
       initialLimit={catalogResult.limit}
       genreOptions={filterOptions.genres}
       totalPlatformFilms={filterOptions.totalFilms}
+      releaseYearRange={filterOptions.releaseYearRange}
+      durationRange={filterOptions.durationRange}
     />
   );
 }

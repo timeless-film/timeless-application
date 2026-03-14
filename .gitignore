@@ -48,6 +48,9 @@ yarn-error.log*
 /playwright-report/
 /blob-report/
 /coverage/
+
+# uploads (user-uploaded images, served via API)
+/uploads/
 /data
 
 # typescript
