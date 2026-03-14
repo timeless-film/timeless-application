@@ -13,7 +13,7 @@ concurrency:
 env:
   NODE_VERSION: "22"
   PNPM_VERSION: "10"
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
   NEXT_TELEMETRY_DISABLED: 1
   PLAYWRIGHT_BROWSERS_PATH: ~/.cache/ms-playwright
 
@@ -170,7 +170,7 @@ jobs:
         run: pnpm exec playwright install chromium --with-deps
 
       - name: Run E2E tests
-        run: pnpm test:e2e -- --shard=${{ matrix.shard }}/2
+        run: npx dotenv -e .env.test -- npx playwright test --shard=${{ matrix.shard }}/2
 
       - name: Upload test artifacts
         if: failure()
