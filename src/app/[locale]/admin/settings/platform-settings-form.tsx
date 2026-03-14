@@ -39,6 +39,7 @@ interface PlatformSettingsData {
   opsEmail: string;
   requestExpirationDays: number;
   requestUrgencyDaysBeforeStart: number;
+  deliveryUrgencyDaysBeforeStart: number;
 }
 
 interface HistoryEntry {
@@ -81,6 +82,9 @@ export function PlatformSettingsForm({
   );
   const [requestUrgencyDaysBeforeStart, setRequestUrgencyDaysBeforeStart] = useState(
     String(initialSettings.requestUrgencyDaysBeforeStart)
+  );
+  const [deliveryUrgencyDaysBeforeStart, setDeliveryUrgencyDaysBeforeStart] = useState(
+    String(initialSettings.deliveryUrgencyDaysBeforeStart)
   );
 
   // Field errors
@@ -125,6 +129,7 @@ export function PlatformSettingsForm({
         opsEmail,
         requestExpirationDays: parseInt(requestExpirationDays, 10),
         requestUrgencyDaysBeforeStart: parseInt(requestUrgencyDaysBeforeStart, 10),
+        deliveryUrgencyDaysBeforeStart: parseInt(deliveryUrgencyDaysBeforeStart, 10),
       });
 
       if ("error" in result) {
@@ -313,6 +318,31 @@ export function PlatformSettingsForm({
               {fieldErrors.requestUrgencyDaysBeforeStart && (
                 <p className="text-sm text-destructive">
                   {fieldErrors.requestUrgencyDaysBeforeStart}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="deliveryUrgencyDaysBeforeStart">
+                {t("operations.deliveryUrgencyDays")}
+              </Label>
+              <Input
+                id="deliveryUrgencyDaysBeforeStart"
+                type="number"
+                min="1"
+                max="90"
+                value={deliveryUrgencyDaysBeforeStart}
+                onChange={(e) => {
+                  setDeliveryUrgencyDaysBeforeStart(e.target.value);
+                  clearFieldError("deliveryUrgencyDaysBeforeStart");
+                }}
+                aria-invalid={!!fieldErrors.deliveryUrgencyDaysBeforeStart}
+                className={fieldErrors.deliveryUrgencyDaysBeforeStart ? "border-destructive" : ""}
+                disabled={isPending}
+              />
+              {fieldErrors.deliveryUrgencyDaysBeforeStart && (
+                <p className="text-sm text-destructive">
+                  {fieldErrors.deliveryUrgencyDaysBeforeStart}
                 </p>
               )}
             </div>

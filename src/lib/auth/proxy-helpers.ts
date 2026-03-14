@@ -25,6 +25,7 @@ export const UNPROTECTED_API_PATHS = ["/api/auth", "/api/webhooks", "/api/debug"
 export const EXHIBITOR_PATHS = ["/catalog", "/cart", "/orders", "/requests", "/accept-invitation"];
 export const RIGHTS_HOLDER_PATHS = ["/films", "/validation-requests", "/wallet"];
 export const ADMIN_PATHS = [
+  "/admin",
   "/admin/dashboard",
   "/admin/exhibitors",
   "/admin/rights-holders",

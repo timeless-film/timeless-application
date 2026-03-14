@@ -35,6 +35,7 @@ export async function getPlatformPricingSettings() {
     defaultCommissionRate: parseFloat(settings.defaultCommissionRate),
     requestExpirationDays: settings.requestExpirationDays,
     requestUrgencyDaysBeforeStart: settings.requestUrgencyDaysBeforeStart,
+    deliveryUrgencyDaysBeforeStart: settings.deliveryUrgencyDaysBeforeStart,
     opsEmail: settings.opsEmail,
   };
 }

@@ -5,4 +5,5 @@ export interface PlatformSettingsUpdate {
   opsEmail: string;
   requestExpirationDays: number;
   requestUrgencyDaysBeforeStart: number;
+  deliveryUrgencyDaysBeforeStart: number;
 }

@@ -1330,26 +1330,74 @@
       "tabs": {
         "pending": "To process",
         "inProgress": "In progress",
-        "delivered": "Delivered"
+        "delivered": "Delivered",
+        "all": "All"
       },
       "columns": {
         "film": "Film",
+        "order": "Order",
         "exhibitor": "Exhibitor",
-        "cinema": "Cinema",
+        "cinema": "Cinema / Room",
         "startDate": "Screening start",
         "rightsHolder": "Rights holder",
+        "labOrder": "Lab order #",
         "urgency": "Urgency",
         "status": "Status",
         "actions": "Actions"
       },
+      "status": {
+        "pending": "Pending",
+        "in_progress": "In progress",
+        "delivered": "Delivered"
+      },
       "urgency": {
         "critical": "{days}d — CRITICAL",
         "high": "{days}d",
-        "normal": "{days}d"
+        "normal": "{days}d",
+        "overdue": "Overdue"
       },
-      "notes": "Internal notes",
-      "markDelivered": "Mark as delivered",
-      "updateStatus": "Update status"
+      "searchPlaceholder": "Search by film, cinema, order # or lab #…",
+      "empty": "No deliveries to process.",
+      "noResults": "No deliveries found.",
+      "statusUpdated": "Delivery status updated.",
+      "notesUpdated": "Notes updated.",
+      "pagination": {
+        "page": "Page {current} of {total}"
+      },
+      "actions": {
+        "takeOver": "Take over",
+        "markDelivered": "Mark as delivered",
+        "editNotes": "Edit notes"
+      },
+      "dialog": {
+        "takeOver": {
+          "title": "Take over delivery",
+          "description": "Start processing the delivery for \"{film}\".",
+          "confirm": "Take over"
+        },
+        "markDelivered": {
+          "title": "Mark as delivered",
+          "description": "Confirm that \"{film}\" has been delivered. The exhibitor will be notified.",
+          "confirm": "Mark delivered"
+        },
+        "editNotes": {
+          "title": "Edit delivery notes",
+          "description": "Update the internal notes and lab order number for \"{film}\".",
+          "confirm": "Save notes"
+        },
+        "labOrderNumber": "Lab order number",
+        "labOrderNumberPlaceholder": "e.g. LAB-2025-001",
+        "notes": "Internal notes",
+        "notesPlaceholder": "DCP shipping details, tracking number…"
+      },
+      "error": {
+        "UNAUTHORIZED": "You must be signed in.",
+        "FORBIDDEN": "Only admins can manage deliveries.",
+        "ITEM_NOT_FOUND": "Delivery item not found.",
+        "INVALID_TRANSITION": "This status change is not allowed.",
+        "INVALID_INPUT": "Invalid input.",
+        "unexpected": "An unexpected error occurred."
+      }
     },
     "settings": {
       "title": "Platform settings",
@@ -1366,7 +1414,8 @@
         "title": "Operations",
         "opsEmail": "Operations email",
         "requestExpiration": "Request expiration (days)",
-        "urgencyDays": "Urgency threshold (days before start)"
+        "urgencyDays": "Urgency threshold (days before start)",
+        "deliveryUrgencyDays": "Delivery urgency threshold (days)"
       },
       "confirmTitle": "Update platform settings?",
       "confirmDescription": "These settings will affect all future orders. Existing orders are not impacted.",
@@ -1379,7 +1428,8 @@
         "defaultCommissionRate": "Default commission",
         "opsEmail": "Operations email",
         "requestExpirationDays": "Request expiration",
-        "requestUrgencyDaysBeforeStart": "Urgency threshold"
+        "requestUrgencyDaysBeforeStart": "Urgency threshold",
+        "deliveryUrgencyDaysBeforeStart": "Delivery urgency threshold"
       },
       "historyEmpty": "No changes recorded yet.",
       "error": {
@@ -1392,7 +1442,8 @@
         "INVALID_COMMISSION_RATE": "Commission rate must be between 0 and 100%.",
         "INVALID_OPS_EMAIL": "Please enter a valid email address.",
         "INVALID_EXPIRATION_DAYS": "Expiration must be between 1 and 365 days.",
-        "INVALID_URGENCY_DAYS": "Urgency threshold must be between 1 and 90 days."
+        "INVALID_URGENCY_DAYS": "Urgency threshold must be between 1 and 90 days.",
+        "INVALID_DELIVERY_URGENCY_DAYS": "Delivery urgency threshold must be between 1 and 90 days."
       }
     },
     "logs": {
@@ -1418,7 +1469,9 @@
         "request_force_rejected": "Request force-rejected",
         "request_cancelled": "Request cancelled",
         "order_refunded": "Order refunded",
-        "settings_updated": "Settings updated"
+        "settings_updated": "Settings updated",
+        "delivery_status_changed": "Delivery status changed",
+        "delivery_notes_updated": "Delivery notes updated"
       },
       "pagination": {
         "info": "Page {page} of {total}",

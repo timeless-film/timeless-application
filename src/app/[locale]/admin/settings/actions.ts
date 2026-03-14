@@ -35,6 +35,12 @@ export async function updatePlatformSettings(input: PlatformSettingsUpdate) {
       field: "requestUrgencyDaysBeforeStart" as const,
     };
   }
+  if (input.deliveryUrgencyDaysBeforeStart < 1 || input.deliveryUrgencyDaysBeforeStart > 90) {
+    return {
+      error: "INVALID_DELIVERY_URGENCY_DAYS" as const,
+      field: "deliveryUrgencyDaysBeforeStart" as const,
+    };
+  }
 
   try {
     // Fetch current settings for history tracking
@@ -98,6 +104,14 @@ export async function updatePlatformSettings(input: PlatformSettingsUpdate) {
       });
     }
 
+    if (current.deliveryUrgencyDaysBeforeStart !== input.deliveryUrgencyDaysBeforeStart) {
+      changes.push({
+        field: "deliveryUrgencyDaysBeforeStart",
+        oldValue: String(current.deliveryUrgencyDaysBeforeStart),
+        newValue: String(input.deliveryUrgencyDaysBeforeStart),
+      });
+    }
+
     if (changes.length === 0) {
       return { success: true as const };
     }
@@ -113,6 +127,7 @@ export async function updatePlatformSettings(input: PlatformSettingsUpdate) {
           opsEmail: input.opsEmail.trim(),
           requestExpirationDays: input.requestExpirationDays,
           requestUrgencyDaysBeforeStart: input.requestUrgencyDaysBeforeStart,
+          deliveryUrgencyDaysBeforeStart: input.deliveryUrgencyDaysBeforeStart,
           updatedAt: new Date(),
           updatedById: ctx.session.user.id,
         })

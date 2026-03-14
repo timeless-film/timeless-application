@@ -26,7 +26,7 @@
 | [[E08 - Paiement Stripe]] | Stripe Checkout, TVA, commissions, transfers | P2–P3 | 12 | ✅ Done |
 | [[E09 - Wallet Ayants Droits]] | Dashboard financier, retraits, virements auto | P3 | 4 | ⬜ A faire |
 | [[E11 - Backoffice Admin]] | Dashboard admin, gestion comptes, supervision | P3 | 7 | ✅ Done |
-| [[E10 - Livraison Opérationnelle]] | Notifications ops, suivi DCP/KDM (dépend E11) | P3 | 4 | ⬜ A faire |
+| [[E10 - Livraison Opérationnelle - Terminé]] | Notifications ops, suivi DCP/KDM (dépend E11) | P3 | 4 | ✅ Done |
 | [[E12 - Sécurité des Accès]] | MFA UI, codes de récupération, audit log | P2–P3 | 5 | ⬜ A faire |
 
 **Total** : 78 tickets

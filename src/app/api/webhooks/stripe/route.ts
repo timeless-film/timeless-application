@@ -311,6 +311,8 @@ async function handleRequestPayment(
         rightsHolderAmount: request.rightsHolderAmount,
         rightsHolderAccountId: request.rightsHolderAccountId,
         currency: request.currency,
+        startDate: request.startDate,
+        endDate: request.endDate,
       },
     ],
     exhibitorAccount,
@@ -631,6 +633,8 @@ async function sendOrderEmails(params: {
     rightsHolderAmount: number;
     rightsHolderAccountId: string;
     currency: string;
+    startDate: string | null;
+    endDate: string | null;
   }>;
   exhibitorAccount: { companyName: string; contactEmail: string | null } | undefined;
   settings: { opsEmail: string };
@@ -676,10 +680,14 @@ async function sendOrderEmails(params: {
       }
     }
 
+    const rhNameMap = new Map<string, string>();
+
     for (const [rhAccountId, group] of byRightsHolder) {
       const rhAccount = await db.query.accounts.findFirst({
         where: eq(accounts.id, rhAccountId),
       });
+
+      rhNameMap.set(rhAccountId, rhAccount?.companyName ?? "Unknown");
 
       if (rhAccount?.contactEmail) {
         await sendRightsHolderOrderNotificationEmail({
@@ -701,15 +709,24 @@ async function sendOrderEmails(params: {
       }
     }
 
-    // 3. Ops notification
+    // 3. Ops notification (enriched with per-item details)
     if (settings.opsEmail) {
       await sendOpsOrderNotificationEmail({
         opsEmail: settings.opsEmail,
         orderNumber: order.orderNumber,
         exhibitorCompanyName: exhibitorAccount?.companyName || "",
-        itemCount: orderItemsData.length,
+        items: orderItemsData.map((item) => ({
+          filmTitle: item.filmTitle,
+          rightsHolderName: rhNameMap.get(item.rightsHolderAccountId) ?? "Unknown",
+          cinemaName: item.cinemaName,
+          roomName: item.roomName,
+          startDate: item.startDate,
+          endDate: item.endDate,
+          screeningCount: item.screeningCount,
+        })),
         total: order.total,
         currency: order.currency,
+        orderId: order.id,
       });
     }
   } catch (error) {

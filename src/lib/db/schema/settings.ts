@@ -16,6 +16,9 @@ export const platformSettings = pgTable("platform_settings", {
   // Delays
   requestExpirationDays: integer("request_expiration_days").notNull().default(30),
   requestUrgencyDaysBeforeStart: integer("request_urgency_days_before_start").notNull().default(7),
+  deliveryUrgencyDaysBeforeStart: integer("delivery_urgency_days_before_start")
+    .notNull()
+    .default(5),
 
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   updatedById: text("updated_by_id"), // References better_auth_users.id (no FK to avoid circular deps)

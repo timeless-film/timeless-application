@@ -176,6 +176,7 @@ export const orderItems = pgTable("order_items", {
   // Delivery
   deliveryStatus: deliveryStatusEnum("delivery_status").notNull().default("pending"),
   deliveryNotes: text("delivery_notes"),
+  labOrderNumber: text("lab_order_number"),
   deliveredAt: timestamp("delivered_at"),
 
   // Link to validated request if applicable

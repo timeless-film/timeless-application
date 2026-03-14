@@ -1329,26 +1329,74 @@
       "tabs": {
         "pending": "À traiter",
         "inProgress": "En cours",
-        "delivered": "Livrées"
+        "delivered": "Livrées",
+        "all": "Toutes"
       },
       "columns": {
         "film": "Film",
+        "order": "Commande",
         "exhibitor": "Exploitant",
-        "cinema": "Cinéma",
+        "cinema": "Cinéma / Salle",
         "startDate": "Début de diffusion",
         "rightsHolder": "Ayant droit",
+        "labOrder": "N° labo",
         "urgency": "Urgence",
         "status": "Statut",
         "actions": "Actions"
       },
+      "status": {
+        "pending": "En attente",
+        "in_progress": "En cours",
+        "delivered": "Livré"
+      },
       "urgency": {
         "critical": "{days}j — CRITIQUE",
         "high": "{days}j",
-        "normal": "{days}j"
+        "normal": "{days}j",
+        "overdue": "En retard"
       },
-      "notes": "Notes internes",
-      "markDelivered": "Marquer comme livré",
-      "updateStatus": "Mettre à jour le statut"
+      "searchPlaceholder": "Rechercher par film, cinéma, n° commande ou n° labo…",
+      "empty": "Aucune livraison à traiter.",
+      "noResults": "Aucune livraison trouvée.",
+      "statusUpdated": "Statut de livraison mis à jour.",
+      "notesUpdated": "Notes mises à jour.",
+      "pagination": {
+        "page": "Page {current} sur {total}"
+      },
+      "actions": {
+        "takeOver": "Prendre en charge",
+        "markDelivered": "Marquer livré",
+        "editNotes": "Modifier les notes"
+      },
+      "dialog": {
+        "takeOver": {
+          "title": "Prendre en charge la livraison",
+          "description": "Démarrer le traitement de la livraison pour « {film} ».",
+          "confirm": "Prendre en charge"
+        },
+        "markDelivered": {
+          "title": "Marquer comme livré",
+          "description": "Confirmer que « {film} » a été livré. L'exploitant sera notifié.",
+          "confirm": "Marquer livré"
+        },
+        "editNotes": {
+          "title": "Modifier les notes de livraison",
+          "description": "Mettre à jour les notes internes et le n° labo pour « {film} ».",
+          "confirm": "Enregistrer les notes"
+        },
+        "labOrderNumber": "Numéro de commande labo",
+        "labOrderNumberPlaceholder": "ex. LAB-2025-001",
+        "notes": "Notes internes",
+        "notesPlaceholder": "Détails d'expédition DCP, numéro de suivi…"
+      },
+      "error": {
+        "UNAUTHORIZED": "Vous devez être connecté.",
+        "FORBIDDEN": "Seuls les admins peuvent gérer les livraisons.",
+        "ITEM_NOT_FOUND": "Élément de livraison introuvable.",
+        "INVALID_TRANSITION": "Ce changement de statut n'est pas autorisé.",
+        "INVALID_INPUT": "Saisie invalide.",
+        "unexpected": "Une erreur inattendue s'est produite."
+      }
     },
     "settings": {
       "title": "Paramètres de la plateforme",
@@ -1365,7 +1413,8 @@
         "title": "Opérations",
         "opsEmail": "Email opérations",
         "requestExpiration": "Expiration des demandes (jours)",
-        "urgencyDays": "Seuil d'urgence (jours avant début)"
+        "urgencyDays": "Seuil d'urgence (jours avant début)",
+        "deliveryUrgencyDays": "Seuil d'urgence livraison (jours)"
       },
       "confirmTitle": "Mettre à jour les paramètres ?",
       "confirmDescription": "Ces paramètres affecteront toutes les futures commandes. Les commandes existantes ne sont pas impactées.",
@@ -1378,7 +1427,8 @@
         "defaultCommissionRate": "Commission par défaut",
         "opsEmail": "Email opérations",
         "requestExpirationDays": "Expiration des demandes",
-        "requestUrgencyDaysBeforeStart": "Seuil d'urgence"
+        "requestUrgencyDaysBeforeStart": "Seuil d'urgence",
+        "deliveryUrgencyDaysBeforeStart": "Seuil d'urgence livraison"
       },
       "historyEmpty": "Aucune modification enregistrée.",
       "error": {
@@ -1391,7 +1441,8 @@
         "INVALID_COMMISSION_RATE": "La commission doit être entre 0 et 100%.",
         "INVALID_OPS_EMAIL": "Veuillez saisir une adresse email valide.",
         "INVALID_EXPIRATION_DAYS": "L'expiration doit être entre 1 et 365 jours.",
-        "INVALID_URGENCY_DAYS": "Le seuil d'urgence doit être entre 1 et 90 jours."
+        "INVALID_URGENCY_DAYS": "Le seuil d'urgence doit être entre 1 et 90 jours.",
+        "INVALID_DELIVERY_URGENCY_DAYS": "Le seuil d'urgence livraison doit être entre 1 et 90 jours."
       }
     },
     "logs": {
@@ -1417,7 +1468,9 @@
         "request_force_rejected": "Demande rejetée (forcé)",
         "request_cancelled": "Demande annulée",
         "order_refunded": "Commande remboursée",
-        "settings_updated": "Paramètres modifiés"
+        "settings_updated": "Paramètres modifiés",
+        "delivery_status_changed": "Statut de livraison modifié",
+        "delivery_notes_updated": "Notes de livraison modifiées"
       },
       "pagination": {
         "info": "Page {page} sur {total}",
