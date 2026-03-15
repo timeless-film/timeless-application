@@ -126,7 +126,9 @@ async function EditorialSections({
           );
         }
         case "decade_catalog": {
-          const decades = await getFilmsByDecade();
+          const sectionConfig = section.config as { decades?: number[] } | null;
+          const selectedDecades = sectionConfig?.decades;
+          const decades = await getFilmsByDecade(20, selectedDecades);
           if (decades.length === 0) return null;
           return (
             <div key={section.id} className="mx-auto max-w-7xl px-4 lg:px-6">

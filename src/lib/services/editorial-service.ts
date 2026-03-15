@@ -19,6 +19,7 @@ export interface EditorialSectionRow {
   titleFr: string | null;
   position: number;
   visible: boolean;
+  config: unknown;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -48,6 +49,7 @@ export interface CollectionRow {
   title: string;
   description: string | null;
   coverUrl: string | null;
+  displayMode: "poster" | "backdrop";
   visible: boolean;
   collectionFilms: {
     id: string;
@@ -56,6 +58,7 @@ export interface CollectionRow {
       id: string;
       title: string;
       posterUrl: string | null;
+      backdropUrl: string | null;
       genres: string[] | null;
       releaseYear: number | null;
     };
@@ -168,6 +171,7 @@ export async function getCollectionsForSection(
               id: true,
               title: true,
               posterUrl: true,
+              backdropUrl: true,
               genres: true,
               releaseYear: true,
               status: true,
@@ -181,6 +185,9 @@ export async function getCollectionsForSection(
     ...col,
     title: localizedRequired(col.title, col.titleFr, locale),
     description: localized(col.description, col.descriptionFr, locale),
+    displayMode: (col.displayMode === "backdrop"
+      ? "backdrop"
+      : "poster") as CollectionRow["displayMode"],
     collectionFilms: col.collectionFilms.filter(
       (cf) => cf.film.status === "active"
     ) as CollectionRow["collectionFilms"],
@@ -235,12 +242,15 @@ export async function getEditorialCards(
     title: localizedRequired(card.title, card.titleFr, locale),
     description: localized(card.description, card.descriptionFr, locale),
     imageUrl: card.imageUrl,
-    href: card.href,
+    href: localized(card.href, card.hrefFr, locale) ?? card.href,
     position: card.position,
   }));
 }
 
-export async function getFilmsByDecade(limit = 20): Promise<DecadeGroup[]> {
+export async function getFilmsByDecade(
+  limit = 20,
+  selectedDecades?: number[]
+): Promise<DecadeGroup[]> {
   // Get all active films with a release year, ordered by creation date
   const activeFilms = await db.query.films.findMany({
     where: and(eq(films.status, "active"), sql`${films.releaseYear} IS NOT NULL`),
@@ -275,6 +285,10 @@ export async function getFilmsByDecade(limit = 20): Promise<DecadeGroup[]> {
 
   // Sort decades from most recent to oldest
   const decades = Array.from(decadeMap.entries())
+    .filter(
+      ([decade]) =>
+        !selectedDecades || selectedDecades.length === 0 || selectedDecades.includes(decade)
+    )
     .sort((a, b) => b[0] - a[0])
     .map(([decade, decadeFilms]) => ({
       decade,
@@ -282,6 +296,16 @@ export async function getFilmsByDecade(limit = 20): Promise<DecadeGroup[]> {
       films: decadeFilms,
     }));
 
+  return decades;
+}
+
+export function getAvailableDecades(): number[] {
+  const currentDecade = Math.floor(new Date().getFullYear() / 10) * 10;
+  const startDecade = 1890;
+  const decades: number[] = [];
+  for (let d = currentDecade; d >= startDecade; d -= 10) {
+    decades.push(d);
+  }
   return decades;
 }
 
@@ -328,7 +352,7 @@ export async function createSection(input: {
 
 export async function updateSection(
   sectionId: string,
-  input: { title?: string | null; titleFr?: string | null; visible?: boolean }
+  input: { title?: string | null; titleFr?: string | null; visible?: boolean; config?: unknown }
 ): Promise<void> {
   await db
     .update(editorialSections)
@@ -461,6 +485,7 @@ export async function updateCollection(
     description?: string | null;
     descriptionFr?: string | null;
     coverUrl?: string | null;
+    displayMode?: string;
     visible?: boolean;
   }
 ): Promise<void> {
@@ -519,6 +544,7 @@ export async function addEditorialCard(input: {
   descriptionFr?: string;
   imageUrl: string;
   href: string;
+  hrefFr?: string;
 }): Promise<void> {
   const maxResult = await db
     .select({ maxPos: sql<number>`coalesce(max(${editorialCards.position}), -1)` })
@@ -534,6 +560,7 @@ export async function addEditorialCard(input: {
     descriptionFr: input.descriptionFr ?? null,
     imageUrl: input.imageUrl,
     href: input.href,
+    hrefFr: input.hrefFr ?? null,
     position: nextPosition,
   });
 }
@@ -547,6 +574,7 @@ export async function updateEditorialCard(
     descriptionFr?: string | null;
     imageUrl?: string;
     href?: string;
+    hrefFr?: string | null;
   }
 ): Promise<void> {
   await db

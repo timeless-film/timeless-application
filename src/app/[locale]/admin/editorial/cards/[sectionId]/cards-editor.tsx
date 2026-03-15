@@ -35,6 +35,7 @@ interface EditorialCard {
   descriptionFr: string | null;
   imageUrl: string;
   href: string;
+  hrefFr: string | null;
   position: number;
 }
 
@@ -56,6 +57,7 @@ export function CardsEditor({ sectionId, initialCards }: CardsEditorProps) {
   const [newDescriptionFr, setNewDescriptionFr] = useState("");
   const [newImageUrl, setNewImageUrl] = useState("");
   const [newHref, setNewHref] = useState("");
+  const [newHrefFr, setNewHrefFr] = useState("");
 
   // Edit card state
   const [editCardId, setEditCardId] = useState<string | null>(null);
@@ -65,6 +67,7 @@ export function CardsEditor({ sectionId, initialCards }: CardsEditorProps) {
   const [editDescriptionFr, setEditDescriptionFr] = useState("");
   const [editImageUrl, setEditImageUrl] = useState("");
   const [editHref, setEditHref] = useState("");
+  const [editHrefFr, setEditHrefFr] = useState("");
 
   function handleAdd() {
     if (!newTitle.trim() || !newImageUrl.trim() || !newHref.trim()) return;
@@ -78,6 +81,7 @@ export function CardsEditor({ sectionId, initialCards }: CardsEditorProps) {
         descriptionFr: newDescriptionFr.trim() || undefined,
         imageUrl: newImageUrl.trim(),
         href: newHref.trim(),
+        hrefFr: newHrefFr.trim() || undefined,
       });
       if ("error" in result) {
         toast.error(result.error);
@@ -91,6 +95,7 @@ export function CardsEditor({ sectionId, initialCards }: CardsEditorProps) {
       setNewDescriptionFr("");
       setNewImageUrl("");
       setNewHref("");
+      setNewHrefFr("");
       // Reload cards
       const { getEditorialCardsAction } = await import("../../actions");
       const freshResult = await getEditorialCardsAction(sectionId);
@@ -108,6 +113,7 @@ export function CardsEditor({ sectionId, initialCards }: CardsEditorProps) {
     setEditDescriptionFr(card.descriptionFr ?? "");
     setEditImageUrl(card.imageUrl);
     setEditHref(card.href);
+    setEditHrefFr(card.hrefFr ?? "");
   }
 
   function handleSaveEdit() {
@@ -121,6 +127,7 @@ export function CardsEditor({ sectionId, initialCards }: CardsEditorProps) {
         descriptionFr: editDescriptionFr.trim() || null,
         imageUrl: editImageUrl.trim(),
         href: editHref.trim(),
+        hrefFr: editHrefFr.trim() || null,
       });
       if ("error" in result) {
         toast.error(result.error);
@@ -137,6 +144,7 @@ export function CardsEditor({ sectionId, initialCards }: CardsEditorProps) {
                 descriptionFr: editDescriptionFr.trim() || null,
                 imageUrl: editImageUrl.trim(),
                 href: editHref.trim(),
+                hrefFr: editHrefFr.trim() || null,
               }
             : c
         )
@@ -233,12 +241,21 @@ export function CardsEditor({ sectionId, initialCards }: CardsEditorProps) {
               <ImageUpload value={newImageUrl} onChange={setNewImageUrl} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="cardHref">{t("cardHref")}</Label>
+              <Label htmlFor="cardHref">{t("cardHref")} (EN)</Label>
               <Input
                 id="cardHref"
                 value={newHref}
                 onChange={(e) => setNewHref(e.target.value)}
-                placeholder="/catalog?genre=..."
+                placeholder="https://... or /catalog?genre=..."
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="cardHrefFr">{t("cardHref")} (FR)</Label>
+              <Input
+                id="cardHrefFr"
+                value={newHrefFr}
+                onChange={(e) => setNewHrefFr(e.target.value)}
+                placeholder={t("frenchTranslation")}
               />
             </div>
             <Button
@@ -374,11 +391,21 @@ export function CardsEditor({ sectionId, initialCards }: CardsEditorProps) {
               <ImageUpload value={editImageUrl} onChange={setEditImageUrl} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="editCardHref">{t("cardHref")}</Label>
+              <Label htmlFor="editCardHref">{t("cardHref")} (EN)</Label>
               <Input
                 id="editCardHref"
                 value={editHref}
                 onChange={(e) => setEditHref(e.target.value)}
+                placeholder="https://... or /catalog?genre=..."
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="editCardHrefFr">{t("cardHref")} (FR)</Label>
+              <Input
+                id="editCardHrefFr"
+                value={editHrefFr}
+                onChange={(e) => setEditHrefFr(e.target.value)}
+                placeholder={t("frenchTranslation")}
               />
             </div>
             <Button onClick={handleSaveEdit} disabled={isPending}>

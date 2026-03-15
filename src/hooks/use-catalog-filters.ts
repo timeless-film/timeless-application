@@ -41,6 +41,8 @@ export interface CatalogFiltersState {
   yearMax: number | null;
   durationMin: number | null;
   durationMax: number | null;
+  priceMin: number | null;
+  priceMax: number | null;
 
   // Territory availability
   availableForTerritory: boolean;
@@ -86,6 +88,8 @@ export function useCatalogFilters() {
       yearMax: parseAsInteger,
       durationMin: parseAsInteger,
       durationMax: parseAsInteger,
+      priceMin: parseAsInteger,
+      priceMax: parseAsInteger,
 
       // Territory availability
       availableForTerritory: parseAsString
@@ -138,6 +142,8 @@ export function useCatalogFilters() {
       yearMax: null,
       durationMin: null,
       durationMax: null,
+      priceMin: null,
+      priceMax: null,
       availableForTerritory: "true",
     });
   };

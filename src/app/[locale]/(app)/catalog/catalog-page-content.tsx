@@ -35,6 +35,7 @@ interface CatalogPageContentProps {
   totalPlatformFilms: number;
   releaseYearRange: CatalogRangeFacet | null;
   durationRange: CatalogRangeFacet | null;
+  unitPriceRange: CatalogRangeFacet | null;
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -48,6 +49,7 @@ export function CatalogPageContent({
   totalPlatformFilms,
   releaseYearRange,
   durationRange,
+  unitPriceRange,
 }: CatalogPageContentProps) {
   const t = useTranslations("catalog");
   const locale = useLocale();
@@ -120,6 +122,7 @@ export function CatalogPageContent({
             genreOptions={genreOptions}
             releaseYearRange={releaseYearRange}
             durationRange={durationRange}
+            unitPriceRange={unitPriceRange}
           />
         </aside>
 

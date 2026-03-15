@@ -35,6 +35,8 @@ const catalogSearchParamsSchema = z.object({
   yearMax: z.coerce.number().int().optional(),
   durationMin: z.coerce.number().int().optional(),
   durationMax: z.coerce.number().int().optional(),
+  priceMin: z.coerce.number().int().optional(),
+  priceMax: z.coerce.number().int().optional(),
   availableForTerritory: z
     .enum(["true", "false"])
     .transform((val) => val === "true")
@@ -107,6 +109,8 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
     yearMax: params.yearMax,
     durationMin: params.durationMin,
     durationMax: params.durationMax,
+    priceMin: params.priceMin,
+    priceMax: params.priceMax,
     availableForTerritory: params.availableForTerritory,
   };
 
@@ -129,6 +133,7 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
       totalPlatformFilms={filterOptions.totalFilms}
       releaseYearRange={filterOptions.releaseYearRange}
       durationRange={filterOptions.durationRange}
+      unitPriceRange={filterOptions.unitPriceRange}
     />
   );
 }

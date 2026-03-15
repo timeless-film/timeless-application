@@ -34,6 +34,8 @@ export interface CatalogFilters {
   yearMax?: number;
   durationMin?: number;
   durationMax?: number;
+  priceMin?: number;
+  priceMax?: number;
   availableForTerritory?: boolean; // Default true
 }
 
@@ -106,6 +108,7 @@ export interface CatalogFilterOptions {
   totalFilms: number;
   releaseYearRange: CatalogRangeFacet | null;
   durationRange: CatalogRangeFacet | null;
+  unitPriceRange: CatalogRangeFacet | null;
 }
 
 export interface CatalogRangeFacet {
@@ -114,8 +117,8 @@ export interface CatalogRangeFacet {
   buckets: number[];
 }
 
-type CatalogNumericField = "releaseYear" | "duration";
-const RANGE_FACET_BUCKET_COUNT = 18;
+type CatalogNumericField = "releaseYear" | "duration" | "price";
+const RANGE_FACET_BUCKET_COUNT = 20;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -289,6 +292,35 @@ function buildCatalogQueryConditions(filters: CatalogFilters, accountCountries: 
     conditions.push(lte(films.duration, filters.durationMax));
   }
 
+  // Unit price range (in cents)
+  if (filters.priceMin !== undefined || filters.priceMax !== undefined) {
+    if (accountCountries.length === 0) {
+      conditions.push(sql`FALSE`);
+    } else {
+      const minCondition =
+        filters.priceMin !== undefined
+          ? sql`AND ${filmPrices.price} >= ${filters.priceMin}`
+          : sql``;
+      const maxCondition =
+        filters.priceMax !== undefined
+          ? sql`AND ${filmPrices.price} <= ${filters.priceMax}`
+          : sql``;
+
+      conditions.push(
+        sql`EXISTS (
+          SELECT 1 FROM ${filmPrices}
+          WHERE ${filmPrices.filmId} = ${films.id}
+          AND ${filmPrices.countries} && ARRAY[${sql.join(
+            accountCountries.map((c) => sql`${c}`),
+            sql`, `
+          )}]::text[]
+          ${minCondition}
+          ${maxCondition}
+        )`
+      );
+    }
+  }
+
   // Territory availability filter (SQL EXISTS subquery with array overlap)
   if (filters.availableForTerritory !== false && accountCountries.length > 0) {
     conditions.push(
@@ -312,6 +344,14 @@ function removeRangeFilter(filters: CatalogFilters, field: CatalogNumericField):
       ...filters,
       yearMin: undefined,
       yearMax: undefined,
+    };
+  }
+
+  if (field === "price") {
+    return {
+      ...filters,
+      priceMin: undefined,
+      priceMax: undefined,
     };
   }
 
@@ -359,6 +399,37 @@ async function getRangeFacetForField(
   field: CatalogNumericField
 ): Promise<CatalogRangeFacet | null> {
   const accountCountries = await getAccountCinemaCountries(accountId);
+  if (field === "price") {
+    if (accountCountries.length === 0) {
+      return null;
+    }
+
+    const rangeFreeFilters = removeRangeFilter(filters, field);
+    const whereCondition = buildCatalogQueryConditions(rangeFreeFilters, accountCountries);
+
+    const matchingFilmIds = await db.select({ id: films.id }).from(films).where(whereCondition);
+    const filmIds = matchingFilmIds.map((row) => row.id);
+
+    if (filmIds.length === 0) {
+      return null;
+    }
+
+    const rows = await db
+      .select({ value: filmPrices.price })
+      .from(filmPrices)
+      .where(
+        and(
+          inArray(filmPrices.filmId, filmIds),
+          sql`${filmPrices.countries} && ARRAY[${sql.join(
+            accountCountries.map((c) => sql`${c}`),
+            sql`, `
+          )}]::text[]`
+        )
+      );
+
+    return buildRangeFacet(rows.map((row) => row.value));
+  }
+
   const rangeFreeFilters = removeRangeFilter(filters, field);
   const whereCondition = buildCatalogQueryConditions(rangeFreeFilters, accountCountries);
 
@@ -386,15 +457,17 @@ export async function getCatalogFilterOptions(
   accountId: string,
   filters: CatalogFilters = {}
 ): Promise<CatalogFilterOptions> {
-  const [genreRows, countResult, releaseYearRange, durationRange] = await Promise.all([
-    db
-      .select({ genre: sql<string>`DISTINCT UNNEST(${films.genres})` })
-      .from(films)
-      .where(eq(films.status, "active")),
-    db.select({ count: count() }).from(films).where(eq(films.status, "active")),
-    getRangeFacetForField(accountId, filters, "releaseYear"),
-    getRangeFacetForField(accountId, filters, "duration"),
-  ]);
+  const [genreRows, countResult, releaseYearRange, durationRange, unitPriceRange] =
+    await Promise.all([
+      db
+        .select({ genre: sql<string>`DISTINCT UNNEST(${films.genres})` })
+        .from(films)
+        .where(eq(films.status, "active")),
+      db.select({ count: count() }).from(films).where(eq(films.status, "active")),
+      getRangeFacetForField(accountId, filters, "releaseYear"),
+      getRangeFacetForField(accountId, filters, "duration"),
+      getRangeFacetForField(accountId, filters, "price"),
+    ]);
 
   const genres = [...new Set(genreRows.map((row) => row.genre?.trim()).filter(Boolean))].sort(
     (a, b) => a.localeCompare(b)
@@ -402,7 +475,7 @@ export async function getCatalogFilterOptions(
 
   const totalFilms = countResult[0]?.count ?? 0;
 
-  return { genres, totalFilms, releaseYearRange, durationRange };
+  return { genres, totalFilms, releaseYearRange, durationRange, unitPriceRange };
 }
 
 // ─── Catalog for Exhibitor ────────────────────────────────────────────────────

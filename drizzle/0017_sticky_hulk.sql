@@ -1,0 +1,1 @@
+ALTER TABLE "editorial_cards" ADD COLUMN "href_fr" text;

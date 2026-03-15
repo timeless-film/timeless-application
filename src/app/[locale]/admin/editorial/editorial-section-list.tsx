@@ -59,6 +59,7 @@ import {
 } from "./actions";
 import { CardsEditor } from "./cards/[sectionId]/cards-editor";
 import { CollectionEditor } from "./collection/[sectionId]/collection-editor";
+import { DecadeEditor } from "./decade/decade-editor";
 import { SlideshowEditor } from "./slideshow/[sectionId]/slideshow-editor";
 
 import type { EditorialSectionRow } from "@/lib/services/editorial-service";
@@ -113,6 +114,10 @@ export function EditorialSectionList({ initialSections }: EditorialSectionListPr
           case "card_grid": {
             const result = await getEditorialCardsAction(section.id);
             if ("cards" in result) setEditorData(result.cards);
+            break;
+          }
+          case "decade_catalog": {
+            setEditorData(section.config ?? null);
             break;
           }
         }
@@ -238,6 +243,8 @@ export function EditorialSectionList({ initialSections }: EditorialSectionListPr
         return t("collectionDescription");
       case "card_grid":
         return t("cardsDescription");
+      case "decade_catalog":
+        return t("decadeDescription");
       default:
         return "";
     }
@@ -278,7 +285,6 @@ export function EditorialSectionList({ initialSections }: EditorialSectionListPr
           {sections.map((section, index) => {
             const config = SECTION_TYPE_CONFIG[section.type];
             const Icon = config.icon;
-            const isDecadeCatalog = section.type === "decade_catalog";
 
             return (
               <Card
@@ -338,11 +344,9 @@ export function EditorialSectionList({ initialSections }: EditorialSectionListPr
                       )}
                     </button>
 
-                    {!isDecadeCatalog && (
-                      <Button variant="ghost" size="sm" onClick={() => openEditor(section)}>
-                        {t("edit")}
-                      </Button>
-                    )}
+                    <Button variant="ghost" size="sm" onClick={() => openEditor(section)}>
+                      {t("edit")}
+                    </Button>
 
                     <button
                       onClick={() => setDeleteTarget(section)}
@@ -412,6 +416,12 @@ export function EditorialSectionList({ initialSections }: EditorialSectionListPr
                     )}
                     {editingSection.type === "card_grid" && editorData && (
                       <CardsEditor sectionId={editingSection.id} initialCards={editorData} />
+                    )}
+                    {editingSection.type === "decade_catalog" && (
+                      <DecadeEditor
+                        sectionId={editingSection.id}
+                        initialConfig={editorData as { decades?: number[] } | null}
+                      />
                     )}
                     {editingSection.type === "collection" && !editorData && !editorLoading && (
                       <p className="text-muted-foreground">{t("noCollection")}</p>

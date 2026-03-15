@@ -37,16 +37,20 @@ interface CatalogFiltersProps {
   genreOptions: string[];
   releaseYearRange: CatalogRangeFacet | null;
   durationRange: CatalogRangeFacet | null;
+  unitPriceRange: CatalogRangeFacet | null;
 }
 
 export function CatalogFilters({
   genreOptions,
   releaseYearRange,
   durationRange,
+  unitPriceRange,
 }: CatalogFiltersProps) {
   const t = useTranslations("catalog.filters");
   const { filters, setFilters, clearFilters } = useCatalogFilters();
   const [isGenrePopoverOpen, setIsGenrePopoverOpen] = useState(false);
+
+  const formatPriceInEuros = (valueInCents: number) => Math.round(valueInCents / 100);
 
   const toggleGenre = async (genre: string) => {
     const nextGenres = filters.genres.includes(genre)
@@ -65,6 +69,8 @@ export function CatalogFilters({
     if (filters.yearMax) count++;
     if (filters.durationMin) count++;
     if (filters.durationMax) count++;
+    if (filters.priceMin) count++;
+    if (filters.priceMax) count++;
     if (filters.directors.length > 0) count++;
     if (filters.cast.length > 0) count++;
     if (filters.genres.length > 0) count++;
@@ -214,8 +220,8 @@ export function CatalogFilters({
 
       <CatalogRangeFilter
         title={t("releaseYear")}
-        minLabel={t("yearMin")}
-        maxLabel={t("yearMax")}
+        minLabel={t("yearMinExplicit")}
+        maxLabel={t("yearMaxExplicit")}
         facet={releaseYearRange}
         selectedMin={filters.yearMin}
         selectedMax={filters.yearMax}
@@ -224,12 +230,25 @@ export function CatalogFilters({
 
       <CatalogRangeFilter
         title={t("duration")}
-        minLabel={t("durationMin")}
-        maxLabel={t("durationMax")}
+        minLabel={t("durationMinExplicit")}
+        maxLabel={t("durationMaxExplicit")}
         facet={durationRange}
         selectedMin={filters.durationMin}
         selectedMax={filters.durationMax}
+        valueSuffix={t("durationUnitShort")}
         onChange={(durationMin, durationMax) => setFilters({ durationMin, durationMax })}
+      />
+
+      <CatalogRangeFilter
+        title={t("unitPrice")}
+        minLabel={t("priceMinExplicit")}
+        maxLabel={t("priceMaxExplicit")}
+        facet={unitPriceRange}
+        selectedMin={filters.priceMin}
+        selectedMax={filters.priceMax}
+        valueUnit="cents"
+        valueSuffix="€"
+        onChange={(priceMin, priceMax) => setFilters({ priceMin, priceMax })}
       />
 
       {/* Active Filters Summary */}
@@ -298,6 +317,24 @@ export function CatalogFilters({
                 <X
                   className="h-3 w-3 cursor-pointer"
                   onClick={() => void setFilters({ durationMax: null })}
+                />
+              </Badge>
+            )}
+            {filters.priceMin && (
+              <Badge variant="outline" className="bg-muted/45 gap-1">
+                {t("price")} ≥ {formatPriceInEuros(filters.priceMin)}€
+                <X
+                  className="h-3 w-3 cursor-pointer"
+                  onClick={() => void setFilters({ priceMin: null })}
+                />
+              </Badge>
+            )}
+            {filters.priceMax && (
+              <Badge variant="outline" className="bg-muted/45 gap-1">
+                {t("price")} ≤ {formatPriceInEuros(filters.priceMax)}€
+                <X
+                  className="h-3 w-3 cursor-pointer"
+                  onClick={() => void setFilters({ priceMax: null })}
                 />
               </Badge>
             )}

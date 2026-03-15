@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -43,6 +44,7 @@ interface Collection {
   description: string | null;
   descriptionFr: string | null;
   coverUrl: string | null;
+  displayMode: string;
   visible: boolean;
   collectionFilms: CollectionFilm[];
 }
@@ -63,6 +65,7 @@ export function CollectionEditor({ sectionId, initialCollection }: CollectionEdi
   const [description, setDescription] = useState(initialCollection.description ?? "");
   const [descriptionFr, setDescriptionFr] = useState(initialCollection.descriptionFr ?? "");
   const [coverUrl, setCoverUrl] = useState(initialCollection.coverUrl ?? "");
+  const [displayMode, setDisplayMode] = useState(initialCollection.displayMode || "poster");
   const [collectionFilms, setCollectionFilms] = useState(initialCollection.collectionFilms);
 
   function handleSaveDetails() {
@@ -74,6 +77,7 @@ export function CollectionEditor({ sectionId, initialCollection }: CollectionEdi
         description: description || null,
         descriptionFr: descriptionFr || null,
         coverUrl: coverUrl || null,
+        displayMode,
       });
       if ("error" in result) {
         toast.error(result.error);
@@ -207,6 +211,23 @@ export function CollectionEditor({ sectionId, initialCollection }: CollectionEdi
           <div className="space-y-2">
             <Label>{t("coverImage")}</Label>
             <ImageUpload value={coverUrl} onChange={setCoverUrl} />
+          </div>
+          <div className="space-y-2">
+            <Label>{t("displayMode")}</Label>
+            <RadioGroup value={displayMode} onValueChange={setDisplayMode} className="flex gap-4">
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="poster" id="mode-poster" />
+                <Label htmlFor="mode-poster" className="cursor-pointer text-sm font-normal">
+                  {t("displayModePoster")}
+                </Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="backdrop" id="mode-backdrop" />
+                <Label htmlFor="mode-backdrop" className="cursor-pointer text-sm font-normal">
+                  {t("displayModeBackdrop")}
+                </Label>
+              </div>
+            </RadioGroup>
           </div>
           <Button onClick={handleSaveDetails} disabled={isPending}>
             {t("save")}

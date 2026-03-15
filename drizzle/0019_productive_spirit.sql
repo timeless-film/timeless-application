@@ -1,0 +1,1 @@
+ALTER TABLE "collections" ADD COLUMN "display_mode" text DEFAULT 'poster' NOT NULL;

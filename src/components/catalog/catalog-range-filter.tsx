@@ -1,10 +1,12 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useId, useState } from "react";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 import type { CatalogRangeFacet } from "@/lib/services/catalog-service";
 
@@ -15,6 +17,8 @@ interface CatalogRangeFilterProps {
   facet: CatalogRangeFacet | null;
   selectedMin: number | null;
   selectedMax: number | null;
+  valueUnit?: "raw" | "cents";
+  valueSuffix?: string;
   onChange: (nextMin: number | null, nextMax: number | null) => Promise<void> | void;
 }
 
@@ -25,6 +29,8 @@ export function CatalogRangeFilter({
   facet,
   selectedMin,
   selectedMax,
+  valueUnit = "raw",
+  valueSuffix,
   onChange,
 }: CatalogRangeFilterProps) {
   if (!facet) {
@@ -40,6 +46,8 @@ export function CatalogRangeFilter({
       facet={facet}
       selectedMin={selectedMin}
       selectedMax={selectedMax}
+      valueUnit={valueUnit}
+      valueSuffix={valueSuffix}
       onChange={onChange}
     />
   );
@@ -52,6 +60,8 @@ interface CatalogRangeFilterControlProps {
   facet: CatalogRangeFacet;
   selectedMin: number | null;
   selectedMax: number | null;
+  valueUnit: "raw" | "cents";
+  valueSuffix?: string;
   onChange: (nextMin: number | null, nextMax: number | null) => Promise<void> | void;
 }
 
@@ -62,14 +72,39 @@ function CatalogRangeFilterControl({
   facet,
   selectedMin,
   selectedMax,
+  valueUnit,
+  valueSuffix,
   onChange,
 }: CatalogRangeFilterControlProps) {
+  const t = useTranslations("catalog.filters");
   const baseId = useId();
   const resolvedMin = selectedMin ?? facet.min;
   const resolvedMax = selectedMax ?? facet.max;
+
+  const toDisplayValue = (value: number) => {
+    if (valueUnit === "cents") {
+      return Math.round(value / 100);
+    }
+
+    return value;
+  };
+
+  const toStoredValue = (value: number) => {
+    if (valueUnit === "cents") {
+      return value * 100;
+    }
+
+    return value;
+  };
+
+  const formatDisplayValue = (value: number) => {
+    const convertedValue = toDisplayValue(value);
+    return `${convertedValue}${valueSuffix ?? ""}`;
+  };
+
   const [draftRange, setDraftRange] = useState<[number, number]>([resolvedMin, resolvedMax]);
-  const [minInput, setMinInput] = useState(String(resolvedMin));
-  const [maxInput, setMaxInput] = useState(String(resolvedMax));
+  const [minInput, setMinInput] = useState(String(toDisplayValue(resolvedMin)));
+  const [maxInput, setMaxInput] = useState(String(toDisplayValue(resolvedMax)));
 
   async function commitRange(nextMin: number, nextMax: number) {
     const clampedMin = Math.max(facet.min, Math.min(nextMin, facet.max));
@@ -78,8 +113,8 @@ function CatalogRangeFilterControl({
     const normalizedMax = Math.max(clampedMin, clampedMax);
 
     setDraftRange([normalizedMin, normalizedMax]);
-    setMinInput(String(normalizedMin));
-    setMaxInput(String(normalizedMax));
+    setMinInput(String(toDisplayValue(normalizedMin)));
+    setMaxInput(String(toDisplayValue(normalizedMax)));
 
     await onChange(
       normalizedMin <= facet.min ? null : normalizedMin,
@@ -97,7 +132,10 @@ function CatalogRangeFilterControl({
   }
 
   async function commitInputValues() {
-    await commitRange(parseInputValue(minInput, facet.min), parseInputValue(maxInput, facet.max));
+    await commitRange(
+      toStoredValue(parseInputValue(minInput, toDisplayValue(facet.min))),
+      toStoredValue(parseInputValue(maxInput, toDisplayValue(facet.max)))
+    );
   }
 
   const peak = Math.max(...facet.buckets, 1);
@@ -120,31 +158,62 @@ function CatalogRangeFilterControl({
     return bucketEnd < draftRange[0] || bucketStart > draftRange[1];
   }
 
+  function getBucketTooltip(index: number, count: number) {
+    if (bucketSpan === 0) {
+      return t("bucketTooltipSingle", {
+        value: formatDisplayValue(facet.min),
+        count,
+      });
+    }
+
+    const bucketStart = facet.min + (index / bucketCount) * bucketSpan;
+    const bucketEndRaw =
+      index === bucketCount - 1 ? facet.max : facet.min + ((index + 1) / bucketCount) * bucketSpan;
+
+    const fromValue = Math.floor(bucketStart);
+    const toValue = Math.ceil(bucketEndRaw);
+
+    return t("bucketTooltipRange", {
+      from: formatDisplayValue(fromValue),
+      to: formatDisplayValue(toValue),
+      count,
+    });
+  }
+
   return (
     <div className="space-y-4 py-1">
       <div className="space-y-1">
-        <Label className="text-sm font-semibold text-foreground">{title}</Label>
+        <Label className="text-foreground/85 text-xs tracking-wide uppercase">{title}</Label>
       </div>
 
-      <div>
-        <div className="flex h-18 items-end gap-1.5 px-1">
-          {facet.buckets.map((bucket, index) => {
-            const height = `${Math.max((bucket / peak) * 100, bucket > 0 ? 16 : 6)}%`;
-            const outsideSelectedRange = isBucketOutsideSelectedRange(index);
+      <div className="mx-auto w-1/2 min-w-[240px]">
+        <TooltipProvider delayDuration={0} skipDelayDuration={0}>
+          <div className="flex h-18 items-end gap-1.5 px-1">
+            {facet.buckets.map((bucket, index) => {
+              const height = `${Math.max((bucket / peak) * 100, bucket > 0 ? 16 : 6)}%`;
+              const outsideSelectedRange = isBucketOutsideSelectedRange(index);
+              const tooltipLabel = getBucketTooltip(index, bucket);
 
-            return (
-              <div
-                key={`${baseId}-${index}`}
-                className="bg-accent flex-1 transition-opacity"
-                style={{
-                  height,
-                  opacity: outsideSelectedRange ? 0.22 : bucket === 0 ? 0.35 : 0.95,
-                }}
-                aria-hidden="true"
-              />
-            );
-          })}
-        </div>
+              return (
+                <Tooltip key={`${baseId}-${index}`}>
+                  <TooltipTrigger asChild>
+                    <div
+                      className="bg-accent flex-1 cursor-help transition-opacity"
+                      style={{
+                        height,
+                        opacity: outsideSelectedRange ? 0.22 : bucket === 0 ? 0.35 : 0.95,
+                      }}
+                      aria-label={tooltipLabel}
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="text-xs">
+                    {tooltipLabel}
+                  </TooltipContent>
+                </Tooltip>
+              );
+            })}
+          </div>
+        </TooltipProvider>
 
         <Slider
           min={facet.min}
@@ -154,8 +223,8 @@ function CatalogRangeFilterControl({
           onValueChange={(value) => {
             const nextRange: [number, number] = [value[0] ?? facet.min, value[1] ?? facet.max];
             setDraftRange(nextRange);
-            setMinInput(String(nextRange[0]));
-            setMaxInput(String(nextRange[1]));
+            setMinInput(String(toDisplayValue(nextRange[0])));
+            setMaxInput(String(toDisplayValue(nextRange[1])));
           }}
           onValueCommit={(value) => {
             void commitRange(value[0] ?? facet.min, value[1] ?? facet.max);
@@ -167,7 +236,11 @@ function CatalogRangeFilterControl({
 
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-2">
-          <Label htmlFor={`${baseId}-min`} className="text-xs text-muted-foreground">
+          <Label
+            htmlFor={`${baseId}-min`}
+            className="block truncate text-xs text-muted-foreground"
+            title={minLabel}
+          >
             {minLabel}
           </Label>
           <Input
@@ -175,8 +248,8 @@ function CatalogRangeFilterControl({
             type="number"
             inputMode="numeric"
             value={minInput}
-            min={facet.min}
-            max={draftRange[1]}
+            min={toDisplayValue(facet.min)}
+            max={toDisplayValue(draftRange[1])}
             onChange={(event) => setMinInput(event.target.value)}
             onBlur={() => {
               void commitInputValues();
@@ -186,12 +259,16 @@ function CatalogRangeFilterControl({
                 void commitInputValues();
               }
             }}
-            className="h-11 rounded-full text-center text-base"
+            className="h-10 bg-background text-sm"
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor={`${baseId}-max`} className="text-xs text-muted-foreground">
+          <Label
+            htmlFor={`${baseId}-max`}
+            className="block truncate text-xs text-muted-foreground"
+            title={maxLabel}
+          >
             {maxLabel}
           </Label>
           <Input
@@ -199,8 +276,8 @@ function CatalogRangeFilterControl({
             type="number"
             inputMode="numeric"
             value={maxInput}
-            min={draftRange[0]}
-            max={facet.max}
+            min={toDisplayValue(draftRange[0])}
+            max={toDisplayValue(facet.max)}
             onChange={(event) => setMaxInput(event.target.value)}
             onBlur={() => {
               void commitInputValues();
@@ -210,7 +287,7 @@ function CatalogRangeFilterControl({
                 void commitInputValues();
               }
             }}
-            className="h-11 rounded-full text-center text-base"
+            className="h-10 bg-background text-sm"
           />
         </div>
       </div>

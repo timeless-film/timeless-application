@@ -1,0 +1,1 @@
+ALTER TABLE "editorial_sections" ADD COLUMN "config" jsonb;

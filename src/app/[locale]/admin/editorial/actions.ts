@@ -23,6 +23,7 @@ import {
   updateEditorialCard,
   updateSection,
   updateSlideshowItem,
+  getAvailableDecades,
 } from "@/lib/services/editorial-service";
 
 // ─── Auth helper ──────────────────────────────────────────────────────────────
@@ -55,7 +56,7 @@ export async function createSectionAction(input: {
 
 export async function updateSectionAction(
   sectionId: string,
-  input: { title?: string | null; titleFr?: string | null; visible?: boolean }
+  input: { title?: string | null; titleFr?: string | null; visible?: boolean; config?: unknown }
 ) {
   const auth = await requireAdmin();
   if ("error" in auth) return auth;
@@ -75,6 +76,13 @@ export async function reorderSectionsAction(sectionIds: string[]) {
   if ("error" in auth) return auth;
   await reorderSections(sectionIds);
   return { success: true as const };
+}
+
+export async function getAvailableDecadesAction() {
+  const auth = await requireAdmin();
+  if ("error" in auth) return auth;
+  const decades = getAvailableDecades();
+  return { decades };
 }
 
 // ─── Slideshow ────────────────────────────────────────────────────────────────
@@ -147,6 +155,7 @@ export async function updateCollectionAction(
     description?: string | null;
     descriptionFr?: string | null;
     coverUrl?: string | null;
+    displayMode?: string;
     visible?: boolean;
   }
 ) {
@@ -194,6 +203,7 @@ export async function addEditorialCardAction(input: {
   descriptionFr?: string;
   imageUrl: string;
   href: string;
+  hrefFr?: string;
 }) {
   const auth = await requireAdmin();
   if ("error" in auth) return auth;
@@ -210,6 +220,7 @@ export async function updateEditorialCardAction(
     descriptionFr?: string | null;
     imageUrl?: string;
     href?: string;
+    hrefFr?: string | null;
   }
 ) {
   const auth = await requireAdmin();

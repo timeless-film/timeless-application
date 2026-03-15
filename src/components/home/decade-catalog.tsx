@@ -68,7 +68,7 @@ function DecadeRow({
           {decadeLabel.replace("{decade}", String(decade.decade))}
         </h2>
         <Link
-          href={`/catalog?decadeStart=${decade.decade}&decadeEnd=${decade.decade + 9}`}
+          href={`/catalog?yearMin=${decade.decade}&yearMax=${decade.decade + 9}`}
           className="text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
           {viewMoreLabel} →
