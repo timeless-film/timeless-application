@@ -43,6 +43,7 @@ export interface CatalogFiltersState {
   durationMax: number | null;
   priceMin: number | null;
   priceMax: number | null;
+  priceCurrency: string;
 
   // Territory availability
   availableForTerritory: boolean;
@@ -59,7 +60,9 @@ export interface CatalogFiltersState {
  * - Provides individual setters for granular control
  * - Automatically resets page to 1 when filters change
  */
-export function useCatalogFilters() {
+export function useCatalogFilters(defaultPriceCurrency: string = "EUR") {
+  const normalizedDefaultPriceCurrency = defaultPriceCurrency.toUpperCase();
+
   const [filters, setFilters] = useQueryStates(
     {
       // Pagination
@@ -90,6 +93,7 @@ export function useCatalogFilters() {
       durationMax: parseAsInteger,
       priceMin: parseAsInteger,
       priceMax: parseAsInteger,
+      priceCurrency: parseAsString.withDefault(normalizedDefaultPriceCurrency),
 
       // Territory availability
       availableForTerritory: parseAsString
@@ -102,6 +106,10 @@ export function useCatalogFilters() {
   // Normalize availableForTerritory to boolean
   const normalizedFilters: CatalogFiltersState = {
     ...filters,
+    priceCurrency:
+      filters.priceCurrency && filters.priceCurrency.trim().length > 0
+        ? filters.priceCurrency.toUpperCase()
+        : normalizedDefaultPriceCurrency,
     availableForTerritory: filters.availableForTerritory !== "false",
   };
 
@@ -115,6 +123,16 @@ export function useCatalogFilters() {
       convertedUpdates["availableForTerritory"] = convertedUpdates.availableForTerritory
         ? "true"
         : "false";
+    }
+
+    if ("priceCurrency" in convertedUpdates) {
+      const nextPriceCurrency = convertedUpdates.priceCurrency;
+      if (typeof nextPriceCurrency === "string") {
+        convertedUpdates["priceCurrency"] =
+          nextPriceCurrency.trim().length > 0
+            ? nextPriceCurrency.toUpperCase()
+            : normalizedDefaultPriceCurrency;
+      }
     }
 
     if (hasFilterChange) {
@@ -144,6 +162,7 @@ export function useCatalogFilters() {
       durationMax: null,
       priceMin: null,
       priceMax: null,
+      priceCurrency: normalizedDefaultPriceCurrency,
       availableForTerritory: "true",
     });
   };

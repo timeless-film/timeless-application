@@ -9,6 +9,7 @@ import { getActiveAccountCookie } from "@/lib/auth/membership";
 import { db } from "@/lib/db";
 import { cartItems, cinemas, films, rooms } from "@/lib/db/schema";
 import { getFilmRequestsSummary } from "@/lib/services/booking-service";
+import { trackFilmEvent } from "@/lib/services/film-event-service";
 import { createRequest as createRequestService } from "@/lib/services/request-service";
 
 // ─── Validation ───────────────────────────────────────────────────────────────
@@ -140,6 +141,9 @@ export async function addToCart(input: z.infer<typeof addToCartSchema>) {
       startDate,
       endDate,
     });
+
+    // Track cart_add event (fire-and-forget)
+    trackFilmEvent(filmId, activeAccountId, "cart_add");
 
     return { success: true as const };
   } catch (error) {

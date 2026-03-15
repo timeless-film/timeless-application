@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
 import { FilmForm } from "@/components/catalog/film-form";
+import { FilmStatsSection } from "@/components/shared/film-stats-section";
 import { FilmSalesSection } from "@/components/wallet/film-sales-section";
 import { auth } from "@/lib/auth";
 import { getCurrentMembership } from "@/lib/auth/membership";
@@ -48,6 +49,9 @@ export default async function EditFilmPage({ params }: { params: Promise<{ filmI
   return (
     <div className="space-y-8">
       <FilmForm mode="edit" film={result.film} />
+      <Suspense>
+        <FilmStatsSection filmId={filmId} />
+      </Suspense>
       <Suspense>
         <FilmSalesSection accountId={ctx.accountId} filmId={filmId} />
       </Suspense>

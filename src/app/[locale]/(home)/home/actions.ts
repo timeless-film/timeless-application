@@ -6,6 +6,7 @@ import {
   getRightsHolderRevenue,
   getRightsHolderSales,
   getRightsHolderTopFilms,
+  getRightsHolderTopViewedFilms,
 } from "@/lib/services/rights-holder-dashboard-service";
 
 import type {
@@ -15,6 +16,7 @@ import type {
   RightsHolderDashboardKpis,
   SalesPoint,
   TopFilm,
+  TopViewedFilm,
 } from "@/lib/services/rights-holder-dashboard-service";
 
 const VALID_GRANULARITIES: RevenueGranularity[] = ["day", "week", "month", "year"];
@@ -25,6 +27,7 @@ interface RightsHolderDashboardData {
   revenue: RevenuePoint[];
   sales: SalesPoint[];
   topFilms: TopFilm[];
+  topViewedFilms: TopViewedFilm[];
 }
 
 export async function getRightsHolderDashboardDataAction(
@@ -40,12 +43,13 @@ export async function getRightsHolderDashboardDataAction(
 
   const accountId = ctx.account.id;
 
-  const [kpis, revenue, sales, topFilms] = await Promise.all([
+  const [kpis, revenue, sales, topFilms, topViewedFilms] = await Promise.all([
     getRightsHolderDashboardKpis(accountId),
     getRightsHolderRevenue(accountId, granularity, period),
     getRightsHolderSales(accountId, granularity, period),
     getRightsHolderTopFilms(accountId, period),
+    getRightsHolderTopViewedFilms(accountId, period),
   ]);
 
-  return { data: { kpis, revenue, sales, topFilms } };
+  return { data: { kpis, revenue, sales, topFilms, topViewedFilms } };
 }

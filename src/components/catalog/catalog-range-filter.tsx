@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useId, useState } from "react";
+import { useId, useState, type ReactNode } from "react";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +12,7 @@ import type { CatalogRangeFacet } from "@/lib/services/catalog-service";
 
 interface CatalogRangeFilterProps {
   title: string;
+  titleAction?: ReactNode;
   minLabel: string;
   maxLabel: string;
   facet: CatalogRangeFacet | null;
@@ -19,11 +20,14 @@ interface CatalogRangeFilterProps {
   selectedMax: number | null;
   valueUnit?: "raw" | "cents";
   valueSuffix?: string;
+  helperText?: string;
+  disabledText?: string;
   onChange: (nextMin: number | null, nextMax: number | null) => Promise<void> | void;
 }
 
 export function CatalogRangeFilter({
   title,
+  titleAction,
   minLabel,
   maxLabel,
   facet,
@@ -31,16 +35,49 @@ export function CatalogRangeFilter({
   selectedMax,
   valueUnit = "raw",
   valueSuffix,
+  helperText,
+  disabledText,
   onChange,
 }: CatalogRangeFilterProps) {
   if (!facet) {
-    return null;
+    return (
+      <div className="space-y-4 py-1">
+        <div className="flex items-center justify-between gap-3">
+          <Label className="text-foreground/85 text-xs tracking-wide uppercase">{title}</Label>
+          {titleAction}
+        </div>
+
+        <div className="mx-auto w-1/2 min-w-[240px] space-y-2">
+          <div className="bg-muted/35 h-18 rounded" />
+          <Slider min={0} max={1} value={[0, 1]} disabled aria-label={title} />
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-2">
+            <Label className="block truncate text-xs text-muted-foreground" title={minLabel}>
+              {minLabel}
+            </Label>
+            <Input type="number" disabled className="h-10 bg-background text-sm" />
+          </div>
+
+          <div className="space-y-2">
+            <Label className="block truncate text-xs text-muted-foreground" title={maxLabel}>
+              {maxLabel}
+            </Label>
+            <Input type="number" disabled className="h-10 bg-background text-sm" />
+          </div>
+        </div>
+
+        {disabledText && <p className="text-xs text-muted-foreground">{disabledText}</p>}
+      </div>
+    );
   }
 
   return (
     <CatalogRangeFilterControl
       key={`${facet.min}-${facet.max}-${selectedMin ?? "min"}-${selectedMax ?? "max"}`}
       title={title}
+      titleAction={titleAction}
       minLabel={minLabel}
       maxLabel={maxLabel}
       facet={facet}
@@ -48,6 +85,7 @@ export function CatalogRangeFilter({
       selectedMax={selectedMax}
       valueUnit={valueUnit}
       valueSuffix={valueSuffix}
+      helperText={helperText}
       onChange={onChange}
     />
   );
@@ -55,6 +93,7 @@ export function CatalogRangeFilter({
 
 interface CatalogRangeFilterControlProps {
   title: string;
+  titleAction?: ReactNode;
   minLabel: string;
   maxLabel: string;
   facet: CatalogRangeFacet;
@@ -62,11 +101,13 @@ interface CatalogRangeFilterControlProps {
   selectedMax: number | null;
   valueUnit: "raw" | "cents";
   valueSuffix?: string;
+  helperText?: string;
   onChange: (nextMin: number | null, nextMax: number | null) => Promise<void> | void;
 }
 
 function CatalogRangeFilterControl({
   title,
+  titleAction,
   minLabel,
   maxLabel,
   facet,
@@ -74,6 +115,7 @@ function CatalogRangeFilterControl({
   selectedMax,
   valueUnit,
   valueSuffix,
+  helperText,
   onChange,
 }: CatalogRangeFilterControlProps) {
   const t = useTranslations("catalog.filters");
@@ -182,8 +224,9 @@ function CatalogRangeFilterControl({
 
   return (
     <div className="space-y-4 py-1">
-      <div className="space-y-1">
+      <div className="flex items-center justify-between gap-3">
         <Label className="text-foreground/85 text-xs tracking-wide uppercase">{title}</Label>
+        {titleAction}
       </div>
 
       <div className="mx-auto w-1/2 min-w-[240px]">
@@ -291,6 +334,8 @@ function CatalogRangeFilterControl({
           />
         </div>
       </div>
+
+      {helperText && <p className="text-xs text-muted-foreground">{helperText}</p>}
     </div>
   );
 }

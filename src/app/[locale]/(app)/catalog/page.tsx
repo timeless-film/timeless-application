@@ -1,9 +1,12 @@
+import { eq } from "drizzle-orm";
 import { cookies, headers } from "next/headers";
 import { getTranslations } from "next-intl/server";
 import { z } from "zod";
 
 import { auth } from "@/lib/auth";
 import { ACTIVE_ACCOUNT_COOKIE, parseActiveAccountCookie } from "@/lib/auth/active-account-cookie";
+import { db } from "@/lib/db";
+import { accounts } from "@/lib/db/schema";
 import { getCatalogFilterOptions, getCatalogForExhibitor } from "@/lib/services/catalog-service";
 
 import { CatalogPageContent } from "./catalog-page-content";
@@ -37,6 +40,7 @@ const catalogSearchParamsSchema = z.object({
   durationMax: z.coerce.number().int().optional(),
   priceMin: z.coerce.number().int().optional(),
   priceMax: z.coerce.number().int().optional(),
+  priceCurrency: z.string().trim().min(3).max(3).optional(),
   availableForTerritory: z
     .enum(["true", "false"])
     .transform((val) => val === "true")
@@ -70,6 +74,13 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
   }
 
   const accountId = parsed.accountId;
+
+  const account = await db.query.accounts.findFirst({
+    where: eq(accounts.id, accountId),
+    columns: { preferredCurrency: true },
+  });
+
+  const preferredCurrency = (account?.preferredCurrency ?? "EUR").toUpperCase();
 
   // Parse search params
   const rawParams = await searchParams;
@@ -111,6 +122,7 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
     durationMax: params.durationMax,
     priceMin: params.priceMin,
     priceMax: params.priceMax,
+    priceCurrency: (params.priceCurrency ?? preferredCurrency).toUpperCase(),
     availableForTerritory: params.availableForTerritory,
   };
 
@@ -134,6 +146,8 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
       releaseYearRange={filterOptions.releaseYearRange}
       durationRange={filterOptions.durationRange}
       unitPriceRange={filterOptions.unitPriceRange}
+      priceCurrencyExcludedCount={filterOptions.priceCurrencyExcludedCount}
+      defaultPriceCurrency={preferredCurrency}
     />
   );
 }

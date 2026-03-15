@@ -182,10 +182,13 @@
       "durationUnitShort": " min",
       "unitPrice": "Prix unitaire",
       "price": "Prix",
+      "priceCurrency": "Devise du prix",
       "priceMin": "Min",
       "priceMax": "Max",
-      "priceMinExplicit": "Prix minimum (EUR)",
-      "priceMaxExplicit": "Prix maximum (EUR)",
+      "priceMinExplicit": "Prix minimum ({currency})",
+      "priceMaxExplicit": "Prix maximum ({currency})",
+      "priceCurrencyMissingHint": "{count} films masqués car ils n'ont pas de prix en {currency}.",
+      "priceCurrencyNoFilmsHint": "Aucun film n'a de prix en {currency} avec les filtres actuels.",
       "bucketTooltipRange": "{from} à {to} : {count} films",
       "bucketTooltipSingle": "{value} : {count} films",
       "genre": "Genre",
@@ -718,6 +721,12 @@
     "form": {
       "createTitle": "Ajouter un film",
       "editTitle": "Modifier le film",
+      "createDescription": "Créez une fiche catalogue, définissez la disponibilité et configurez les prix par territoire.",
+      "editDescription": "Mettez à jour les métadonnées, les médias et les zones tarifaires de ce film.",
+      "basicInfoDescription": "Informations essentielles utilisées pour identifier et publier ce film dans votre catalogue.",
+      "tmdbEditDescription": "Vérifiez les données TMDB synchronisées ou remplacez-les manuellement si nécessaire.",
+      "mediaAssetsTitle": "Médias",
+      "pricingDescription": "Définissez une ou plusieurs zones tarifaires par territoire et devise.",
       "title": "Titre",
       "titleRequired": "Le titre est obligatoire.",
       "externalId": "Référence externe",
@@ -764,6 +773,7 @@
         "NOT_FOUND": "Film introuvable.",
         "TMDB_UNAVAILABLE": "TMDB est temporairement indisponible. Réessayez plus tard."
       },
+      "unsavedChangesConfirm": "Vous avez des modifications non enregistrées. Voulez-vous quitter cette page sans enregistrer ?",
       "save": "Enregistrer",
       "saving": "Enregistrement...",
       "createSuccess": "Film créé avec succès.",
@@ -2075,9 +2085,14 @@
       "empty": "Aucune donnée de ventes."
     },
     "topFilms": {
-      "title": "Meilleurs films",
+      "title": "Top ventes",
       "empty": "Aucune donnée de films.",
       "sales": "ventes"
+    },
+    "topViewedFilms": {
+      "title": "Films les plus vus",
+      "empty": "Aucune vue de film.",
+      "views": "vues"
     },
     "chart": {
       "granularity": {
@@ -2120,6 +2135,20 @@
       "description": "Ce que les exploitants recherchent",
       "empty": "Aucune donnée de recherche pour le moment",
       "searches": "recherches"
+    }
+  },
+  "filmStats": {
+    "title": "Statistiques du film",
+    "empty": "Aucune donnée pour ce film pour le moment.",
+    "kpi": {
+      "views": "Vues",
+      "cartAdds": "Ajouts au panier",
+      "requests": "Demandes",
+      "revenue": "Revenus"
+    },
+    "chart": {
+      "title": "Activité (30 derniers jours)",
+      "empty": "Aucune activité au cours des 30 derniers jours."
     }
   },
   "footer": {

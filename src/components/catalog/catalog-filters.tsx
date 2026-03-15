@@ -1,7 +1,7 @@
 "use client";
 
 import { Check, ChevronsUpDown, Filter, RotateCcw, X } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { CatalogRangeFilter } from "@/components/catalog/catalog-range-filter";
@@ -26,6 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useCatalogFilters } from "@/hooks/use-catalog-filters";
+import { getCurrencyOptions } from "@/lib/currencies";
 import { cn } from "@/lib/utils";
 
 import type { CatalogFiltersState } from "@/hooks/use-catalog-filters";
@@ -38,6 +39,8 @@ interface CatalogFiltersProps {
   releaseYearRange: CatalogRangeFacet | null;
   durationRange: CatalogRangeFacet | null;
   unitPriceRange: CatalogRangeFacet | null;
+  priceCurrencyExcludedCount: number;
+  defaultPriceCurrency: string;
 }
 
 export function CatalogFilters({
@@ -45,10 +48,15 @@ export function CatalogFilters({
   releaseYearRange,
   durationRange,
   unitPriceRange,
+  priceCurrencyExcludedCount,
+  defaultPriceCurrency,
 }: CatalogFiltersProps) {
   const t = useTranslations("catalog.filters");
-  const { filters, setFilters, clearFilters } = useCatalogFilters();
+  const locale = useLocale();
+  const { filters, setFilters, clearFilters } = useCatalogFilters(defaultPriceCurrency);
   const [isGenrePopoverOpen, setIsGenrePopoverOpen] = useState(false);
+  const currencyOptions = getCurrencyOptions(locale);
+  const isPriceRangeActive = filters.priceMin !== null || filters.priceMax !== null;
 
   const formatPriceInEuros = (valueInCents: number) => Math.round(valueInCents / 100);
 
@@ -81,6 +89,16 @@ export function CatalogFilters({
   };
 
   const activeCount = activeFiltersCount();
+  const priceRangeHelperText =
+    isPriceRangeActive && priceCurrencyExcludedCount > 0
+      ? t("priceCurrencyMissingHint", {
+          count: priceCurrencyExcludedCount,
+          currency: filters.priceCurrency,
+        })
+      : undefined;
+  const priceRangeDisabledText = unitPriceRange
+    ? undefined
+    : t("priceCurrencyNoFilmsHint", { currency: filters.priceCurrency });
 
   return (
     <div
@@ -241,13 +259,36 @@ export function CatalogFilters({
 
       <CatalogRangeFilter
         title={t("unitPrice")}
-        minLabel={t("priceMinExplicit")}
-        maxLabel={t("priceMaxExplicit")}
+        titleAction={
+          <Select
+            value={filters.priceCurrency}
+            onValueChange={(value) => void setFilters({ priceCurrency: value })}
+          >
+            <SelectTrigger
+              id="price-currency"
+              className="h-7 w-auto min-w-0 gap-1 border-0 bg-transparent px-0 py-0 text-xs font-medium shadow-none"
+              aria-label={t("priceCurrency")}
+            >
+              <SelectValue>{filters.priceCurrency}</SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {currencyOptions.map((currency) => (
+                <SelectItem key={currency.value} value={currency.value}>
+                  {currency.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        }
+        minLabel={t("priceMinExplicit", { currency: filters.priceCurrency })}
+        maxLabel={t("priceMaxExplicit", { currency: filters.priceCurrency })}
         facet={unitPriceRange}
         selectedMin={filters.priceMin}
         selectedMax={filters.priceMax}
         valueUnit="cents"
-        valueSuffix="€"
+        valueSuffix={` ${filters.priceCurrency}`}
+        helperText={priceRangeHelperText}
+        disabledText={priceRangeDisabledText}
         onChange={(priceMin, priceMax) => setFilters({ priceMin, priceMax })}
       />
 
@@ -322,7 +363,7 @@ export function CatalogFilters({
             )}
             {filters.priceMin && (
               <Badge variant="outline" className="bg-muted/45 gap-1">
-                {t("price")} ≥ {formatPriceInEuros(filters.priceMin)}€
+                {t("price")} ≥ {formatPriceInEuros(filters.priceMin)} {filters.priceCurrency}
                 <X
                   className="h-3 w-3 cursor-pointer"
                   onClick={() => void setFilters({ priceMin: null })}
@@ -331,7 +372,7 @@ export function CatalogFilters({
             )}
             {filters.priceMax && (
               <Badge variant="outline" className="bg-muted/45 gap-1">
-                {t("price")} ≤ {formatPriceInEuros(filters.priceMax)}€
+                {t("price")} ≤ {formatPriceInEuros(filters.priceMax)} {filters.priceCurrency}
                 <X
                   className="h-3 w-3 cursor-pointer"
                   onClick={() => void setFilters({ priceMax: null })}

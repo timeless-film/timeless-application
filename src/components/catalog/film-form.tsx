@@ -3,7 +3,7 @@
 import { Loader2, RefreshCw, Search, Unlink } from "lucide-react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import {
@@ -14,6 +14,7 @@ import {
   updateTmdbManualAction,
   updateFilmAction,
 } from "@/app/[locale]/(rights-holder)/films/actions";
+import { ImageUpload } from "@/components/shared/image-upload";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,6 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { useRouter } from "@/i18n/navigation";
 
 import { PriceZonesEditor } from "./price-zones-editor";
@@ -138,6 +140,132 @@ export function FilmForm({ mode, film }: FilmFormProps) {
   const [manualDuration, setManualDuration] = useState(film?.duration ? String(film.duration) : "");
   const [manualPosterUrl, setManualPosterUrl] = useState(film?.posterUrl ?? "");
   const [manualBackdropUrl, setManualBackdropUrl] = useState(film?.backdropUrl ?? "");
+
+  // ─── Unsaved changes guard ──────────────────────────────────────────────
+
+  const currentSnapshot = useMemo(
+    () =>
+      JSON.stringify({
+        title,
+        externalId,
+        type,
+        status,
+        zones,
+        selectedTmdbId,
+        manualOriginalTitle,
+        manualSynopsis,
+        manualSynopsisEn,
+        manualDirectors,
+        manualGenres,
+        manualCast,
+        manualReleaseYear,
+        manualDuration,
+        manualPosterUrl,
+        manualBackdropUrl,
+      }),
+    [
+      title,
+      externalId,
+      type,
+      status,
+      zones,
+      selectedTmdbId,
+      manualOriginalTitle,
+      manualSynopsis,
+      manualSynopsisEn,
+      manualDirectors,
+      manualGenres,
+      manualCast,
+      manualReleaseYear,
+      manualDuration,
+      manualPosterUrl,
+      manualBackdropUrl,
+    ]
+  );
+  const initialSnapshotRef = useRef(currentSnapshot);
+  const isDirty = currentSnapshot !== initialSnapshotRef.current;
+
+  const confirmLeave = () => {
+    if (!isDirty) {
+      return true;
+    }
+
+    return window.confirm(t("form.unsavedChangesConfirm"));
+  };
+
+  useEffect(() => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (!isDirty) {
+        return;
+      }
+
+      event.preventDefault();
+      event.returnValue = "";
+    };
+
+    const handleDocumentClick = (event: MouseEvent) => {
+      if (!isDirty) {
+        return;
+      }
+
+      const target = event.target;
+      if (!(target instanceof Element)) {
+        return;
+      }
+
+      const anchor = target.closest("a[href]");
+      if (!(anchor instanceof HTMLAnchorElement)) {
+        return;
+      }
+
+      const destination = new URL(anchor.href, window.location.href);
+      if (destination.origin !== window.location.origin) {
+        return;
+      }
+
+      const isSamePage =
+        destination.pathname === window.location.pathname &&
+        destination.search === window.location.search &&
+        destination.hash === window.location.hash;
+
+      if (isSamePage) {
+        return;
+      }
+
+      if (!window.confirm(t("form.unsavedChangesConfirm"))) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    };
+
+    const handlePopState = () => {
+      if (!isDirty) {
+        return;
+      }
+
+      if (!window.confirm(t("form.unsavedChangesConfirm"))) {
+        window.history.pushState(null, "", window.location.href);
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    document.addEventListener("click", handleDocumentClick, true);
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      document.removeEventListener("click", handleDocumentClick, true);
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [isDirty, t]);
+
+  function handleCancel() {
+    if (!confirmLeave()) {
+      return;
+    }
+
+    router.push("/films");
+  }
 
   async function handleResyncTmdb() {
     if (!film) return;
@@ -357,6 +485,7 @@ export function FilmForm({ mode, film }: FilmFormProps) {
         }
 
         toast.success(t("form.createSuccess"));
+        initialSnapshotRef.current = currentSnapshot;
         router.push("/films");
       } else if (film) {
         const result = await updateFilmAction(film.id, {
@@ -373,6 +502,7 @@ export function FilmForm({ mode, film }: FilmFormProps) {
         }
 
         toast.success(t("form.updateSuccess"));
+        initialSnapshotRef.current = currentSnapshot;
         router.push("/films");
       }
     } catch {
@@ -385,41 +515,60 @@ export function FilmForm({ mode, film }: FilmFormProps) {
   // ─── Render ──────────────────────────────────────────────────────────────
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <h1 className="font-heading text-2xl">
-        {mode === "create" ? t("form.createTitle") : film?.title}
-      </h1>
+    <form onSubmit={handleSubmit} className="space-y-8">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="space-y-1">
+          <h1 className="font-heading text-2xl">
+            {mode === "create" ? t("form.createTitle") : film?.title}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            {mode === "create" ? t("form.createDescription") : t("form.editDescription")}
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <Button type="button" variant="outline" onClick={handleCancel} disabled={saving}>
+            {t("cancel")}
+          </Button>
+          <Button type="submit" disabled={saving}>
+            {saving && <Loader2 className="mr-2 size-4 animate-spin" />}
+            {saving ? t("form.saving") : t("form.save")}
+          </Button>
+        </div>
+      </div>
 
       {/* Basic info */}
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">{t("form.title")}</CardTitle>
+          <p className="text-sm text-muted-foreground">{t("form.basicInfoDescription")}</p>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="title">
-              {t("form.title")} <span className="text-destructive">*</span>
-            </Label>
-            <Input
-              id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              disabled={saving}
-            />
+        <CardContent className="grid gap-5 md:grid-cols-2">
+          <div className="space-y-5">
+            <div className="space-y-2">
+              <Label htmlFor="title">
+                {t("form.title")} <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                disabled={saving}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="externalId">{t("form.externalId")}</Label>
+              <Input
+                id="externalId"
+                value={externalId}
+                onChange={(e) => setExternalId(e.target.value)}
+                disabled={saving}
+              />
+              <p className="text-muted-foreground text-xs">{t("form.externalIdHint")}</p>
+            </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="externalId">{t("form.externalId")}</Label>
-            <Input
-              id="externalId"
-              value={externalId}
-              onChange={(e) => setExternalId(e.target.value)}
-              disabled={saving}
-            />
-            <p className="text-muted-foreground text-xs">{t("form.externalIdHint")}</p>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="type">{t("form.type")}</Label>
               <Select value={type} onValueChange={(v) => setType(v as "direct" | "validation")}>
@@ -587,6 +736,7 @@ export function FilmForm({ mode, film }: FilmFormProps) {
                 </Button>
               </div>
             </div>
+            <p className="text-sm text-muted-foreground">{t("form.tmdbEditDescription")}</p>
           </CardHeader>
           <CardContent>
             {tmdbStatus === "matched" ? (
@@ -643,98 +793,120 @@ export function FilmForm({ mode, film }: FilmFormProps) {
               <p className="text-muted-foreground text-sm">{t("form.tmdbNotMatched")}</p>
             )}
 
-            <div className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="manual-original-title">{t("form.tmdbManualOriginalTitle")}</Label>
-                <Input
-                  id="manual-original-title"
-                  value={manualOriginalTitle}
-                  onChange={(event) => setManualOriginalTitle(event.target.value)}
-                  disabled={syncing || saving}
-                />
+            <div className="mt-6 space-y-6">
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="manual-original-title">{t("form.tmdbManualOriginalTitle")}</Label>
+                  <Input
+                    id="manual-original-title"
+                    value={manualOriginalTitle}
+                    onChange={(event) => setManualOriginalTitle(event.target.value)}
+                    disabled={syncing || saving}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="manual-release-year">{t("form.tmdbManualReleaseYear")}</Label>
+                  <Input
+                    id="manual-release-year"
+                    type="number"
+                    value={manualReleaseYear}
+                    onChange={(event) => setManualReleaseYear(event.target.value)}
+                    disabled={syncing || saving}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="manual-duration">{t("form.tmdbManualDuration")}</Label>
+                  <Input
+                    id="manual-duration"
+                    type="number"
+                    value={manualDuration}
+                    onChange={(event) => setManualDuration(event.target.value)}
+                    disabled={syncing || saving}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="manual-directors">{t("form.tmdbManualDirectors")}</Label>
+                  <Input
+                    id="manual-directors"
+                    value={manualDirectors}
+                    onChange={(event) => setManualDirectors(event.target.value)}
+                    disabled={syncing || saving}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="manual-genres">{t("form.tmdbManualGenres")}</Label>
+                  <Input
+                    id="manual-genres"
+                    value={manualGenres}
+                    onChange={(event) => setManualGenres(event.target.value)}
+                    disabled={syncing || saving}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="manual-cast">{t("form.tmdbManualCast")}</Label>
+                  <Input
+                    id="manual-cast"
+                    value={manualCast}
+                    onChange={(event) => setManualCast(event.target.value)}
+                    disabled={syncing || saving}
+                  />
+                </div>
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="manual-synopsis">{t("form.tmdbManualSynopsis")}</Label>
+                  <Textarea
+                    id="manual-synopsis"
+                    value={manualSynopsis}
+                    onChange={(event) => setManualSynopsis(event.target.value)}
+                    disabled={syncing || saving}
+                    rows={4}
+                  />
+                </div>
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="manual-synopsis-en">{t("form.tmdbManualSynopsisEn")}</Label>
+                  <Textarea
+                    id="manual-synopsis-en"
+                    value={manualSynopsisEn}
+                    onChange={(event) => setManualSynopsisEn(event.target.value)}
+                    disabled={syncing || saving}
+                    rows={4}
+                  />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="manual-poster-url">{t("form.tmdbManualPosterUrl")}</Label>
-                <Input
-                  id="manual-poster-url"
-                  value={manualPosterUrl}
-                  onChange={(event) => setManualPosterUrl(event.target.value)}
-                  disabled={syncing || saving}
-                />
-              </div>
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="manual-synopsis">{t("form.tmdbManualSynopsis")}</Label>
-                <Input
-                  id="manual-synopsis"
-                  value={manualSynopsis}
-                  onChange={(event) => setManualSynopsis(event.target.value)}
-                  disabled={syncing || saving}
-                />
-              </div>
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="manual-synopsis-en">{t("form.tmdbManualSynopsisEn")}</Label>
-                <Input
-                  id="manual-synopsis-en"
-                  value={manualSynopsisEn}
-                  onChange={(event) => setManualSynopsisEn(event.target.value)}
-                  disabled={syncing || saving}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="manual-directors">{t("form.tmdbManualDirectors")}</Label>
-                <Input
-                  id="manual-directors"
-                  value={manualDirectors}
-                  onChange={(event) => setManualDirectors(event.target.value)}
-                  disabled={syncing || saving}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="manual-genres">{t("form.tmdbManualGenres")}</Label>
-                <Input
-                  id="manual-genres"
-                  value={manualGenres}
-                  onChange={(event) => setManualGenres(event.target.value)}
-                  disabled={syncing || saving}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="manual-cast">{t("form.tmdbManualCast")}</Label>
-                <Input
-                  id="manual-cast"
-                  value={manualCast}
-                  onChange={(event) => setManualCast(event.target.value)}
-                  disabled={syncing || saving}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="manual-release-year">{t("form.tmdbManualReleaseYear")}</Label>
-                <Input
-                  id="manual-release-year"
-                  type="number"
-                  value={manualReleaseYear}
-                  onChange={(event) => setManualReleaseYear(event.target.value)}
-                  disabled={syncing || saving}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="manual-duration">{t("form.tmdbManualDuration")}</Label>
-                <Input
-                  id="manual-duration"
-                  type="number"
-                  value={manualDuration}
-                  onChange={(event) => setManualDuration(event.target.value)}
-                  disabled={syncing || saving}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="manual-backdrop-url">{t("form.tmdbManualBackdropUrl")}</Label>
-                <Input
-                  id="manual-backdrop-url"
-                  value={manualBackdropUrl}
-                  onChange={(event) => setManualBackdropUrl(event.target.value)}
-                  disabled={syncing || saving}
-                />
+
+              <div className="space-y-3">
+                <h3 className="text-sm font-semibold text-foreground">
+                  {t("form.mediaAssetsTitle")}
+                </h3>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="manual-poster-url">{t("form.tmdbManualPosterUrl")}</Label>
+                    <ImageUpload
+                      value={manualPosterUrl}
+                      onChange={setManualPosterUrl}
+                      className="min-h-[210px]"
+                    />
+                    <Input
+                      id="manual-poster-url"
+                      value={manualPosterUrl}
+                      onChange={(event) => setManualPosterUrl(event.target.value)}
+                      disabled={syncing || saving}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="manual-backdrop-url">{t("form.tmdbManualBackdropUrl")}</Label>
+                    <ImageUpload
+                      value={manualBackdropUrl}
+                      onChange={setManualBackdropUrl}
+                      className="min-h-[210px]"
+                    />
+                    <Input
+                      id="manual-backdrop-url"
+                      value={manualBackdropUrl}
+                      onChange={(event) => setManualBackdropUrl(event.target.value)}
+                      disabled={syncing || saving}
+                    />
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -757,27 +929,12 @@ export function FilmForm({ mode, film }: FilmFormProps) {
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">{t("form.prices")}</CardTitle>
+          <p className="text-sm text-muted-foreground">{t("form.pricingDescription")}</p>
         </CardHeader>
         <CardContent>
           <PriceZonesEditor zones={zones} onChange={setZones} disabled={saving} />
         </CardContent>
       </Card>
-
-      {/* Submit */}
-      <div className="flex justify-end gap-3">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => router.push("/films")}
-          disabled={saving}
-        >
-          {t("cancel")}
-        </Button>
-        <Button type="submit" disabled={saving}>
-          {saving && <Loader2 className="mr-2 size-4 animate-spin" />}
-          {saving ? t("form.saving") : t("form.save")}
-        </Button>
-      </div>
     </form>
   );
 }

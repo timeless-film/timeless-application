@@ -7,6 +7,7 @@ import { db } from "@/lib/db";
 import { getFilmRequestsSummary } from "@/lib/services/booking-service";
 import { getFilmForExhibitor } from "@/lib/services/catalog-service";
 import { listCinemasForAccount } from "@/lib/services/cinema-service";
+import { trackFilmEvent } from "@/lib/services/film-event-service";
 
 import { FilmDetailContent } from "./film-detail-content";
 
@@ -93,6 +94,9 @@ export default async function FilmDetailPage({ params }: FilmDetailPageProps) {
   if (!film) {
     notFound();
   }
+
+  // Track film view (fire-and-forget — don't block rendering)
+  trackFilmEvent(filmId, accountId, "view");
 
   const cinemas = await listCinemasForAccount(accountId);
   const requestSummary = await getFilmRequestsSummary({

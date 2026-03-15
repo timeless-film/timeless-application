@@ -36,6 +36,8 @@ interface CatalogPageContentProps {
   releaseYearRange: CatalogRangeFacet | null;
   durationRange: CatalogRangeFacet | null;
   unitPriceRange: CatalogRangeFacet | null;
+  priceCurrencyExcludedCount: number;
+  defaultPriceCurrency: string;
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -50,10 +52,12 @@ export function CatalogPageContent({
   releaseYearRange,
   durationRange,
   unitPriceRange,
+  priceCurrencyExcludedCount,
+  defaultPriceCurrency,
 }: CatalogPageContentProps) {
   const t = useTranslations("catalog");
   const locale = useLocale();
-  const { filters, setFilters } = useCatalogFilters();
+  const { filters, setFilters } = useCatalogFilters(defaultPriceCurrency);
 
   const totalPages = Math.ceil(initialTotal / initialLimit);
 
@@ -123,6 +127,8 @@ export function CatalogPageContent({
             releaseYearRange={releaseYearRange}
             durationRange={durationRange}
             unitPriceRange={unitPriceRange}
+            priceCurrencyExcludedCount={priceCurrencyExcludedCount}
+            defaultPriceCurrency={defaultPriceCurrency}
           />
         </aside>
 

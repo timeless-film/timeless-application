@@ -1,4 +1,4 @@
-import { and, count, eq, gte, sql } from "drizzle-orm";
+import { and, count, desc, eq, gte, sql } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import { filmEvents, films, orderItems, orders, requests } from "@/lib/db/schema";
@@ -33,6 +33,13 @@ export interface TopFilm {
   posterUrl: string | null;
   orderCount: number;
   totalRevenue: number; // in cents (rightsHolderAmount * screeningCount)
+}
+
+export interface TopViewedFilm {
+  filmId: string;
+  title: string;
+  posterUrl: string | null;
+  viewCount: number;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -238,5 +245,38 @@ export async function getRightsHolderTopFilms(
     posterUrl: r.posterUrl,
     orderCount: Number(r.orderCount),
     totalRevenue: Number(r.totalRevenue),
+  }));
+}
+
+export async function getRightsHolderTopViewedFilms(
+  accountId: string,
+  period: RevenuePeriod,
+  limit = 5
+): Promise<TopViewedFilm[]> {
+  const startDate = getPeriodStartDate(period);
+  const viewCountExpr = count();
+
+  const conditions = [eq(films.accountId, accountId), eq(filmEvents.eventType, "view")];
+  if (startDate) conditions.push(gte(filmEvents.createdAt, startDate));
+
+  const rows = await db
+    .select({
+      filmId: filmEvents.filmId,
+      title: films.title,
+      posterUrl: films.posterUrl,
+      viewCount: viewCountExpr,
+    })
+    .from(filmEvents)
+    .innerJoin(films, eq(filmEvents.filmId, films.id))
+    .where(and(...conditions))
+    .groupBy(filmEvents.filmId, films.id, films.title, films.posterUrl)
+    .orderBy(desc(viewCountExpr))
+    .limit(limit);
+
+  return rows.map((row) => ({
+    filmId: row.filmId,
+    title: row.title,
+    posterUrl: row.posterUrl,
+    viewCount: Number(row.viewCount),
   }));
 }

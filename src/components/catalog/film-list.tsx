@@ -392,7 +392,12 @@ export function FilmList({ initialFilms, initialTotal, currentUserRole }: FilmLi
                       </div>
                     )}
                     <div>
-                      <div className="font-heading text-base leading-tight">{film.title}</div>
+                      <Link
+                        href={`/films/${film.id}`}
+                        className="text-primary font-medium hover:underline"
+                      >
+                        {film.title}
+                      </Link>
                       <div className="flex items-center gap-2">
                         {film.releaseYear && (
                           <span className="text-muted-foreground text-xs">{film.releaseYear}</span>

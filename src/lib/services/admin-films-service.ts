@@ -2,6 +2,9 @@ import { and, count, eq, sql } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import { accounts, filmPrices, films, orderItems, orders } from "@/lib/db/schema";
+import { getFilmEventStats } from "@/lib/services/film-event-service";
+
+import type { FilmEventStats } from "@/lib/services/film-event-service";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -127,6 +130,7 @@ export interface AdminFilmDetail {
   orders: AdminFilmOrderRow[];
   totalVolume: number; // sum of displayedPrice in cents
   totalMargin: number; // sum of timelessAmount in cents
+  stats: FilmEventStats;
 }
 
 export async function getFilmDetailForAdmin(filmId: string): Promise<AdminFilmDetail | null> {
@@ -153,29 +157,32 @@ export async function getFilmDetailForAdmin(filmId: string): Promise<AdminFilmDe
 
   if (!filmRow) return null;
 
-  const orderRows = await db
-    .select({
-      orderId: orders.id,
-      orderNumber: orders.orderNumber,
-      exhibitorAccountId: orders.exhibitorAccountId,
-      exhibitorName: sql<string>`(
-        SELECT ${accounts.companyName} FROM ${accounts}
-        WHERE ${accounts.id} = ${orders.exhibitorAccountId}
-      )`,
-      cinemaName: sql<string>`(
-        SELECT c.name FROM cinemas c
-        WHERE c.id = ${orderItems.cinemaId}
-      )`,
-      paidAt: orders.paidAt,
-      displayedPrice: orderItems.displayedPrice,
-      timelessAmount: orderItems.timelessAmount,
-      deliveryStatus: orderItems.deliveryStatus,
-      currency: orderItems.currency,
-    })
-    .from(orderItems)
-    .innerJoin(orders, eq(orderItems.orderId, orders.id))
-    .where(eq(orderItems.filmId, filmId))
-    .orderBy(orders.paidAt);
+  const [orderRows, stats] = await Promise.all([
+    db
+      .select({
+        orderId: orders.id,
+        orderNumber: orders.orderNumber,
+        exhibitorAccountId: orders.exhibitorAccountId,
+        exhibitorName: sql<string>`(
+          SELECT ${accounts.companyName} FROM ${accounts}
+          WHERE ${accounts.id} = ${orders.exhibitorAccountId}
+        )`,
+        cinemaName: sql<string>`(
+          SELECT c.name FROM cinemas c
+          WHERE c.id = ${orderItems.cinemaId}
+        )`,
+        paidAt: orders.paidAt,
+        displayedPrice: orderItems.displayedPrice,
+        timelessAmount: orderItems.timelessAmount,
+        deliveryStatus: orderItems.deliveryStatus,
+        currency: orderItems.currency,
+      })
+      .from(orderItems)
+      .innerJoin(orders, eq(orderItems.orderId, orders.id))
+      .where(eq(orderItems.filmId, filmId))
+      .orderBy(orders.paidAt),
+    getFilmEventStats(filmId, 30),
+  ]);
 
   const totalVolume = orderRows.reduce((sum, r) => sum + Number(r.displayedPrice), 0);
   const totalMargin = orderRows.reduce((sum, r) => sum + Number(r.timelessAmount), 0);
@@ -185,5 +192,6 @@ export async function getFilmDetailForAdmin(filmId: string): Promise<AdminFilmDe
     orders: orderRows as AdminFilmOrderRow[],
     totalVolume,
     totalMargin,
+    stats,
   };
 }

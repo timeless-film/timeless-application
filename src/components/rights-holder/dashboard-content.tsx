@@ -16,6 +16,7 @@ import { getRightsHolderDashboardDataAction } from "@/app/[locale]/(home)/home/a
 import { RightsHolderRevenueChart } from "@/components/rights-holder/dashboard-revenue-chart";
 import { RightsHolderSalesChart } from "@/components/rights-holder/dashboard-sales-chart";
 import { RightsHolderTopFilms } from "@/components/rights-holder/dashboard-top-films";
+import { RightsHolderTopViewedFilms } from "@/components/rights-holder/dashboard-top-viewed-films";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
@@ -34,6 +35,7 @@ import type {
   RightsHolderDashboardKpis,
   SalesPoint,
   TopFilm,
+  TopViewedFilm,
 } from "@/lib/services/rights-holder-dashboard-service";
 
 const GRANULARITIES: RevenueGranularity[] = ["day", "week", "month", "year"];
@@ -44,6 +46,7 @@ interface RightsHolderDashboardContentProps {
   initialRevenue: RevenuePoint[];
   initialSales: SalesPoint[];
   initialTopFilms: TopFilm[];
+  initialTopViewedFilms: TopViewedFilm[];
   initialGranularity: RevenueGranularity;
   initialPeriod: RevenuePeriod;
 }
@@ -53,6 +56,7 @@ export function RightsHolderDashboardContent({
   initialRevenue,
   initialSales,
   initialTopFilms,
+  initialTopViewedFilms,
   initialGranularity,
   initialPeriod,
 }: RightsHolderDashboardContentProps) {
@@ -64,6 +68,7 @@ export function RightsHolderDashboardContent({
   const [revenue, setRevenue] = useState<RevenuePoint[]>(initialRevenue);
   const [sales, setSales] = useState<SalesPoint[]>(initialSales);
   const [topFilms, setTopFilms] = useState<TopFilm[]>(initialTopFilms);
+  const [topViewedFilms, setTopViewedFilms] = useState<TopViewedFilm[]>(initialTopViewedFilms);
   const [granularity, setGranularity] = useState<RevenueGranularity>(initialGranularity);
   const [period, setPeriod] = useState<RevenuePeriod>(initialPeriod);
 
@@ -77,6 +82,7 @@ export function RightsHolderDashboardContent({
         setRevenue(result.data.revenue);
         setSales(result.data.sales);
         setTopFilms(result.data.topFilms);
+        setTopViewedFilms(result.data.topViewedFilms);
       }
     });
   }
@@ -195,8 +201,11 @@ export function RightsHolderDashboardContent({
         <RightsHolderSalesChart data={sales} granularity={granularity} />
       </div>
 
-      {/* Top films */}
-      <RightsHolderTopFilms data={topFilms} />
+      {/* Top lists on selected period */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        <RightsHolderTopFilms data={topFilms} />
+        <RightsHolderTopViewedFilms data={topViewedFilms} />
+      </div>
     </div>
   );
 }

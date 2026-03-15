@@ -329,6 +329,7 @@ List all cinemas for the authenticated account.
 All management tables (films, validation requests, etc.) must follow these patterns:
 
 - **`table-fixed`** layout + explicit percentage widths on every `<TableHead>` (e.g. `className="w-[28%]"`) — prevents column width shifts when content loads or changes.
+- **Clickable primary title in table rows**: use a consistent link style across tables: `text-primary hover:underline` (avoid custom one-off color/animation variants).
 - **Skeleton loading for tab switches & pagination**: when `isPending && loadingSource !== "search"`, show 5 skeleton rows matching the column layout (use `<Skeleton>` sized to approximate real content). Never show a single centered spinner or empty table.
 - **Search: keep stale content visible** — during search, don't show skeletons. Keep the current rows displayed until new results arrive (seamless replacement). Show a spinning `Loader2` icon inside the search input (replacing the `Search` icon) as the loading indicator.
 - **Track loading source** via `useState<"tab" | "search" | "page" | null>(null)` — set before each fetch to differentiate between skeleton (tab/page) and inline spinner (search) behaviors.

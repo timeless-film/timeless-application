@@ -153,6 +153,7 @@ Next.js UI → server action → service function ← API route ← External cli
 ### Data tables (list/management pages)
 
 - **`table-fixed`** + explicit `w-[X%]` on every `<TableHead>` — prevents column width shifts on content load.
+- **Clickable primary title in table rows**: use the same link style everywhere: `text-primary hover:underline` (no custom one-off colors/animations).
 - **Skeleton loading** for tab switches and pagination: show 5 skeleton rows (matching column layout) instead of a spinner or empty table.
 - **Search: keep stale content** — don't show skeletons during search. Replace content seamlessly once results arrive. Show a spinning `Loader2` icon inside the search input instead of the `Search` icon.
 - **Track loading source** via `useState<"tab" | "search" | "page" | null>(null)` to differentiate skeleton (tab/page) vs inline spinner (search).

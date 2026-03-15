@@ -182,10 +182,13 @@
       "durationUnitShort": " min",
       "unitPrice": "Unit price",
       "price": "Price",
+      "priceCurrency": "Price currency",
       "priceMin": "Min",
       "priceMax": "Max",
-      "priceMinExplicit": "Minimum price (EUR)",
-      "priceMaxExplicit": "Maximum price (EUR)",
+      "priceMinExplicit": "Minimum price ({currency})",
+      "priceMaxExplicit": "Maximum price ({currency})",
+      "priceCurrencyMissingHint": "{count} films hidden because they have no price in {currency}.",
+      "priceCurrencyNoFilmsHint": "No films have a price in {currency} for the current filters.",
       "bucketTooltipRange": "{from} to {to}: {count} films",
       "bucketTooltipSingle": "{value}: {count} films",
       "genre": "Genre",
@@ -718,6 +721,12 @@
     "form": {
       "createTitle": "Add a film",
       "editTitle": "Edit film",
+      "createDescription": "Create a catalog entry, set availability, and define territorial prices.",
+      "editDescription": "Update metadata, media, and pricing zones for this film.",
+      "basicInfoDescription": "Core information used to identify and publish this film in your catalog.",
+      "tmdbEditDescription": "Review synchronized TMDB data or override fields manually when needed.",
+      "mediaAssetsTitle": "Media assets",
+      "pricingDescription": "Define one or more pricing zones by territory and currency.",
       "title": "Title",
       "titleRequired": "Title is required.",
       "externalId": "External reference",
@@ -764,6 +773,7 @@
         "NOT_FOUND": "Film not found.",
         "TMDB_UNAVAILABLE": "TMDB is temporarily unavailable. Try again later."
       },
+      "unsavedChangesConfirm": "You have unsaved changes. Do you want to leave this page without saving?",
       "save": "Save",
       "saving": "Saving...",
       "createSuccess": "Film created successfully.",
@@ -2076,9 +2086,14 @@
       "empty": "No sales data yet."
     },
     "topFilms": {
-      "title": "Top films",
+      "title": "Top sales",
       "empty": "No film data yet.",
       "sales": "sales"
+    },
+    "topViewedFilms": {
+      "title": "Most viewed films",
+      "empty": "No film views yet.",
+      "views": "views"
     },
     "chart": {
       "granularity": {
@@ -2122,6 +2137,20 @@
         "empty": "No search data yet",
         "searches": "searches"
       }
+  },
+  "filmStats": {
+    "title": "Film analytics",
+    "empty": "No analytics data for this film yet.",
+    "kpi": {
+      "views": "Views",
+      "cartAdds": "Cart additions",
+      "requests": "Requests",
+      "revenue": "Revenue"
+    },
+    "chart": {
+      "title": "Activity (last 30 days)",
+      "empty": "No activity in the last 30 days."
+    }
   },
   "footer": {
     "copyright": "© {year} Timeless Cinema",

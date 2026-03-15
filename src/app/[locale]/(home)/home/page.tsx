@@ -21,6 +21,7 @@ import {
   getRightsHolderRevenue,
   getRightsHolderSales,
   getRightsHolderTopFilms,
+  getRightsHolderTopViewedFilms,
 } from "@/lib/services/rights-holder-dashboard-service";
 
 import type { Metadata } from "next";
@@ -42,12 +43,14 @@ export default async function HomePage() {
   }
 
   if (activeCookie.type === "rights_holder") {
-    const [kpis, initialRevenue, initialSales, initialTopFilms] = await Promise.all([
-      getRightsHolderDashboardKpis(activeCookie.accountId),
-      getRightsHolderRevenue(activeCookie.accountId, "month", "12m"),
-      getRightsHolderSales(activeCookie.accountId, "month", "12m"),
-      getRightsHolderTopFilms(activeCookie.accountId, "12m"),
-    ]);
+    const [kpis, initialRevenue, initialSales, initialTopFilms, initialTopViewedFilms] =
+      await Promise.all([
+        getRightsHolderDashboardKpis(activeCookie.accountId),
+        getRightsHolderRevenue(activeCookie.accountId, "month", "12m"),
+        getRightsHolderSales(activeCookie.accountId, "month", "12m"),
+        getRightsHolderTopFilms(activeCookie.accountId, "12m"),
+        getRightsHolderTopViewedFilms(activeCookie.accountId, "12m"),
+      ]);
 
     return (
       <RightsHolderDashboardContent
@@ -55,6 +58,7 @@ export default async function HomePage() {
         initialRevenue={initialRevenue}
         initialSales={initialSales}
         initialTopFilms={initialTopFilms}
+        initialTopViewedFilms={initialTopViewedFilms}
         initialGranularity="month"
         initialPeriod="12m"
       />

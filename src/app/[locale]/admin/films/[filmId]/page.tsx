@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { getFilmDetailAction } from "@/app/[locale]/admin/films/actions";
+import { FilmStatsChart } from "@/components/shared/film-stats-chart";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -102,7 +103,7 @@ export default function FilmDetailPage() {
     );
   }
 
-  const { film, orders, totalVolume, totalMargin } = detail;
+  const { film, orders, totalVolume, totalMargin, stats } = detail;
 
   return (
     <div className="space-y-6">
@@ -187,6 +188,9 @@ export default function FilmDetailPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Film analytics */}
+      <FilmStatsChart stats={stats} />
 
       {/* Orders table */}
       <Card>
