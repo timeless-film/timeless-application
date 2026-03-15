@@ -18,7 +18,7 @@ test.describe("Home Page (E13)", () => {
       await setupExhibitor(page, request, "home");
       await page.goto("/en/home");
       await expect(page).toHaveURL(/\/en\/home/);
-      await expect(page.getByRole("heading", { name: /home/i })).toBeVisible({
+      await expect(page.locator("main")).toBeVisible({
         timeout: 15000,
       });
     });
@@ -62,7 +62,7 @@ test.describe("Home Page (E13)", () => {
       await loginAsAdmin(page, adminCtx);
       await page.goto("/en/admin/editorial");
       await expect(page).toHaveURL(/\/en\/admin\/editorial/);
-      await expect(page.getByText("Editorial")).toBeVisible({ timeout: 15000 });
+      await expect(page.getByRole("heading", { name: "Editorial" })).toBeVisible({ timeout: 15000 });
     });
 
     test("admin can create a slideshow section", async ({ page }) => {
@@ -96,19 +96,16 @@ test.describe("Home Page (E13)", () => {
       await page.goto("/en/admin/editorial");
       await expect(page).toHaveURL(/\/en\/admin\/editorial/);
 
-      // Look for an eye toggle button (visibility switch)
-      const visibilityButtons = page.locator('button[aria-label]').filter({ hasText: "" });
-      // If sections exist, try toggling visibility
-      const sectionCards = page.locator("[data-section-id]");
-      const count = await sectionCards.count();
-      if (count > 0) {
-        // Find a visibility toggle in the first section
-        const firstSection = sectionCards.first();
-        const toggleButton = firstSection.locator("button").first();
-        await toggleButton.click();
-        // Should see "Hidden" badge appear or disappear
-        await expect(page.locator("main")).toBeVisible();
-      }
+      // Wait for sections created by previous tests to appear
+      const firstSection = page.locator("[data-section-id]").first();
+      await expect(firstSection).toBeVisible({ timeout: 15000 });
+
+      // Click the visibility toggle (Eye icon button)
+      const toggleButton = firstSection.getByRole("button", { name: /hide|show/i });
+      await toggleButton.click();
+
+      // Should see "Hidden" badge appear
+      await expect(firstSection.getByText(/hidden/i)).toBeVisible({ timeout: 10000 });
     });
 
     test("admin can delete a section", async ({ page }) => {
@@ -121,20 +118,17 @@ test.describe("Home Page (E13)", () => {
       await page.getByRole("menuitem", { name: /editorial cards/i }).click();
       await expect(page.getByText(/section created/i)).toBeVisible({ timeout: 10000 });
 
-      // Now delete it — find the last delete button
-      const deleteButtons = page.getByRole("button").filter({ hasText: "" }).locator("svg");
-      // Click the trash icon on the last section
-      const trashButtons = page.locator("button[class*='destructive'], button:has(svg.lucide-trash-2)");
-      if ((await trashButtons.count()) > 0) {
-        await trashButtons.last().click();
+      // Find the last section and click its delete button
+      const lastSection = page.locator("[data-section-id]").last();
+      await expect(lastSection).toBeVisible({ timeout: 10000 });
+      const deleteButton = lastSection.getByRole("button", { name: /delete/i });
+      await deleteButton.click();
 
-        // Confirm deletion in dialog
-        const confirmButton = page.getByRole("button", { name: /delete/i });
-        if (await confirmButton.isVisible({ timeout: 3000 })) {
-          await confirmButton.click();
-          await expect(page.getByText(/section deleted/i)).toBeVisible({ timeout: 10000 });
-        }
-      }
+      // Confirm deletion in dialog
+      const confirmButton = page.getByRole("alertdialog").getByRole("button", { name: /delete/i });
+      await expect(confirmButton).toBeVisible({ timeout: 5000 });
+      await confirmButton.click();
+      await expect(page.getByText(/section deleted/i)).toBeVisible({ timeout: 10000 });
     });
   });
 });

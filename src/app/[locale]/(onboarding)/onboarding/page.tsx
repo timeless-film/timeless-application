@@ -44,9 +44,9 @@ export default async function OnboardingPage({ params }: { params: Promise<{ loc
   if (membership) {
     account = membership.account;
 
-    // Already completed onboarding — redirect to catalog
+    // Already completed onboarding — redirect to home
     if (account.onboardingCompleted) {
-      redirect(`/${locale}/catalog`);
+      redirect(`/${locale}/home`);
     }
 
     // Members cannot do onboarding — only owner/admin
@@ -119,7 +119,7 @@ async function MemberBlocked() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/40 px-4 py-12">
       <div className="w-full max-w-md text-center">
-        <h1 className="text-2xl font-bold">{t("title")}</h1>
+        <h1 className="font-heading text-2xl">{t("title")}</h1>
         <p className="mt-2 text-muted-foreground">{t("description")}</p>
       </div>
     </div>

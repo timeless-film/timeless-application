@@ -125,7 +125,7 @@ export function LoginForm() {
     return (
       <Card>
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">{t("mfa")}</CardTitle>
+          <CardTitle className="font-heading text-3xl">{t("mfa")}</CardTitle>
           <CardDescription>{t("mfaDescription")}</CardDescription>
         </CardHeader>
         <form onSubmit={handleMfaSubmit}>
@@ -162,7 +162,7 @@ export function LoginForm() {
   return (
     <Card>
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl">{t("title")}</CardTitle>
+        <CardTitle className="font-heading text-3xl">{t("title")}</CardTitle>
         <CardDescription>{t("subtitle")}</CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>

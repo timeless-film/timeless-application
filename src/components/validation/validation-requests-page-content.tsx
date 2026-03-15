@@ -174,7 +174,7 @@ export function ValidationRequestsPageContent({
             data-lpignore="true"
             data-1p-ignore="true"
             aria-label={t("searchPlaceholder")}
-            className="pl-9"
+            className="bg-card pl-9"
           />
         </div>
       </div>
@@ -182,20 +182,34 @@ export function ValidationRequestsPageContent({
       {/* Table */}
       <Table className="table-fixed">
         <TableHeader>
-          <TableRow className="border-border/40">
-            <TableHead className="w-[28%]">{t("columns.film")}</TableHead>
-            <TableHead className="w-[16%]">{t("columns.exhibitor")}</TableHead>
-            <TableHead className="w-[16%]">{t("columns.cinema")}</TableHead>
-            <TableHead className="w-[8%]">{t("columns.screenings")}</TableHead>
-            <TableHead className="w-[12%]">{t("columns.price")}</TableHead>
-            <TableHead className="w-[12%]">{t("columns.requestDate")}</TableHead>
-            <TableHead className="w-[8%]">{t("columns.status")}</TableHead>
+          <TableRow className="bg-muted/35 border-border/60 hover:bg-muted/35">
+            <TableHead className="text-foreground/85 w-[28%] py-3 text-xs tracking-wide uppercase">
+              {t("columns.film")}
+            </TableHead>
+            <TableHead className="text-foreground/85 w-[16%] py-3 text-xs tracking-wide uppercase">
+              {t("columns.exhibitor")}
+            </TableHead>
+            <TableHead className="text-foreground/85 w-[16%] py-3 text-xs tracking-wide uppercase">
+              {t("columns.cinema")}
+            </TableHead>
+            <TableHead className="text-foreground/85 w-[8%] py-3 text-xs tracking-wide uppercase">
+              {t("columns.screenings")}
+            </TableHead>
+            <TableHead className="text-foreground/85 w-[12%] py-3 text-xs tracking-wide uppercase">
+              {t("columns.price")}
+            </TableHead>
+            <TableHead className="text-foreground/85 w-[12%] py-3 text-xs tracking-wide uppercase">
+              {t("columns.requestDate")}
+            </TableHead>
+            <TableHead className="text-foreground/85 w-[8%] py-3 text-xs tracking-wide uppercase">
+              {t("columns.status")}
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {isPending && loadingSource !== "search" ? (
             Array.from({ length: 5 }).map((_, i) => (
-              <TableRow key={`skeleton-${i}`} className="border-b border-border/40">
+              <TableRow key={`skeleton-${i}`} className="border-b border-border/45">
                 <TableCell>
                   <div className="flex items-center gap-3">
                     <Skeleton className="h-12 w-8 rounded" />
@@ -223,14 +237,14 @@ export function ValidationRequestsPageContent({
               </TableRow>
             ))
           ) : requestsList.length === 0 ? (
-            <TableRow className="border-b border-border/40">
+            <TableRow className="border-b border-border/45">
               <TableCell colSpan={7} className="text-muted-foreground py-8 text-center">
                 {t("empty")}
               </TableCell>
             </TableRow>
           ) : (
             requestsList.map((request) => (
-              <TableRow key={request.id} className="border-b border-border/40">
+              <TableRow key={request.id} className="border-b border-border/45 hover:bg-muted/25">
                 <TableCell>
                   <Link
                     href={`/validation-requests/${request.id}`}
@@ -249,7 +263,9 @@ export function ValidationRequestsPageContent({
                         <span className="text-muted-foreground text-xs">🎬</span>
                       </div>
                     )}
-                    <span className="font-medium">{request.film.title}</span>
+                    <span className="font-heading text-base leading-tight">
+                      {request.film.title}
+                    </span>
                   </Link>
                 </TableCell>
                 <TableCell>

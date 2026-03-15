@@ -49,7 +49,7 @@ export function HeroSlideshow({ items, viewFilmLabel }: HeroSlideshowProps) {
       aria-roledescription="carousel"
       aria-label="Featured films"
     >
-      <div className="relative aspect-[21/9] w-full md:aspect-[2.5/1]">
+      <div className="relative aspect-[21/9] w-full md:aspect-[3.2/1] lg:aspect-[3.8/1]">
         {items.map((item, index) => (
           <div
             key={item.id}
@@ -81,14 +81,18 @@ export function HeroSlideshow({ items, viewFilmLabel }: HeroSlideshowProps) {
           <div className="mx-auto w-full max-w-7xl px-4 pb-10 lg:px-6 lg:pb-14">
             <div className="max-w-xl space-y-2">
               {genre && <p className="text-sm font-medium text-white/70">{genre}</p>}
-              <h2 className="text-2xl font-bold text-white drop-shadow-lg md:text-4xl">
+              <h2 className="font-heading text-4xl text-white drop-shadow-lg md:text-6xl">
                 {displayTitle}
               </h2>
               {current.subtitle && (
                 <p className="text-sm text-white/80 md:text-base">{current.subtitle}</p>
               )}
               <div className="pt-2">
-                <Button asChild size="sm" variant="secondary">
+                <Button
+                  asChild
+                  size="sm"
+                  className="bg-accent text-accent-foreground hover:bg-accent/90"
+                >
                   <Link href={`/catalog/${current.film.id}`}>{viewFilmLabel}</Link>
                 </Button>
               </div>

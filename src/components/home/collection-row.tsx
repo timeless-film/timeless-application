@@ -40,7 +40,7 @@ export function CollectionRowComponent({ collection }: CollectionRowComponentPro
     <section className="space-y-3">
       <div className="flex items-center justify-between">
         <Link href={`/playlist/${collection.slug}`} className="group flex items-center gap-1.5">
-          <h2 className="text-lg font-semibold md:text-xl">{collection.title}</h2>
+          <h2 className="font-heading text-2xl tracking-tight md:text-3xl">{collection.title}</h2>
           <ChevronRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
         </Link>
       </div>
@@ -69,7 +69,7 @@ export function CollectionRowComponent({ collection }: CollectionRowComponentPro
         <div
           ref={scrollRef}
           onScroll={updateScrollState}
-          className="scrollbar-hide flex gap-4 overflow-x-auto scroll-smooth pb-2"
+          className="scrollbar-hide -my-2 flex gap-5 overflow-x-auto py-2 scroll-smooth"
           style={{ scrollSnapType: "x mandatory" }}
         >
           {collection.collectionFilms.map((cf) => (

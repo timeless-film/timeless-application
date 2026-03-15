@@ -125,7 +125,11 @@
     "home": "Accueil",
     "editorial": "Éditorial",
     "back": "Retour",
-    "switchLanguage": "English"
+    "switchLanguage": "English",
+    "searchPlaceholder": "Rechercher…",
+    "searchCatalogPlaceholder": "Rechercher par titre, réalisateur, casting…",
+    "searchResults": "Films",
+    "searchFor": "Rechercher \"{query}\" dans le catalogue"
   },
   "home": {
     "title": "Accueil",
@@ -1646,6 +1650,7 @@
     "editorial": {
       "title": "Éditorial",
       "description": "Gérez le contenu éditorial de la page d'accueil : diaporama, collections de films, cartes éditoriales et catalogues par décennie.",
+      "empty": "Aucune section éditoriale pour le moment. Ajoutez-en une pour commencer.",
       "addSection": "Ajouter une section",
       "sectionCreated": "Section créée",
       "sectionDeleted": "Section supprimée",

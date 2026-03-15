@@ -101,23 +101,45 @@ function CatalogRangeFilterControl({
   }
 
   const peak = Math.max(...facet.buckets, 1);
+  const bucketCount = facet.buckets.length;
+  const bucketSpan = facet.max - facet.min;
+
+  function isBucketOutsideSelectedRange(index: number) {
+    if (bucketCount <= 0) {
+      return false;
+    }
+
+    if (bucketSpan === 0) {
+      return draftRange[0] > facet.min || draftRange[1] < facet.max;
+    }
+
+    const bucketStart = facet.min + (index / bucketCount) * bucketSpan;
+    const bucketEnd =
+      index === bucketCount - 1 ? facet.max : facet.min + ((index + 1) / bucketCount) * bucketSpan;
+
+    return bucketEnd < draftRange[0] || bucketStart > draftRange[1];
+  }
 
   return (
-    <div className="space-y-4 rounded-2xl border border-border/70 bg-background p-4 shadow-sm">
+    <div className="space-y-4 py-1">
       <div className="space-y-1">
         <Label className="text-sm font-semibold text-foreground">{title}</Label>
       </div>
 
-      <div className="space-y-3">
+      <div>
         <div className="flex h-18 items-end gap-1.5 px-1">
           {facet.buckets.map((bucket, index) => {
             const height = `${Math.max((bucket / peak) * 100, bucket > 0 ? 16 : 6)}%`;
+            const outsideSelectedRange = isBucketOutsideSelectedRange(index);
 
             return (
               <div
                 key={`${baseId}-${index}`}
-                className="flex-1 rounded-sm bg-primary/90 transition-opacity"
-                style={{ height, opacity: bucket === 0 ? 0.18 : 1 }}
+                className="bg-accent flex-1 transition-opacity"
+                style={{
+                  height,
+                  opacity: outsideSelectedRange ? 0.22 : bucket === 0 ? 0.35 : 0.95,
+                }}
                 aria-hidden="true"
               />
             );

@@ -45,7 +45,7 @@ export default async function PlaylistPage({ params }: PlaylistPageProps) {
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
             <div className="absolute bottom-0 left-0 p-6 lg:p-8">
-              <h1 className="text-2xl font-bold text-white md:text-3xl">{collection.title}</h1>
+              <h1 className="font-heading text-3xl text-white md:text-4xl">{collection.title}</h1>
               {collection.description && (
                 <p className="mt-2 max-w-2xl text-sm text-white/80 md:text-base">
                   {collection.description}

@@ -146,7 +146,7 @@ export function OrdersPageContent({
         </TabsList>
       </Tabs>
 
-      <div className="rounded-md border">
+      <div className="rounded-md">
         <Table className="table-fixed">
           <TableHeader>
             <TableRow>

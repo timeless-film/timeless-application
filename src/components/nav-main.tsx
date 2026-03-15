@@ -30,6 +30,14 @@ export function NavMain({
   }[];
 }) {
   const pathname = usePathname();
+  const normalizedPathname = pathname.replace(/^\/(en|fr)(?=\/|$)/, "") || "/";
+
+  function isItemActive(href: string) {
+    const normalizedHref = href.startsWith("/") ? href : `/${href}`;
+    return (
+      normalizedPathname === normalizedHref || normalizedPathname.startsWith(`${normalizedHref}/`)
+    );
+  }
 
   return (
     <SidebarGroup>
@@ -38,11 +46,7 @@ export function NavMain({
         <SidebarMenu>
           {items.map((item) => (
             <SidebarMenuItem key={item.href}>
-              <SidebarMenuButton
-                asChild
-                isActive={pathname.includes(item.href)}
-                tooltip={item.title}
-              >
+              <SidebarMenuButton asChild isActive={isItemActive(item.href)} tooltip={item.title}>
                 <Link href={item.href}>
                   {item.icon && <item.icon />}
                   <span>{item.title}</span>
@@ -54,7 +58,7 @@ export function NavMain({
                     "rounded-full min-w-5 h-5 text-xs",
                     item.badgeVariant === "destructive" && item.badge > 0
                       ? "bg-destructive !text-white font-semibold"
-                      : "bg-muted text-muted-foreground"
+                      : "bg-sidebar-accent text-sidebar-foreground/60"
                   )}
                 >
                   {item.badge}

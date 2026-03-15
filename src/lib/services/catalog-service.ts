@@ -115,6 +115,7 @@ export interface CatalogRangeFacet {
 }
 
 type CatalogNumericField = "releaseYear" | "duration";
+const RANGE_FACET_BUCKET_COUNT = 18;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -122,13 +123,45 @@ type CatalogNumericField = "releaseYear" | "duration";
  * Returns the list of active cinema countries for an exhibitor account.
  */
 async function getAccountCinemaCountries(accountId: string): Promise<CountryCode[]> {
-  const accountCinemas = await db.query.cinemas.findMany({
-    where: and(eq(cinemas.accountId, accountId), isNull(cinemas.archivedAt)),
+  try {
+    const accountCinemas = await db.query.cinemas.findMany({
+      where: and(eq(cinemas.accountId, accountId), isNull(cinemas.archivedAt)),
+      columns: { country: true },
+    });
+
+    const uniqueCountries = [
+      ...new Set(accountCinemas.map((cinema) => cinema.country as CountryCode)),
+    ];
+
+    if (uniqueCountries.length > 0) {
+      return uniqueCountries;
+    }
+  } catch (error) {
+    const pgErrorCode =
+      typeof error === "object" && error !== null && "code" in error ? String(error.code) : null;
+
+    // Some dev/test databases may not have the cinemas.country column yet.
+    // Fallback to the account country to keep catalog pages operational.
+    if (pgErrorCode !== "42703") {
+      throw error;
+    }
+
+    console.error("Catalog fallback: cinemas.country column missing, using account country", {
+      accountId,
+      code: pgErrorCode,
+    });
+  }
+
+  const account = await db.query.accounts.findFirst({
+    where: eq(accounts.id, accountId),
     columns: { country: true },
   });
 
-  const uniqueCountries = [...new Set(accountCinemas.map((c) => c.country as CountryCode))];
-  return uniqueCountries;
+  if (!account?.country) {
+    return [];
+  }
+
+  return [account.country as CountryCode];
 }
 
 /**
@@ -296,7 +329,7 @@ function buildRangeFacet(values: number[]): CatalogRangeFacet | null {
 
   const min = Math.min(...values);
   const max = Math.max(...values);
-  const buckets = Array.from({ length: 10 }, () => 0);
+  const buckets = Array.from({ length: RANGE_FACET_BUCKET_COUNT }, () => 0);
 
   if (min === max) {
     buckets[0] = values.length;
@@ -306,7 +339,10 @@ function buildRangeFacet(values: number[]): CatalogRangeFacet | null {
   const span = max - min;
 
   for (const value of values) {
-    const bucketIndex = Math.min(9, Math.floor(((value - min) / span) * 10));
+    const bucketIndex = Math.min(
+      RANGE_FACET_BUCKET_COUNT - 1,
+      Math.floor(((value - min) / span) * RANGE_FACET_BUCKET_COUNT)
+    );
     const currentCount = buckets[bucketIndex];
 
     if (currentCount !== undefined) {

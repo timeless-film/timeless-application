@@ -99,7 +99,7 @@ export function WalletTransactionsTable({
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-base font-medium">{t("title")}</CardTitle>
+          <CardTitle className="font-heading text-base">{t("title")}</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground text-sm">{t("empty")}</p>
@@ -111,31 +111,39 @@ export function WalletTransactionsTable({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base font-medium">{t("title")}</CardTitle>
+        <CardTitle className="font-heading text-base">{t("title")}</CardTitle>
       </CardHeader>
       <CardContent>
         <Table className="table-fixed">
           <TableHeader>
-            <TableRow className="border-border/40">
-              <TableHead className="w-[18%]">{t("columns.date")}</TableHead>
-              <TableHead className="w-[26%]">{t("columns.film")}</TableHead>
-              <TableHead className="hidden w-[16%] md:table-cell">{t("columns.cinema")}</TableHead>
-              <TableHead className="hidden w-[12%] lg:table-cell">
+            <TableRow className="bg-muted/35 border-border/60 hover:bg-muted/35">
+              <TableHead className="text-foreground/85 w-[18%] py-3 text-xs tracking-wide uppercase">
+                {t("columns.date")}
+              </TableHead>
+              <TableHead className="text-foreground/85 w-[26%] py-3 text-xs tracking-wide uppercase">
+                {t("columns.film")}
+              </TableHead>
+              <TableHead className="text-foreground/85 hidden w-[16%] py-3 text-xs tracking-wide uppercase md:table-cell">
+                {t("columns.cinema")}
+              </TableHead>
+              <TableHead className="text-foreground/85 hidden w-[12%] py-3 text-xs tracking-wide uppercase lg:table-cell">
                 {t("columns.orderNumber")}
               </TableHead>
-              <TableHead className="hidden w-[10%] text-right lg:table-cell">
+              <TableHead className="text-foreground/85 hidden w-[10%] py-3 text-right text-xs tracking-wide uppercase lg:table-cell">
                 {t("columns.ht")}
               </TableHead>
-              <TableHead className="hidden w-[8%] text-right lg:table-cell">
+              <TableHead className="text-foreground/85 hidden w-[8%] py-3 text-right text-xs tracking-wide uppercase lg:table-cell">
                 {t("columns.vat")}
               </TableHead>
-              <TableHead className="w-[10%] text-right">{t("columns.transferred")}</TableHead>
+              <TableHead className="text-foreground/85 w-[10%] py-3 text-right text-xs tracking-wide uppercase">
+                {t("columns.transferred")}
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isPending
               ? Array.from({ length: 5 }).map((_, i) => (
-                  <TableRow key={`skeleton-${i}`} className="border-b border-border/40">
+                  <TableRow key={`skeleton-${i}`} className="border-b border-border/45">
                     <TableCell>
                       <Skeleton className="h-4 w-20" />
                     </TableCell>
@@ -160,9 +168,9 @@ export function WalletTransactionsTable({
                   </TableRow>
                 ))
               : transactions.map((tx) => (
-                  <TableRow key={tx.id} className="border-b border-border/40">
+                  <TableRow key={tx.id} className="border-b border-border/45 hover:bg-muted/25">
                     <TableCell className="text-sm">{formatDate(tx.date)}</TableCell>
-                    <TableCell className="truncate text-sm font-medium">{tx.filmTitle}</TableCell>
+                    <TableCell className="font-heading truncate text-sm">{tx.filmTitle}</TableCell>
                     <TableCell className="hidden truncate text-sm md:table-cell">
                       {tx.cinemaName}
                     </TableCell>

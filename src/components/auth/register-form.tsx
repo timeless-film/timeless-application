@@ -89,7 +89,7 @@ export function RegisterForm() {
     return (
       <Card>
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">{t("title")}</CardTitle>
+          <CardTitle className="font-heading text-3xl">{t("title")}</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-center text-sm text-muted-foreground">{t("emailSent", { email })}</p>
@@ -108,7 +108,7 @@ export function RegisterForm() {
   return (
     <Card>
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl">{t("title")}</CardTitle>
+        <CardTitle className="font-heading text-3xl">{t("title")}</CardTitle>
         <CardDescription>{t("subtitle")}</CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>

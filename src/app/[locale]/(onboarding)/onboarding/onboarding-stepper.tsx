@@ -154,7 +154,7 @@ export function OnboardingStepper({
               if ("error" in result) {
                 toast.error(t(`error.${result.error}`));
               } else {
-                router.replace("/catalog");
+                router.replace("/home");
               }
               setLoading(false);
             }}

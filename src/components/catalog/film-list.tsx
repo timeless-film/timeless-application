@@ -311,24 +311,34 @@ export function FilmList({ initialFilms, initialTotal, currentUserRole }: FilmLi
           data-lpignore="true"
           data-1p-ignore="true"
           aria-label={t("searchPlaceholder")}
-          className="pl-9"
+          className="bg-card pl-9"
         />
       </div>
 
       <Table className="table-fixed">
         <TableHeader>
-          <TableRow className="border-border/40">
-            <TableHead className="w-[44%]">{t("columns.title")}</TableHead>
-            <TableHead className="w-[14%]">{t("columns.type")}</TableHead>
-            <TableHead className="w-[14%]">{t("columns.status")}</TableHead>
-            <TableHead className="w-[20%]">{t("columns.price")}</TableHead>
-            {canEdit && <TableHead className="w-[8%]" />}
+          <TableRow className="bg-muted/35 border-border/60 hover:bg-muted/35">
+            <TableHead className="text-foreground/85 w-[44%] py-3 text-xs tracking-wide uppercase">
+              {t("columns.title")}
+            </TableHead>
+            <TableHead className="text-foreground/85 w-[14%] py-3 text-xs tracking-wide uppercase">
+              {t("columns.type")}
+            </TableHead>
+            <TableHead className="text-foreground/85 w-[14%] py-3 text-xs tracking-wide uppercase">
+              {t("columns.status")}
+            </TableHead>
+            <TableHead className="text-foreground/85 w-[20%] py-3 text-xs tracking-wide uppercase">
+              {t("columns.price")}
+            </TableHead>
+            {canEdit && (
+              <TableHead className="text-foreground/85 w-[8%] py-3 text-xs tracking-wide uppercase" />
+            )}
           </TableRow>
         </TableHeader>
         <TableBody>
           {loading && loadingSource !== "search" ? (
             Array.from({ length: 5 }).map((_, i) => (
-              <TableRow key={`skeleton-${i}`} className="border-b border-border/40">
+              <TableRow key={`skeleton-${i}`} className="border-b border-border/45">
                 <TableCell>
                   <div className="flex items-center gap-3">
                     <Skeleton className="h-12 w-8 rounded" />
@@ -355,7 +365,7 @@ export function FilmList({ initialFilms, initialTotal, currentUserRole }: FilmLi
               </TableRow>
             ))
           ) : films.length === 0 ? (
-            <TableRow className="border-b border-border/40">
+            <TableRow className="border-b border-border/45">
               <TableCell
                 colSpan={canEdit ? 5 : 4}
                 className="text-muted-foreground py-8 text-center"
@@ -365,7 +375,7 @@ export function FilmList({ initialFilms, initialTotal, currentUserRole }: FilmLi
             </TableRow>
           ) : (
             films.map((film) => (
-              <TableRow key={film.id} className="border-b border-border/40">
+              <TableRow key={film.id} className="border-b border-border/45 hover:bg-muted/25">
                 <TableCell>
                   <div className="flex items-center gap-3">
                     {film.posterUrl ? (
@@ -382,7 +392,7 @@ export function FilmList({ initialFilms, initialTotal, currentUserRole }: FilmLi
                       </div>
                     )}
                     <div>
-                      <div className="font-medium">{film.title}</div>
+                      <div className="font-heading text-base leading-tight">{film.title}</div>
                       <div className="flex items-center gap-2">
                         {film.releaseYear && (
                           <span className="text-muted-foreground text-xs">{film.releaseYear}</span>

@@ -194,6 +194,9 @@ export async function completeOnboarding() {
     .set({ onboardingCompleted: true, updatedAt: new Date() })
     .where(eq(accounts.id, membership.accountId));
 
-  revalidatePath("/", "layout");
+  // No revalidatePath here — the client navigates to /home via router.replace,
+  // which fetches fresh data from the DB. Calling revalidatePath would re-render
+  // the onboarding page (triggering its redirect), competing with the client
+  // navigation and causing a race condition.
   return { success: true as const };
 }

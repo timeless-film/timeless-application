@@ -17,7 +17,7 @@ const LOCALE_TARGETS: Record<Locale, Locale> = {
   fr: "en",
 };
 
-export function LanguageSwitcher() {
+export function LanguageSwitcher({ className }: { className?: string }) {
   const locale = useLocale() as Locale;
   const pathname = usePathname();
   const router = useRouter();
@@ -32,7 +32,7 @@ export function LanguageSwitcher() {
       variant="ghost"
       size="sm"
       onClick={handleSwitch}
-      className="text-muted-foreground hover:text-foreground"
+      className={className ?? "text-muted-foreground hover:text-foreground"}
     >
       {LOCALE_LABELS[locale]}
     </Button>

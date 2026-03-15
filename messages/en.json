@@ -125,7 +125,11 @@
     "home": "Home",
     "editorial": "Editorial",
     "back": "Back",
-    "switchLanguage": "Français"
+    "switchLanguage": "Français",
+    "searchPlaceholder": "Search…",
+    "searchCatalogPlaceholder": "Search films by title, director, cast…",
+    "searchResults": "Films",
+    "searchFor": "Search catalog for \"{query}\""
   },
   "home": {
     "title": "Home",
@@ -1647,6 +1651,7 @@
     "editorial": {
       "title": "Editorial",
       "description": "Manage home page editorial content: hero slideshow, film collections, editorial cards, and decade catalogs.",
+      "empty": "No editorial sections yet. Add one to get started.",
       "addSection": "Add section",
       "sectionCreated": "Section created",
       "sectionDeleted": "Section deleted",

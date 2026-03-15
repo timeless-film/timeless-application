@@ -77,22 +77,32 @@ export function CatalogFilters({
   const activeCount = activeFiltersCount();
 
   return (
-    <div className="space-y-6 p-4 bg-muted/30 rounded-lg border" suppressHydrationWarning>
+    <div
+      className="space-y-6 rounded-xl border border-border/70 bg-card/90 p-5 shadow-sm backdrop-blur-sm"
+      suppressHydrationWarning
+    >
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Filter className="h-5 w-5" />
-          <h3 className="font-semibold">
+          <div className="bg-accent/15 text-accent-foreground flex h-8 w-8 items-center justify-center rounded-full">
+            <Filter className="h-4 w-4" />
+          </div>
+          <h3 className="font-heading text-lg">
             {t("title")}
             {activeCount > 0 && (
-              <Badge variant="secondary" className="ml-2">
+              <Badge variant="secondary" className="ml-2 rounded-full px-2.5">
                 {activeCount}
               </Badge>
             )}
           </h3>
         </div>
         {activeCount > 0 && (
-          <Button variant="ghost" size="sm" onClick={() => void clearFilters()}>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-muted-foreground hover:text-foreground"
+            onClick={() => void clearFilters()}
+          >
             <RotateCcw className="mr-1 h-4 w-4" />
             {t("clearAll")}
           </Button>
@@ -101,24 +111,29 @@ export function CatalogFilters({
 
       {/* Search */}
       <div className="space-y-2">
-        <Label htmlFor="search">{t("search")}</Label>
+        <Label htmlFor="search" className="text-foreground/85 text-xs tracking-wide uppercase">
+          {t("search")}
+        </Label>
         <Input
           id="search"
           type="text"
           placeholder={t("searchPlaceholder")}
           value={filters.search || ""}
           onChange={(e) => void setFilters({ search: e.target.value || null })}
+          className="bg-background"
         />
       </div>
 
       {/* Film Type */}
       <div className="space-y-2">
-        <Label htmlFor="type">{t("filmType")}</Label>
+        <Label htmlFor="type" className="text-foreground/85 text-xs tracking-wide uppercase">
+          {t("filmType")}
+        </Label>
         <Select
           value={filters.type}
           onValueChange={(value) => void setFilters({ type: value as CatalogFiltersState["type"] })}
         >
-          <SelectTrigger id="type">
+          <SelectTrigger id="type" className="bg-background">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -130,7 +145,9 @@ export function CatalogFilters({
 
       {/* Genres */}
       <div className="space-y-2">
-        <Label htmlFor="genres">{t("genre")}</Label>
+        <Label htmlFor="genres" className="text-foreground/85 text-xs tracking-wide uppercase">
+          {t("genre")}
+        </Label>
         <Popover open={isGenrePopoverOpen} onOpenChange={setIsGenrePopoverOpen}>
           <PopoverTrigger asChild>
             <Button
@@ -138,7 +155,7 @@ export function CatalogFilters({
               variant="outline"
               role="combobox"
               aria-expanded={isGenrePopoverOpen}
-              className="w-full justify-between font-normal"
+              className="bg-background w-full justify-between font-normal"
             >
               <span className="truncate text-left">
                 {filters.genres.length > 0
@@ -148,7 +165,10 @@ export function CatalogFilters({
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
+          <PopoverContent
+            className="w-(--radix-popover-trigger-width) border-border/70 bg-popover p-0"
+            align="start"
+          >
             <Command>
               <CommandInput placeholder={t("genresSearchPlaceholder")} />
               <CommandList>
@@ -185,7 +205,7 @@ export function CatalogFilters({
           id="availableForTerritory"
           checked={filters.availableForTerritory}
           onChange={(e) => void setFilters({ availableForTerritory: e.target.checked })}
-          className="h-4 w-4 rounded border-gray-300"
+          className="text-accent focus:ring-accent h-4 w-4 rounded border-input"
         />
         <Label htmlFor="availableForTerritory" className="cursor-pointer">
           {t("availableInMyTerritories")}
@@ -214,11 +234,11 @@ export function CatalogFilters({
 
       {/* Active Filters Summary */}
       {activeCount > 0 && (
-        <div className="pt-4 border-t space-y-2">
+        <div className="space-y-2 border-t border-border/60 pt-4">
           <Label className="text-xs text-muted-foreground">{t("activeFilters")}</Label>
           <div className="flex flex-wrap gap-2">
             {filters.search && (
-              <Badge variant="secondary" className="gap-1">
+              <Badge variant="outline" className="bg-muted/45 gap-1">
                 Search: {filters.search}
                 <X
                   className="h-3 w-3 cursor-pointer"
@@ -227,7 +247,7 @@ export function CatalogFilters({
               </Badge>
             )}
             {filters.type !== "all" && (
-              <Badge variant="secondary" className="gap-1">
+              <Badge variant="outline" className="bg-muted/45 gap-1">
                 Type: {filters.type}
                 <X
                   className="h-3 w-3 cursor-pointer"
@@ -236,7 +256,7 @@ export function CatalogFilters({
               </Badge>
             )}
             {filters.genres.length > 0 && (
-              <Badge variant="secondary" className="gap-1">
+              <Badge variant="outline" className="bg-muted/45 gap-1">
                 {t("genre")}: {filters.genres.slice(0, 2).join(", ")}
                 {filters.genres.length > 2 ? "..." : ""}
                 <X
@@ -246,7 +266,7 @@ export function CatalogFilters({
               </Badge>
             )}
             {filters.yearMin && (
-              <Badge variant="secondary" className="gap-1">
+              <Badge variant="outline" className="bg-muted/45 gap-1">
                 Year ≥ {filters.yearMin}
                 <X
                   className="h-3 w-3 cursor-pointer"
@@ -255,7 +275,7 @@ export function CatalogFilters({
               </Badge>
             )}
             {filters.yearMax && (
-              <Badge variant="secondary" className="gap-1">
+              <Badge variant="outline" className="bg-muted/45 gap-1">
                 Year ≤ {filters.yearMax}
                 <X
                   className="h-3 w-3 cursor-pointer"
@@ -264,7 +284,7 @@ export function CatalogFilters({
               </Badge>
             )}
             {filters.durationMin && (
-              <Badge variant="secondary" className="gap-1">
+              <Badge variant="outline" className="bg-muted/45 gap-1">
                 Duration ≥ {filters.durationMin}min
                 <X
                   className="h-3 w-3 cursor-pointer"
@@ -273,7 +293,7 @@ export function CatalogFilters({
               </Badge>
             )}
             {filters.durationMax && (
-              <Badge variant="secondary" className="gap-1">
+              <Badge variant="outline" className="bg-muted/45 gap-1">
                 Duration ≤ {filters.durationMax}min
                 <X
                   className="h-3 w-3 cursor-pointer"
@@ -282,7 +302,7 @@ export function CatalogFilters({
               </Badge>
             )}
             {!filters.availableForTerritory && (
-              <Badge variant="secondary" className="gap-1">
+              <Badge variant="outline" className="bg-muted/45 gap-1">
                 Show all territories
                 <X
                   className="h-3 w-3 cursor-pointer"

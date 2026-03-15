@@ -220,7 +220,7 @@ export function OrderList({ initialOrders, initialTotal }: OrderListProps) {
       </div>
 
       {/* Table */}
-      <div className="rounded-md border">
+      <div className="rounded-md">
         <Table className="table-fixed">
           <TableHeader>
             <TableRow>

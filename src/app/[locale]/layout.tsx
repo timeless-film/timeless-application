@@ -10,11 +10,14 @@ import { routing } from "@/i18n/routing";
 
 const openSans = Open_Sans({
   variable: "--font-open-sans",
+  display: "swap",
+  weight: ["400", "500", "600", "700"],
   subsets: ["latin"],
 });
 
 const gloock = Gloock({
   variable: "--font-gloock",
+  display: "swap",
   weight: "400",
   subsets: ["latin"],
 });

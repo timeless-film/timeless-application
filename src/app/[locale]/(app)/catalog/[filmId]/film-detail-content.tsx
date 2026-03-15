@@ -67,7 +67,6 @@ export function FilmDetailContent({
               sizes="100vw"
               priority
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent" />
           </div>
         )}
 

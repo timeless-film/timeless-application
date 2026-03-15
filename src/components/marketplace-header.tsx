@@ -22,6 +22,7 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { HeaderSearch } from "@/components/header-search";
 import { useAccountContext } from "@/components/providers/account-provider";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -127,11 +128,11 @@ export function MarketplaceHeader({ user }: MarketplaceHeaderProps) {
   }
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 border-b border-white/10 bg-[oklch(0.10_0_0)]">
       <div className="mx-auto flex h-14 max-w-7xl items-center px-4 lg:px-6">
         {/* Logo */}
         <Link href="/" className="mr-8 flex items-center gap-2">
-          <span className="font-heading text-xl tracking-tight">Timeless</span>
+          <span className="font-heading text-xl tracking-tight text-white">Timeless</span>
         </Link>
 
         {/* Desktop nav */}
@@ -141,10 +142,8 @@ export function MarketplaceHeader({ user }: MarketplaceHeaderProps) {
               key={link.href}
               href={link.href}
               className={cn(
-                "flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
-                pathname.includes(link.href)
-                  ? "bg-accent text-accent-foreground"
-                  : "text-muted-foreground"
+                "flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:text-white",
+                pathname.includes(link.href) ? "text-white" : "text-white/60"
               )}
             >
               <link.icon className="h-4 w-4" />
@@ -155,6 +154,9 @@ export function MarketplaceHeader({ user }: MarketplaceHeaderProps) {
 
         <div className="flex-1" />
 
+        {/* Search */}
+        <HeaderSearch />
+
         {/* Right side */}
         <div className="flex items-center gap-2">
           {/* Active account indicator / switcher */}
@@ -162,7 +164,11 @@ export function MarketplaceHeader({ user }: MarketplaceHeaderProps) {
             (hasMultipleAccounts ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="hidden gap-1.5 md:flex">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="hidden gap-1.5 text-white/70 hover:bg-white/10 hover:text-white md:flex"
+                  >
                     {(() => {
                       const Icon = TYPE_ICONS[activeMembership.account.type];
                       return <Icon className="h-4 w-4" />;
@@ -170,7 +176,7 @@ export function MarketplaceHeader({ user }: MarketplaceHeaderProps) {
                     <span className="max-w-[120px] truncate text-sm">
                       {activeMembership.account.companyName}
                     </span>
-                    <ChevronsUpDownIcon className="h-3.5 w-3.5 text-muted-foreground" />
+                    <ChevronsUpDownIcon className="h-3.5 w-3.5 text-white/40" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
@@ -196,7 +202,7 @@ export function MarketplaceHeader({ user }: MarketplaceHeaderProps) {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <div className="hidden items-center gap-1.5 rounded-md px-3 py-1.5 text-sm text-muted-foreground md:flex">
+              <div className="hidden items-center gap-1.5 rounded-md px-3 py-1.5 text-sm text-white/50 md:flex">
                 {(() => {
                   const Icon = TYPE_ICONS[activeMembership.account.type];
                   return <Icon className="h-4 w-4" />;
@@ -208,11 +214,16 @@ export function MarketplaceHeader({ user }: MarketplaceHeaderProps) {
             ))}
 
           {/* Cart */}
-          <Button variant="ghost" size="icon" asChild className="relative">
+          <Button
+            variant="ghost"
+            size="icon"
+            asChild
+            className="relative text-white/70 hover:bg-white/10 hover:text-white"
+          >
             <Link href="/cart">
               <ShoppingCartIcon className="h-5 w-5" />
               {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-semibold rounded-full h-5 w-5 flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 bg-accent text-accent-foreground text-xs font-semibold rounded-full h-5 w-5 flex items-center justify-center">
                   {cartCount}
                 </span>
               )}
@@ -223,9 +234,13 @@ export function MarketplaceHeader({ user }: MarketplaceHeaderProps) {
           {/* User menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="rounded-full">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="rounded-full text-white/70 hover:bg-white/10 hover:text-white"
+              >
                 <Avatar className="h-8 w-8">
-                  <AvatarFallback className="text-xs">
+                  <AvatarFallback className="bg-white/20 text-xs font-semibold tracking-wide text-white ring-1 ring-white/25">
                     {getInitials(user.name || user.email)}
                   </AvatarFallback>
                 </Avatar>
@@ -258,14 +273,21 @@ export function MarketplaceHeader({ user }: MarketplaceHeaderProps) {
           {/* Mobile menu */}
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="md:hidden">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-white/70 hover:bg-white/10 hover:text-white md:hidden"
+              >
                 <MenuIcon className="h-5 w-5" />
                 <span className="sr-only">Menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-72">
+            <SheetContent
+              side="right"
+              className="w-72 bg-[oklch(0.10_0_0)] border-white/10 text-white"
+            >
               <SheetHeader>
-                <SheetTitle className="font-heading">TIMELESS</SheetTitle>
+                <SheetTitle className="font-heading text-white">TIMELESS</SheetTitle>
               </SheetHeader>
               <nav className="mt-6 flex flex-col gap-1">
                 {mainNav.map((link) => (
@@ -273,18 +295,16 @@ export function MarketplaceHeader({ user }: MarketplaceHeaderProps) {
                     key={link.href}
                     href={link.href}
                     className={cn(
-                      "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors hover:bg-accent",
-                      pathname.includes(link.href)
-                        ? "bg-accent text-accent-foreground"
-                        : "text-muted-foreground"
+                      "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors hover:bg-white/10",
+                      pathname.includes(link.href) ? "text-white" : "text-white/60"
                     )}
                   >
                     <link.icon className="h-4 w-4" />
                     {link.title}
                   </Link>
                 ))}
-                <div className="my-2 border-t" />
-                <p className="px-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                <div className="my-2 border-t border-white/10" />
+                <p className="px-3 text-xs font-medium uppercase tracking-wider text-white/40">
                   {t("account")}
                 </p>
                 {accountNav.map((link) => (
@@ -292,10 +312,8 @@ export function MarketplaceHeader({ user }: MarketplaceHeaderProps) {
                     key={link.href}
                     href={link.href}
                     className={cn(
-                      "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors hover:bg-accent",
-                      pathname.includes(link.href)
-                        ? "bg-accent text-accent-foreground"
-                        : "text-muted-foreground"
+                      "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors hover:bg-white/10",
+                      pathname.includes(link.href) ? "text-white" : "text-white/60"
                     )}
                   >
                     <link.icon className="h-4 w-4" />

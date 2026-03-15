@@ -64,7 +64,7 @@ function DecadeRow({
   return (
     <section className="space-y-3">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold md:text-xl">
+        <h2 className="font-heading text-2xl tracking-tight md:text-3xl">
           {decadeLabel.replace("{decade}", String(decade.decade))}
         </h2>
         <Link
@@ -98,7 +98,7 @@ function DecadeRow({
         <div
           ref={scrollRef}
           onScroll={updateScrollState}
-          className="scrollbar-hide flex gap-4 overflow-x-auto scroll-smooth pb-2"
+          className="scrollbar-hide -my-2 flex gap-5 overflow-x-auto py-2 scroll-smooth"
           style={{ scrollSnapType: "x mandatory" }}
         >
           {decade.films.map((film) => (

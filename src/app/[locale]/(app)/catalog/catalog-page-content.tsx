@@ -113,9 +113,9 @@ export function CatalogPageContent({
       </div>
 
       {/* Filters + Results Layout */}
-      <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
+      <div className="grid gap-6 lg:grid-cols-[300px_1fr] lg:items-start">
         {/* Sidebar: Filters */}
-        <aside className="space-y-4">
+        <aside className="space-y-4 lg:sticky lg:top-24">
           <CatalogFilters
             genreOptions={genreOptions}
             releaseYearRange={releaseYearRange}

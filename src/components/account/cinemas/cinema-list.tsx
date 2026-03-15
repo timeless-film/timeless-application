@@ -168,7 +168,7 @@ export function CinemaList({
           <p className="mt-2 text-sm text-muted-foreground">{t("empty")}</p>
         </div>
       ) : (
-        <Accordion type="single" collapsible className="rounded-md border">
+        <Accordion type="single" collapsible className="rounded-md">
           {cinemas.map((cinema) => (
             <AccordionItem key={cinema.id} value={cinema.id}>
               <AccordionTrigger className="px-4">

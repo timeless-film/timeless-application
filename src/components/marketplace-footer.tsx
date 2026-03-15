@@ -81,8 +81,8 @@ export function MarketplaceFooter({ initialCurrency }: MarketplaceFooterProps) {
   }
 
   return (
-    <footer className="border-t border-border/40">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-6 text-sm text-muted-foreground lg:px-6">
+    <footer className="border-t border-white/10 bg-[oklch(0.10_0_0)]">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-6 text-sm text-white/50 lg:px-6">
         <p>{t("copyright", { year: new Date().getFullYear() })}</p>
         <div className="flex items-center gap-1">
           {/* Language */}
@@ -90,7 +90,7 @@ export function MarketplaceFooter({ initialCurrency }: MarketplaceFooterProps) {
             variant="ghost"
             size="sm"
             onClick={handleSwitchLanguage}
-            className="gap-2 text-muted-foreground hover:text-foreground"
+            className="gap-2 text-white/50 hover:bg-white/10 hover:text-white"
           >
             <GlobeIcon className="h-4 w-4" />
             {LOCALE_LABELS[locale]}
@@ -105,7 +105,7 @@ export function MarketplaceFooter({ initialCurrency }: MarketplaceFooterProps) {
                 role="combobox"
                 aria-expanded={currencyOpen}
                 disabled={isPending}
-                className="gap-1 text-muted-foreground hover:text-foreground"
+                className="gap-1 text-white/50 hover:bg-white/10 hover:text-white"
               >
                 {currencySymbol} {currency}
                 <ChevronsUpDownIcon className="h-3 w-3 opacity-50" />

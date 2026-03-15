@@ -44,7 +44,7 @@ export function FilmCard({ film, locale }: FilmCardProps) {
       href={`/catalog/${film.id}`}
       className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-lg"
     >
-      <Card className="group relative h-[360px] cursor-pointer overflow-hidden border-border/70 bg-card/95 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl">
+      <Card className="group relative h-[380px] cursor-pointer overflow-hidden bg-card/95 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl">
         {/* Cover image */}
         <div className="relative h-36 w-full overflow-hidden bg-muted/60">
           <ImageWithFallback
@@ -53,7 +53,6 @@ export function FilmCard({ film, locale }: FilmCardProps) {
             className={coverImageClassName}
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-card via-card/45 to-transparent" />
 
           {/* Availability badge (top-right) */}
           {film.isAvailableInTerritory && (
@@ -67,7 +66,7 @@ export function FilmCard({ film, locale }: FilmCardProps) {
         </div>
 
         {/* Content */}
-        <div className="-mt-[65px] flex h-[216px] flex-col p-4 pt-0">
+        <div className="-mt-[55px] flex h-[226px] flex-col p-4 pt-0">
           <div className="flex items-end gap-4">
             <div className="relative h-32 w-24 shrink-0 overflow-hidden rounded-md border border-background/90 bg-muted shadow-2xl">
               <ImageWithFallback
@@ -79,7 +78,7 @@ export function FilmCard({ film, locale }: FilmCardProps) {
             </div>
 
             <div className="min-w-0 flex-1 pb-0.5">
-              <h3 className="line-clamp-2 text-base font-semibold leading-tight">{film.title}</h3>
+              <h3 className="font-heading line-clamp-2 text-lg leading-tight">{film.title}</h3>
               {film.directors && film.directors.length > 0 && (
                 <p className="line-clamp-1 text-sm text-muted-foreground/90">{film.directors[0]}</p>
               )}
@@ -114,7 +113,7 @@ export function FilmCard({ film, locale }: FilmCardProps) {
 
             {/* Price / availability (always pinned to bottom) */}
             <div className="mt-auto pt-2">
-              <div className="rounded-md border border-border/60 bg-muted/35 p-2.5">
+              <div className="rounded-md bg-muted/50 p-2.5">
                 {film.isAvailableInTerritory ? (
                   <div className="space-y-1.5">
                     {film.displayedPrice !== null && (

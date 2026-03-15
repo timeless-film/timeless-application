@@ -110,7 +110,7 @@ export function WalletPayoutsTable({
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-base font-medium">{t("title")}</CardTitle>
+          <CardTitle className="font-heading text-base">{t("title")}</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground text-sm">{t("empty")}</p>
@@ -122,22 +122,30 @@ export function WalletPayoutsTable({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base font-medium">{t("title")}</CardTitle>
+        <CardTitle className="font-heading text-base">{t("title")}</CardTitle>
       </CardHeader>
       <CardContent>
         <Table className="table-fixed">
           <TableHeader>
-            <TableRow className="border-border/40">
-              <TableHead className="w-[25%]">{t("columns.date")}</TableHead>
-              <TableHead className="w-[25%] text-right">{t("columns.amount")}</TableHead>
-              <TableHead className="w-[25%]">{t("columns.status")}</TableHead>
-              <TableHead className="w-[25%]">{t("columns.arrivalDate")}</TableHead>
+            <TableRow className="bg-muted/35 border-border/60 hover:bg-muted/35">
+              <TableHead className="text-foreground/85 w-[25%] py-3 text-xs tracking-wide uppercase">
+                {t("columns.date")}
+              </TableHead>
+              <TableHead className="text-foreground/85 w-[25%] py-3 text-right text-xs tracking-wide uppercase">
+                {t("columns.amount")}
+              </TableHead>
+              <TableHead className="text-foreground/85 w-[25%] py-3 text-xs tracking-wide uppercase">
+                {t("columns.status")}
+              </TableHead>
+              <TableHead className="text-foreground/85 w-[25%] py-3 text-xs tracking-wide uppercase">
+                {t("columns.arrivalDate")}
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isPending
               ? Array.from({ length: 5 }).map((_, i) => (
-                  <TableRow key={`skeleton-${i}`} className="border-b border-border/40">
+                  <TableRow key={`skeleton-${i}`} className="border-b border-border/45">
                     <TableCell>
                       <Skeleton className="h-4 w-20" />
                     </TableCell>
@@ -153,7 +161,7 @@ export function WalletPayoutsTable({
                   </TableRow>
                 ))
               : payouts.map((payout) => (
-                  <TableRow key={payout.id} className="border-b border-border/40">
+                  <TableRow key={payout.id} className="border-b border-border/45 hover:bg-muted/25">
                     <TableCell className="text-sm">{formatDate(payout.createdAt)}</TableCell>
                     <TableCell className="text-right text-sm font-medium">
                       {formatAmount(payout.amount, payout.currency, locale)}
