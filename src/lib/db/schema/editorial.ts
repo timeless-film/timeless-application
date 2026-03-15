@@ -120,6 +120,8 @@ export const editorialCards = pgTable(
       .references(() => editorialSections.id, { onDelete: "cascade" }),
     title: text("title").notNull(),
     titleFr: text("title_fr"),
+    description: text("description"),
+    descriptionFr: text("description_fr"),
     imageUrl: text("image_url").notNull(),
     href: text("href").notNull(),
     position: integer("position").notNull().default(0),

@@ -66,7 +66,7 @@ export default async function HomePage() {
   const locale = await getLocale();
 
   return (
-    <div className="dark bg-[#111111] text-white space-y-10 pb-12">
+    <div className="dark space-y-10 bg-[#111111] pb-12 text-white">
       <Suspense fallback={<SlideshowSkeleton />}>
         <EditorialSections
           viewFilmLabel={t("slideshow.viewFilm")}
@@ -105,11 +105,6 @@ async function EditorialSections({
           if (cols.length === 0) return null;
           return (
             <div key={section.id} className="mx-auto max-w-7xl space-y-8 px-4 lg:px-6">
-              {section.title && (
-                <h2 className="font-heading text-2xl tracking-tight md:text-3xl">
-                  {section.title}
-                </h2>
-              )}
               {cols.map((col) => (
                 <CollectionRowComponent key={col.id} collection={col} />
               ))}

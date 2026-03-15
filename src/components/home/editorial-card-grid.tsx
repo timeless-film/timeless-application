@@ -15,16 +15,20 @@ export function EditorialCardGrid({ cards }: EditorialCardGridProps) {
         const isExternal = !card.href.startsWith("/");
 
         const content = (
-          <div className="group relative aspect-[3/2] overflow-hidden rounded-lg shadow-md transition-all duration-300 hover:shadow-xl">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={card.imageUrl}
-              alt={card.title}
-              className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-            <div className="absolute bottom-0 left-0 p-3">
-              <p className="text-sm font-semibold text-white md:text-base">{card.title}</p>
+          <div className="group space-y-2">
+            <div className="relative aspect-[3/2] overflow-hidden rounded-lg shadow-md transition-all duration-300 group-hover:shadow-xl">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={card.imageUrl}
+                alt={card.title}
+                className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+              />
+            </div>
+            <div>
+              <p className="text-sm font-semibold md:text-base">{card.title}</p>
+              {card.description && (
+                <p className="text-xs text-muted-foreground md:text-sm">{card.description}</p>
+              )}
             </div>
           </div>
         );

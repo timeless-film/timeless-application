@@ -32,20 +32,25 @@ export async function searchFilmSuggestions(
     return { suggestions: [] };
   }
 
-  const result = await getCatalogForExhibitor(
-    activeAccount.accountId,
-    { search: trimmed },
-    { page: 1, limit: 5 },
-    { field: "title", order: "asc" }
-  );
+  try {
+    const result = await getCatalogForExhibitor(
+      activeAccount.accountId,
+      { search: trimmed, availableForTerritory: false },
+      { page: 1, limit: 5 },
+      { field: "title", order: "asc" }
+    );
 
-  return {
-    suggestions: result.films.map((film) => ({
-      id: film.id,
-      title: film.title,
-      posterUrl: film.posterUrl,
-      releaseYear: film.releaseYear,
-      directors: film.directors,
-    })),
-  };
+    return {
+      suggestions: result.films.map((film) => ({
+        id: film.id,
+        title: film.title,
+        posterUrl: film.posterUrl,
+        releaseYear: film.releaseYear,
+        directors: film.directors,
+      })),
+    };
+  } catch (error) {
+    console.error("[searchFilmSuggestions] Failed to fetch suggestions:", error);
+    return { suggestions: [] };
+  }
 }

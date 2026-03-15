@@ -66,6 +66,7 @@ export interface EditorialCardRow {
   id: string;
   sectionId: string;
   title: string;
+  description: string | null;
   imageUrl: string;
   href: string;
   position: number;
@@ -232,6 +233,7 @@ export async function getEditorialCards(
     id: card.id,
     sectionId: card.sectionId,
     title: localizedRequired(card.title, card.titleFr, locale),
+    description: localized(card.description, card.descriptionFr, locale),
     imageUrl: card.imageUrl,
     href: card.href,
     position: card.position,
@@ -513,6 +515,8 @@ export async function addEditorialCard(input: {
   sectionId: string;
   title: string;
   titleFr?: string;
+  description?: string;
+  descriptionFr?: string;
   imageUrl: string;
   href: string;
 }): Promise<void> {
@@ -526,6 +530,8 @@ export async function addEditorialCard(input: {
     sectionId: input.sectionId,
     title: input.title,
     titleFr: input.titleFr ?? null,
+    description: input.description ?? null,
+    descriptionFr: input.descriptionFr ?? null,
     imageUrl: input.imageUrl,
     href: input.href,
     position: nextPosition,
@@ -534,7 +540,14 @@ export async function addEditorialCard(input: {
 
 export async function updateEditorialCard(
   cardId: string,
-  input: { title?: string; titleFr?: string | null; imageUrl?: string; href?: string }
+  input: {
+    title?: string;
+    titleFr?: string | null;
+    description?: string | null;
+    descriptionFr?: string | null;
+    imageUrl?: string;
+    href?: string;
+  }
 ): Promise<void> {
   await db
     .update(editorialCards)

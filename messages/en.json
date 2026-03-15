@@ -1697,6 +1697,7 @@
       "addCard": "Add card",
       "editCard": "Edit card",
       "cardTitle": "Title",
+      "cardDescription": "Description",
       "cardImageUrl": "Image URL",
       "cardHref": "Link URL",
       "cardAdded": "Card added",

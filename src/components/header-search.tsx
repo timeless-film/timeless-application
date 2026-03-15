@@ -60,9 +60,14 @@ export function HeaderSearch() {
 
     setLoading(true);
     debounceRef.current = setTimeout(async () => {
-      const result = await searchFilmSuggestions(trimmed);
-      setSuggestions(result.suggestions);
-      setLoading(false);
+      try {
+        const result = await searchFilmSuggestions(trimmed);
+        setSuggestions(result.suggestions);
+      } catch {
+        setSuggestions([]);
+      } finally {
+        setLoading(false);
+      }
     }, 250);
   }
 

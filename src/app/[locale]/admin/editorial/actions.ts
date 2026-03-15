@@ -190,6 +190,8 @@ export async function addEditorialCardAction(input: {
   sectionId: string;
   title: string;
   titleFr?: string;
+  description?: string;
+  descriptionFr?: string;
   imageUrl: string;
   href: string;
 }) {
@@ -201,7 +203,14 @@ export async function addEditorialCardAction(input: {
 
 export async function updateEditorialCardAction(
   cardId: string,
-  input: { title?: string; titleFr?: string | null; imageUrl?: string; href?: string }
+  input: {
+    title?: string;
+    titleFr?: string | null;
+    description?: string | null;
+    descriptionFr?: string | null;
+    imageUrl?: string;
+    href?: string;
+  }
 ) {
   const auth = await requireAdmin();
   if ("error" in auth) return auth;

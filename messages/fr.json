@@ -1696,6 +1696,7 @@
       "addCard": "Ajouter une carte",
       "editCard": "Modifier la carte",
       "cardTitle": "Titre",
+      "cardDescription": "Description",
       "cardImageUrl": "URL de l'image",
       "cardHref": "URL du lien",
       "cardAdded": "Carte ajoutée",

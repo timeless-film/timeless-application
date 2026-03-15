@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 import {
   addEditorialCardAction,
@@ -30,6 +31,8 @@ interface EditorialCard {
   sectionId: string;
   title: string;
   titleFr: string | null;
+  description: string | null;
+  descriptionFr: string | null;
   imageUrl: string;
   href: string;
   position: number;
@@ -49,6 +52,8 @@ export function CardsEditor({ sectionId, initialCards }: CardsEditorProps) {
   const [addOpen, setAddOpen] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [newTitleFr, setNewTitleFr] = useState("");
+  const [newDescription, setNewDescription] = useState("");
+  const [newDescriptionFr, setNewDescriptionFr] = useState("");
   const [newImageUrl, setNewImageUrl] = useState("");
   const [newHref, setNewHref] = useState("");
 
@@ -56,6 +61,8 @@ export function CardsEditor({ sectionId, initialCards }: CardsEditorProps) {
   const [editCardId, setEditCardId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
   const [editTitleFr, setEditTitleFr] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editDescriptionFr, setEditDescriptionFr] = useState("");
   const [editImageUrl, setEditImageUrl] = useState("");
   const [editHref, setEditHref] = useState("");
 
@@ -67,6 +74,8 @@ export function CardsEditor({ sectionId, initialCards }: CardsEditorProps) {
         sectionId,
         title: newTitle.trim(),
         titleFr: newTitleFr.trim() || undefined,
+        description: newDescription.trim() || undefined,
+        descriptionFr: newDescriptionFr.trim() || undefined,
         imageUrl: newImageUrl.trim(),
         href: newHref.trim(),
       });
@@ -78,6 +87,8 @@ export function CardsEditor({ sectionId, initialCards }: CardsEditorProps) {
       setAddOpen(false);
       setNewTitle("");
       setNewTitleFr("");
+      setNewDescription("");
+      setNewDescriptionFr("");
       setNewImageUrl("");
       setNewHref("");
       // Reload cards
@@ -93,6 +104,8 @@ export function CardsEditor({ sectionId, initialCards }: CardsEditorProps) {
     setEditCardId(card.id);
     setEditTitle(card.title);
     setEditTitleFr(card.titleFr ?? "");
+    setEditDescription(card.description ?? "");
+    setEditDescriptionFr(card.descriptionFr ?? "");
     setEditImageUrl(card.imageUrl);
     setEditHref(card.href);
   }
@@ -104,6 +117,8 @@ export function CardsEditor({ sectionId, initialCards }: CardsEditorProps) {
       const result = await updateEditorialCardAction(editCardId, {
         title: editTitle.trim(),
         titleFr: editTitleFr.trim() || null,
+        description: editDescription.trim() || null,
+        descriptionFr: editDescriptionFr.trim() || null,
         imageUrl: editImageUrl.trim(),
         href: editHref.trim(),
       });
@@ -118,6 +133,8 @@ export function CardsEditor({ sectionId, initialCards }: CardsEditorProps) {
                 ...c,
                 title: editTitle.trim(),
                 titleFr: editTitleFr.trim() || null,
+                description: editDescription.trim() || null,
+                descriptionFr: editDescriptionFr.trim() || null,
                 imageUrl: editImageUrl.trim(),
                 href: editHref.trim(),
               }
@@ -190,6 +207,25 @@ export function CardsEditor({ sectionId, initialCards }: CardsEditorProps) {
                 value={newTitleFr}
                 onChange={(e) => setNewTitleFr(e.target.value)}
                 placeholder={t("frenchTranslation")}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="cardDescription">{t("cardDescription")} (EN)</Label>
+              <Textarea
+                id="cardDescription"
+                value={newDescription}
+                onChange={(e) => setNewDescription(e.target.value)}
+                rows={2}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="cardDescriptionFr">{t("cardDescription")} (FR)</Label>
+              <Textarea
+                id="cardDescriptionFr"
+                value={newDescriptionFr}
+                onChange={(e) => setNewDescriptionFr(e.target.value)}
+                placeholder={t("frenchTranslation")}
+                rows={2}
               />
             </div>
             <div className="space-y-2">
@@ -312,6 +348,25 @@ export function CardsEditor({ sectionId, initialCards }: CardsEditorProps) {
                 value={editTitleFr}
                 onChange={(e) => setEditTitleFr(e.target.value)}
                 placeholder={t("frenchTranslation")}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="editCardDescription">{t("cardDescription")} (EN)</Label>
+              <Textarea
+                id="editCardDescription"
+                value={editDescription}
+                onChange={(e) => setEditDescription(e.target.value)}
+                rows={2}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="editCardDescriptionFr">{t("cardDescription")} (FR)</Label>
+              <Textarea
+                id="editCardDescriptionFr"
+                value={editDescriptionFr}
+                onChange={(e) => setEditDescriptionFr(e.target.value)}
+                placeholder={t("frenchTranslation")}
+                rows={2}
               />
             </div>
             <div className="space-y-2">
