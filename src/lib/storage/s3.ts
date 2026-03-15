@@ -35,6 +35,7 @@ export async function uploadToS3(
       Body: buffer,
       ContentType: contentType,
       CacheControl: "public, max-age=31536000, immutable",
+      ACL: "public-read",
     })
   );
 
