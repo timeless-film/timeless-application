@@ -25,6 +25,7 @@
 .DS_Store
 *.pem
 /Documentation
+/docs/product
 
 # debug
 npm-debug.log*
