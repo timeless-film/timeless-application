@@ -1,9 +1,12 @@
 "use client";
 
+import { ImageIcon, LayoutList } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
+import { useState } from "react";
 
 import { CatalogFilters } from "@/components/catalog/catalog-filters";
 import { FilmCard } from "@/components/catalog/film-card";
+import { FilmCardSimple } from "@/components/catalog/film-card-simple";
 import {
   Pagination,
   PaginationContent,
@@ -19,10 +22,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useCatalogFilters } from "@/hooks/use-catalog-filters";
 
 import type { CatalogFiltersState } from "@/hooks/use-catalog-filters";
-import type { CatalogRangeFacet, FilmWithAvailability } from "@/lib/services/catalog-service";
+import type {
+  CatalogRangeFacet,
+  FilmWithAvailability,
+  GenreOption,
+} from "@/lib/services/catalog-service";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -31,7 +39,10 @@ interface CatalogPageContentProps {
   initialTotal: number;
   initialPage: number;
   initialLimit: number;
-  genreOptions: string[];
+  genreOptions: GenreOption[];
+  directorOptions: string[];
+  actorOptions: string[];
+  companyOptions: string[];
   totalPlatformFilms: number;
   releaseYearRange: CatalogRangeFacet | null;
   durationRange: CatalogRangeFacet | null;
@@ -48,6 +59,9 @@ export function CatalogPageContent({
   initialPage,
   initialLimit,
   genreOptions,
+  directorOptions,
+  actorOptions,
+  companyOptions,
   totalPlatformFilms,
   releaseYearRange,
   durationRange,
@@ -58,6 +72,19 @@ export function CatalogPageContent({
   const t = useTranslations("catalog");
   const locale = useLocale();
   const { filters, setFilters } = useCatalogFilters(defaultPriceCurrency);
+
+  const [viewMode, setViewMode] = useState<"dense" | "simple">(() => {
+    if (typeof window === "undefined") return "dense";
+    const stored = localStorage.getItem("catalog-view-mode");
+    return stored === "simple" ? "simple" : "dense";
+  });
+
+  function handleViewModeChange(value: string) {
+    if (value === "dense" || value === "simple") {
+      setViewMode(value);
+      localStorage.setItem("catalog-view-mode", value);
+    }
+  }
 
   const totalPages = Math.ceil(initialTotal / initialLimit);
 
@@ -82,8 +109,8 @@ export function CatalogPageContent({
           </span>
         </div>
 
-        {/* Sort controls */}
-        <div className="flex items-center gap-2">
+        {/* Sort + View controls */}
+        <div className="flex items-center gap-3">
           <span className="text-sm text-muted-foreground">{t("sortBy")}</span>
           <Select
             value={filters.sort}
@@ -115,6 +142,20 @@ export function CatalogPageContent({
               <SelectItem value="desc">{t("sortDesc")}</SelectItem>
             </SelectContent>
           </Select>
+
+          <ToggleGroup
+            type="single"
+            value={viewMode}
+            onValueChange={handleViewModeChange}
+            className="h-9"
+          >
+            <ToggleGroupItem value="dense" aria-label={t("viewDense")} className="px-2.5">
+              <LayoutList className="h-4 w-4" />
+            </ToggleGroupItem>
+            <ToggleGroupItem value="simple" aria-label={t("viewSimple")} className="px-2.5">
+              <ImageIcon className="h-4 w-4" />
+            </ToggleGroupItem>
+          </ToggleGroup>
         </div>
       </div>
 
@@ -124,6 +165,9 @@ export function CatalogPageContent({
         <aside className="space-y-4 lg:sticky lg:top-24">
           <CatalogFilters
             genreOptions={genreOptions}
+            directorOptions={directorOptions}
+            actorOptions={actorOptions}
+            companyOptions={companyOptions}
             releaseYearRange={releaseYearRange}
             durationRange={durationRange}
             unitPriceRange={unitPriceRange}
@@ -140,10 +184,20 @@ export function CatalogPageContent({
               <p className="text-muted-foreground">{t("noResults")}</p>
             </div>
           ) : (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {initialFilms.map((film) => (
-                <FilmCard key={film.id} film={film} locale={locale} />
-              ))}
+            <div
+              className={
+                viewMode === "simple"
+                  ? "grid gap-5 sm:grid-cols-2"
+                  : "grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+              }
+            >
+              {initialFilms.map((film) =>
+                viewMode === "simple" ? (
+                  <FilmCardSimple key={film.id} film={film} />
+                ) : (
+                  <FilmCard key={film.id} film={film} locale={locale} />
+                )
+              )}
             </div>
           )}
 

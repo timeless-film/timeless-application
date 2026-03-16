@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 
 import { db } from "@/lib/db";
 import { films } from "@/lib/db/schema";
+import { syncFilmTmdbRelations } from "@/lib/services/film-service";
 import { enrichFilmFromTmdb } from "@/lib/tmdb";
 
 import type { NextRequest } from "next/server";
@@ -51,6 +52,8 @@ export async function POST(
           originalTitle: tmdbData.originalTitle,
           countries: tmdbData.countries,
           tmdbRating: tmdbData.tmdbRating,
+          tagline: tmdbData.tagline,
+          taglineEn: tmdbData.taglineEn,
         };
 
         if (!importedMetadataFields.has("synopsis")) {
@@ -90,6 +93,14 @@ export async function POST(
         }
 
         await db.update(films).set(updateFields).where(eq(films.id, film.id));
+
+        // Sync normalized TMDB relations (genres, people, companies)
+        await syncFilmTmdbRelations(film.id, {
+          genreIds: tmdbData.genreIds,
+          people: tmdbData.people,
+          companies: tmdbData.companies,
+        });
+
         enriched++;
       } else {
         await db

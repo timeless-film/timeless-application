@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // ─── Mock DB ──────────────────────────────────────────────────────────────────
 
@@ -10,9 +10,11 @@ const mockUpdateReturning = vi.fn();
 const mockUpdateWhere = vi.fn(() => ({ returning: mockUpdateReturning }));
 const mockUpdateSet = vi.fn(() => ({ where: mockUpdateWhere }));
 const mockDeleteWhere = vi.fn();
+const mockSelectOrderBy = vi.fn();
 const mockSelectWhere = vi.fn();
-const mockSelectFrom = vi.fn(() => ({ where: mockSelectWhere }));
+const mockSelectFrom = vi.fn(() => ({ where: mockSelectWhere, orderBy: mockSelectOrderBy }));
 const mockSelect = vi.fn(() => ({ from: mockSelectFrom }));
+const mockTransaction = vi.fn();
 
 vi.mock("@/lib/db", () => ({
   db: {
@@ -26,6 +28,7 @@ vi.mock("@/lib/db", () => ({
     update: vi.fn(() => ({ set: mockUpdateSet })),
     delete: vi.fn(() => ({ where: mockDeleteWhere })),
     select: () => mockSelect(),
+    transaction: (fn: (tx: unknown) => Promise<unknown>) => mockTransaction(fn),
   },
 }));
 
@@ -50,6 +53,17 @@ vi.mock("@/lib/db/schema", () => ({
     id: "filmPrices.id",
     filmId: "filmPrices.filmId",
   },
+  filmPeople: {
+    filmId: "filmPeople.filmId",
+  },
+  filmGenres: {
+    filmId: "filmGenres.filmId",
+  },
+  genres: {
+    id: "genres.id",
+    nameEn: "genres.nameEn",
+    nameFr: "genres.nameFr",
+  },
 }));
 
 vi.mock("@/lib/currencies", () => ({
@@ -63,7 +77,9 @@ import {
   getFilmById,
   listFilmsForAccount,
   listFilmsForAccountPaginated,
+  matchGenreNamesToIds,
   setFilmStatus,
+  syncNormalizedRelationsFromFlatFields,
   updateFilmById,
   verifyFilmOwnership,
 } from "../film-service";
@@ -404,6 +420,278 @@ describe("film-service", () => {
       const result = await archiveFilmById("film-1", "account-1");
 
       expect(result).toEqual({ error: "ALREADY_RETIRED" });
+    });
+  });
+
+  // ─── matchGenreNamesToIds ────────────────────────────────────────────
+
+  describe("matchGenreNamesToIds", () => {
+    const genreFixtures = [
+      { id: 1, tmdbId: 28, nameEn: "Action", nameFr: "Action" },
+      { id: 2, tmdbId: 35, nameEn: "Comedy", nameFr: "Comédie" },
+      { id: 3, tmdbId: 18, nameEn: "Drama", nameFr: "Drame" },
+      { id: 4, tmdbId: 878, nameEn: "Science Fiction", nameFr: "Science-Fiction" },
+    ];
+
+    beforeEach(() => {
+      mockSelectOrderBy.mockResolvedValue(genreFixtures);
+    });
+
+    it("returns empty array for empty input", async () => {
+      const result = await matchGenreNamesToIds([]);
+
+      expect(result).toEqual([]);
+      expect(mockSelectOrderBy).not.toHaveBeenCalled();
+    });
+
+    it("matches English genre names case-insensitively", async () => {
+      const result = await matchGenreNamesToIds(["action", "Drama"]);
+
+      expect(result).toEqual([1, 3]);
+    });
+
+    it("matches French genre names case-insensitively", async () => {
+      const result = await matchGenreNamesToIds(["Comédie", "drame"]);
+
+      expect(result).toEqual([2, 3]);
+    });
+
+    it("matches by internal genre ID", async () => {
+      const result = await matchGenreNamesToIds(["1", "4"]);
+
+      expect(result).toEqual([1, 4]);
+    });
+
+    it("matches by TMDB genre ID", async () => {
+      const result = await matchGenreNamesToIds(["28", "18"]);
+
+      expect(result).toEqual([1, 3]);
+    });
+
+    it("prefers internal ID over TMDB ID when both could match", async () => {
+      // "1" matches internal ID 1 (Action), not TMDB ID 1 (which doesn't exist)
+      const result = await matchGenreNamesToIds(["1"]);
+
+      expect(result).toEqual([1]);
+    });
+
+    it("falls back to name matching when numeric value matches neither ID", async () => {
+      // "99999" doesn't match any internal or TMDB ID → no match
+      const result = await matchGenreNamesToIds(["99999"]);
+
+      expect(result).toEqual([]);
+    });
+
+    it("handles mixed IDs and names in the same input", async () => {
+      const result = await matchGenreNamesToIds(["1", "Comédie", "878"]);
+
+      expect(result).toEqual([1, 2, 4]);
+    });
+
+    it("skips unmatched genre names", async () => {
+      const result = await matchGenreNamesToIds(["Action", "Nonexistent", "Drama"]);
+
+      expect(result).toEqual([1, 3]);
+    });
+
+    it("trims whitespace from input names", async () => {
+      const result = await matchGenreNamesToIds(["  Action  ", " Drama"]);
+
+      expect(result).toEqual([1, 3]);
+    });
+
+    it("skips empty and whitespace-only names", async () => {
+      const result = await matchGenreNamesToIds(["", "  ", "Action"]);
+
+      expect(result).toEqual([1]);
+    });
+
+    it("deduplicates matched IDs", async () => {
+      const result = await matchGenreNamesToIds(["Action", "action", "ACTION"]);
+
+      expect(result).toEqual([1]);
+    });
+
+    it("matches same genre by English and French names", async () => {
+      const result = await matchGenreNamesToIds(["Comedy", "Comédie"]);
+
+      expect(result).toEqual([2]);
+    });
+
+    it("deduplicates when ID and name resolve to same genre", async () => {
+      const result = await matchGenreNamesToIds(["1", "Action", "28"]);
+
+      expect(result).toEqual([1]);
+    });
+
+    it("returns empty array when no names match", async () => {
+      const result = await matchGenreNamesToIds(["Unknown", "Nonexistent"]);
+
+      expect(result).toEqual([]);
+    });
+
+    it("ignores zero and negative numbers", async () => {
+      const result = await matchGenreNamesToIds(["0", "-1", "Action"]);
+
+      expect(result).toEqual([1]);
+    });
+
+    it("ignores decimal numbers and treats them as names", async () => {
+      const result = await matchGenreNamesToIds(["1.5", "Action"]);
+
+      expect(result).toEqual([1]);
+    });
+  });
+
+  // ─── syncNormalizedRelationsFromFlatFields ──────────────────────────────
+
+  describe("syncNormalizedRelationsFromFlatFields", () => {
+    const mockTxInsertValues = vi.fn();
+    const mockTxDeleteWhere = vi.fn();
+    const mockTxSelectWhere = vi.fn();
+    const mockTxSelectFrom = vi.fn(() => ({ where: mockTxSelectWhere }));
+    const mockTxSelect = vi.fn(() => ({ from: mockTxSelectFrom }));
+    const mockTx = {
+      delete: vi.fn(() => ({ where: mockTxDeleteWhere })),
+      insert: vi.fn(() => ({ values: mockTxInsertValues })),
+      select: () => mockTxSelect(),
+    };
+
+    beforeEach(() => {
+      mockTransaction.mockImplementation(async (fn: (tx: typeof mockTx) => Promise<void>) => {
+        await fn(mockTx);
+      });
+      mockTxInsertValues.mockResolvedValue(undefined);
+      mockTxDeleteWhere.mockResolvedValue(undefined);
+      mockTxSelectWhere.mockResolvedValue([]);
+    });
+
+    afterEach(() => {
+      mockTx.delete.mockClear();
+      mockTx.insert.mockClear();
+      mockTxInsertValues.mockClear();
+      mockTxDeleteWhere.mockClear();
+      mockTxSelectWhere.mockClear();
+    });
+
+    it("clears existing people and genres", async () => {
+      await syncNormalizedRelationsFromFlatFields("film-1", {});
+
+      expect(mockTx.delete).toHaveBeenCalledTimes(2);
+      expect(mockTxDeleteWhere).toHaveBeenCalledTimes(2);
+    });
+
+    it("inserts directors with role 'director' and tmdbPersonId null", async () => {
+      await syncNormalizedRelationsFromFlatFields("film-1", {
+        directors: ["Agnès Varda", "Jean-Luc Godard"],
+      });
+
+      expect(mockTx.insert).toHaveBeenCalled();
+      const insertCall = mockTxInsertValues.mock.calls[0]?.[0];
+      expect(insertCall).toHaveLength(2);
+      expect(insertCall[0]).toMatchObject({
+        filmId: "film-1",
+        name: "Agnès Varda",
+        role: "director",
+        tmdbPersonId: null,
+        displayOrder: 0,
+      });
+      expect(insertCall[1]).toMatchObject({
+        filmId: "film-1",
+        name: "Jean-Luc Godard",
+        role: "director",
+        tmdbPersonId: null,
+        displayOrder: 1,
+      });
+    });
+
+    it("inserts cast with role 'actor' and tmdbPersonId null", async () => {
+      await syncNormalizedRelationsFromFlatFields("film-1", {
+        cast: ["Catherine Deneuve", "Michel Piccoli"],
+      });
+
+      expect(mockTx.insert).toHaveBeenCalled();
+      const insertCall = mockTxInsertValues.mock.calls[0]?.[0];
+      expect(insertCall).toHaveLength(2);
+      expect(insertCall[0]).toMatchObject({
+        filmId: "film-1",
+        name: "Catherine Deneuve",
+        role: "actor",
+        displayOrder: 0,
+      });
+      expect(insertCall[1]).toMatchObject({
+        filmId: "film-1",
+        name: "Michel Piccoli",
+        role: "actor",
+        displayOrder: 1,
+      });
+    });
+
+    it("filters out empty director and cast names", async () => {
+      await syncNormalizedRelationsFromFlatFields("film-1", {
+        directors: ["", "Agnès Varda", ""],
+        cast: ["Catherine Deneuve", ""],
+      });
+
+      // directors insert
+      const directorInsert = mockTxInsertValues.mock.calls[0]?.[0];
+      expect(directorInsert).toHaveLength(1);
+      expect(directorInsert[0].name).toBe("Agnès Varda");
+
+      // cast insert
+      const castInsert = mockTxInsertValues.mock.calls[1]?.[0];
+      expect(castInsert).toHaveLength(1);
+      expect(castInsert[0].name).toBe("Catherine Deneuve");
+    });
+
+    it("validates genre IDs against genres table before inserting", async () => {
+      mockTxSelectWhere.mockResolvedValueOnce([{ id: 28 }, { id: 18 }]);
+
+      await syncNormalizedRelationsFromFlatFields("film-1", {
+        genreIds: [28, 18, 9999],
+      });
+
+      // Verify select was called to validate genre IDs
+      expect(mockTxSelect).toHaveBeenCalled();
+
+      // Only valid IDs (28, 18) should be inserted, not 9999
+      const genreInsert = mockTxInsertValues.mock.calls[0]?.[0];
+      expect(genreInsert).toHaveLength(2);
+      expect(genreInsert[0]).toMatchObject({ filmId: "film-1", genreId: 28 });
+      expect(genreInsert[1]).toMatchObject({ filmId: "film-1", genreId: 18 });
+    });
+
+    it("filters out genre IDs <= 0", async () => {
+      mockTxSelectWhere.mockResolvedValueOnce([{ id: 28 }]);
+
+      await syncNormalizedRelationsFromFlatFields("film-1", {
+        genreIds: [0, -1, 28],
+      });
+
+      expect(mockTxSelect).toHaveBeenCalled();
+    });
+
+    it("does not insert anything when all inputs are empty", async () => {
+      await syncNormalizedRelationsFromFlatFields("film-1", {
+        directors: [],
+        cast: [],
+        genreIds: [],
+      });
+
+      // Only delete calls, no inserts
+      expect(mockTx.delete).toHaveBeenCalledTimes(2);
+      expect(mockTx.insert).not.toHaveBeenCalled();
+    });
+
+    it("does not insert when input is null", async () => {
+      await syncNormalizedRelationsFromFlatFields("film-1", {
+        directors: null,
+        cast: null,
+        genreIds: null,
+      });
+
+      expect(mockTx.delete).toHaveBeenCalledTimes(2);
+      expect(mockTx.insert).not.toHaveBeenCalled();
     });
   });
 });

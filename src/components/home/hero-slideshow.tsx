@@ -2,6 +2,7 @@
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
+import { useLocale } from "next-intl";
 import { useCallback, useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ interface HeroSlideshowProps {
 export function HeroSlideshow({ items, viewFilmLabel }: HeroSlideshowProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const locale = useLocale();
 
   const goToNext = useCallback(() => {
     setCurrentIndex((prev) => (prev + 1) % items.length);
@@ -39,7 +41,8 @@ export function HeroSlideshow({ items, viewFilmLabel }: HeroSlideshowProps) {
   if (!current) return null;
 
   const displayTitle = current.headline ?? current.film.title;
-  const genre = current.film.genres?.[0] ?? "";
+  const firstGenre = current.film.genres?.[0];
+  const genre = firstGenre ? (locale === "fr" ? firstGenre.nameFr : firstGenre.nameEn) : "";
 
   return (
     <section

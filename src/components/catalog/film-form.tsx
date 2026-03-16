@@ -1,14 +1,15 @@
 "use client";
 
-import { Loader2, RefreshCw, Search, Unlink } from "lucide-react";
+import { Check, ChevronsUpDown, Loader2, RefreshCw, Search, Unlink } from "lucide-react";
 import Image from "next/image";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import {
   createFilmAction,
   disassociateTmdbAction,
+  getGenresAction,
   resyncTmdbAction,
   searchTmdb,
   updateTmdbManualAction,
@@ -18,8 +19,10 @@ import { ImageUpload } from "@/components/shared/image-upload";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -35,6 +38,12 @@ import { PriceZonesEditor } from "./price-zones-editor";
 import type { PriceZone } from "./price-zones-editor";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
+
+interface GenreOption {
+  id: number;
+  nameEn: string;
+  nameFr: string;
+}
 
 interface TmdbResult {
   id: number;
@@ -75,6 +84,7 @@ interface FilmFormProps {
 
 export function FilmForm({ mode, film }: FilmFormProps) {
   const t = useTranslations("films");
+  const locale = useLocale();
   const router = useRouter();
 
   // ─── Form state ──────────────────────────────────────────────────────────
@@ -127,12 +137,14 @@ export function FilmForm({ mode, film }: FilmFormProps) {
   const [tmdbDirectors, setTmdbDirectors] = useState(film?.directors ?? null);
   const [tmdbCast, setTmdbCast] = useState(film?.cast ?? null);
   const [tmdbDuration, setTmdbDuration] = useState(film?.duration ?? null);
-  const [tmdbGenres, setTmdbGenres] = useState(film?.genres ?? null);
   const [manualOriginalTitle, setManualOriginalTitle] = useState(film?.originalTitle ?? "");
   const [manualSynopsis, setManualSynopsis] = useState(film?.synopsis ?? "");
   const [manualSynopsisEn, setManualSynopsisEn] = useState(film?.synopsisEn ?? "");
   const [manualDirectors, setManualDirectors] = useState((film?.directors ?? []).join(", "));
-  const [manualGenres, setManualGenres] = useState((film?.genres ?? []).join(", "));
+  const [selectedGenreIds, setSelectedGenreIds] = useState<number[]>([]);
+  const [genreOptions, setGenreOptions] = useState<GenreOption[]>([]);
+  const [genrePopoverOpen, setGenrePopoverOpen] = useState(false);
+  const [genresLoaded, setGenresLoaded] = useState(false);
   const [manualCast, setManualCast] = useState((film?.cast ?? []).join(", "));
   const [manualReleaseYear, setManualReleaseYear] = useState(
     film?.releaseYear ? String(film.releaseYear) : ""
@@ -140,6 +152,27 @@ export function FilmForm({ mode, film }: FilmFormProps) {
   const [manualDuration, setManualDuration] = useState(film?.duration ? String(film.duration) : "");
   const [manualPosterUrl, setManualPosterUrl] = useState(film?.posterUrl ?? "");
   const [manualBackdropUrl, setManualBackdropUrl] = useState(film?.backdropUrl ?? "");
+
+  // ─── Load genre taxonomy ────────────────────────────────────────────────
+
+  useEffect(() => {
+    getGenresAction().then((genres) => {
+      setGenreOptions(genres);
+      // Resolve initial genre names to IDs
+      if (film?.genres && film.genres.length > 0) {
+        const ids = film.genres
+          .map((name) => {
+            const normalized = name.trim().toLowerCase();
+            return genres.find(
+              (g) => g.nameEn.toLowerCase() === normalized || g.nameFr.toLowerCase() === normalized
+            )?.id;
+          })
+          .filter((id): id is number => id !== undefined);
+        setSelectedGenreIds(ids);
+      }
+      setGenresLoaded(true);
+    });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ─── Unsaved changes guard ──────────────────────────────────────────────
 
@@ -156,7 +189,7 @@ export function FilmForm({ mode, film }: FilmFormProps) {
         manualSynopsis,
         manualSynopsisEn,
         manualDirectors,
-        manualGenres,
+        selectedGenreIds,
         manualCast,
         manualReleaseYear,
         manualDuration,
@@ -174,7 +207,7 @@ export function FilmForm({ mode, film }: FilmFormProps) {
       manualSynopsis,
       manualSynopsisEn,
       manualDirectors,
-      manualGenres,
+      selectedGenreIds,
       manualCast,
       manualReleaseYear,
       manualDuration,
@@ -184,6 +217,42 @@ export function FilmForm({ mode, film }: FilmFormProps) {
   );
   const initialSnapshotRef = useRef(currentSnapshot);
   const isDirty = currentSnapshot !== initialSnapshotRef.current;
+
+  const tmdbSnapshot = useMemo(
+    () =>
+      JSON.stringify({
+        manualOriginalTitle,
+        manualSynopsis,
+        manualSynopsisEn,
+        manualDirectors,
+        selectedGenreIds,
+        manualCast,
+        manualReleaseYear,
+        manualDuration,
+        manualPosterUrl,
+        manualBackdropUrl,
+      }),
+    [
+      manualOriginalTitle,
+      manualSynopsis,
+      manualSynopsisEn,
+      manualDirectors,
+      selectedGenreIds,
+      manualCast,
+      manualReleaseYear,
+      manualDuration,
+      manualPosterUrl,
+      manualBackdropUrl,
+    ]
+  );
+  const initialTmdbSnapshotRef = useRef(tmdbSnapshot);
+
+  // Reset snapshot refs after async genre loading completes
+  if (genresLoaded) {
+    initialSnapshotRef.current = currentSnapshot;
+    initialTmdbSnapshotRef.current = tmdbSnapshot;
+    setGenresLoaded(false);
+  }
 
   const confirmLeave = () => {
     if (!isDirty) {
@@ -287,7 +356,10 @@ export function FilmForm({ mode, film }: FilmFormProps) {
         setTmdbDirectors(result.data.directors ?? null);
         setTmdbCast(result.data.cast ?? null);
         setTmdbDuration(result.data.duration ?? null);
-        setTmdbGenres(result.data.genres ?? null);
+        // Update genre IDs for the selector
+        if (result.data.genreIds) {
+          setSelectedGenreIds(result.data.genreIds);
+        }
       } else {
         toast.warning(t("form.tmdbNoMatch"));
         setTmdbStatus("no_match");
@@ -298,7 +370,7 @@ export function FilmForm({ mode, film }: FilmFormProps) {
         setTmdbDirectors(null);
         setTmdbCast(null);
         setTmdbDuration(null);
-        setTmdbGenres(null);
+        setSelectedGenreIds([]);
       }
     } catch (error) {
       console.error("TMDB resync failed:", error);
@@ -327,7 +399,7 @@ export function FilmForm({ mode, film }: FilmFormProps) {
       setTmdbDirectors(null);
       setTmdbCast(null);
       setTmdbDuration(null);
-      setTmdbGenres(null);
+      setSelectedGenreIds([]);
     } catch {
       toast.error(t("form.tmdbErrors.TMDB_UNAVAILABLE"));
     } finally {
@@ -341,10 +413,6 @@ export function FilmForm({ mode, film }: FilmFormProps) {
     setSyncing(true);
     try {
       const directors = manualDirectors
-        .split(",")
-        .map((value) => value.trim())
-        .filter(Boolean);
-      const genres = manualGenres
         .split(",")
         .map((value) => value.trim())
         .filter(Boolean);
@@ -369,7 +437,7 @@ export function FilmForm({ mode, film }: FilmFormProps) {
         releaseYear,
         duration,
         directors,
-        genres,
+        genreIds: selectedGenreIds.length > 0 ? selectedGenreIds : null,
         cast,
         posterUrl: manualPosterUrl.trim() || null,
         backdropUrl: manualBackdropUrl.trim() || null,
@@ -385,7 +453,6 @@ export function FilmForm({ mode, film }: FilmFormProps) {
       setTmdbSynopsis(manualSynopsis.trim() || null);
       setTmdbSynopsisEn(manualSynopsisEn.trim() || null);
       setTmdbDirectors(directors);
-      setTmdbGenres(genres);
       setTmdbCast(cast);
       setTmdbYear(releaseYear);
       setTmdbDuration(duration);
@@ -501,8 +568,43 @@ export function FilmForm({ mode, film }: FilmFormProps) {
           return;
         }
 
+        // Only save TMDB manual fields if they changed
+        if (tmdbSnapshot !== initialTmdbSnapshotRef.current) {
+          const directors = manualDirectors
+            .split(",")
+            .map((value) => value.trim())
+            .filter(Boolean);
+          const cast = manualCast
+            .split(",")
+            .map((value) => value.trim())
+            .filter(Boolean);
+          const parsedReleaseYear = manualReleaseYear.trim()
+            ? Number.parseInt(manualReleaseYear.trim(), 10)
+            : Number.NaN;
+          const parsedDuration = manualDuration.trim()
+            ? Number.parseInt(manualDuration.trim(), 10)
+            : Number.NaN;
+          const releaseYear = Number.isFinite(parsedReleaseYear) ? parsedReleaseYear : null;
+          const duration = Number.isFinite(parsedDuration) ? parsedDuration : null;
+
+          await updateTmdbManualAction(film.id, {
+            originalTitle: manualOriginalTitle.trim() || null,
+            synopsis: manualSynopsis.trim() || null,
+            synopsisEn: manualSynopsisEn.trim() || null,
+            releaseYear,
+            duration,
+            directors,
+            genreIds: selectedGenreIds.length > 0 ? selectedGenreIds : null,
+            cast,
+            posterUrl: manualPosterUrl.trim() || null,
+            backdropUrl: manualBackdropUrl.trim() || null,
+          });
+          initialTmdbSnapshotRef.current = tmdbSnapshot;
+        }
+
         toast.success(t("form.updateSuccess"));
         initialSnapshotRef.current = currentSnapshot;
+        initialTmdbSnapshotRef.current = tmdbSnapshot;
         router.push("/films");
       }
     } catch {
@@ -765,13 +867,18 @@ export function FilmForm({ mode, film }: FilmFormProps) {
                       {t("form.tmdbDuration", { minutes: tmdbDuration })}
                     </p>
                   )}
-                  {tmdbGenres && tmdbGenres.length > 0 && (
+                  {selectedGenreIds.length > 0 && genreOptions.length > 0 && (
                     <div className="flex flex-wrap gap-1 pt-1">
-                      {tmdbGenres.map((genre) => (
-                        <Badge key={genre} variant="secondary" className="text-xs">
-                          {genre}
-                        </Badge>
-                      ))}
+                      {selectedGenreIds.map((id) => {
+                        const g = genreOptions.find((opt) => opt.id === id);
+                        if (!g) return null;
+                        const name = locale === "fr" ? g.nameFr : g.nameEn;
+                        return (
+                          <Badge key={id} variant="secondary" className="text-xs">
+                            {name}
+                          </Badge>
+                        );
+                      })}
                     </div>
                   )}
                   {tmdbSynopsis && (
@@ -834,13 +941,54 @@ export function FilmForm({ mode, film }: FilmFormProps) {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="manual-genres">{t("form.tmdbManualGenres")}</Label>
-                  <Input
-                    id="manual-genres"
-                    value={manualGenres}
-                    onChange={(event) => setManualGenres(event.target.value)}
-                    disabled={syncing || saving}
-                  />
+                  <Label>{t("form.tmdbManualGenres")}</Label>
+                  <Popover open={genrePopoverOpen} onOpenChange={setGenrePopoverOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={genrePopoverOpen}
+                        className="w-full justify-between font-normal"
+                        disabled={syncing || saving}
+                      >
+                        {selectedGenreIds.length > 0
+                          ? selectedGenreIds
+                              .map((id) => {
+                                const g = genreOptions.find((opt) => opt.id === id);
+                                return g ? (locale === "fr" ? g.nameFr : g.nameEn) : "";
+                              })
+                              .filter(Boolean)
+                              .join(", ")
+                          : t("form.genreSelectPlaceholder")}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[300px] p-2" align="start">
+                      <div className="max-h-[250px] space-y-1 overflow-y-auto">
+                        {genreOptions.map((genre) => (
+                          <label
+                            key={genre.id}
+                            className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-accent"
+                          >
+                            <Checkbox
+                              checked={selectedGenreIds.includes(genre.id)}
+                              onCheckedChange={(checked) => {
+                                setSelectedGenreIds((prev) =>
+                                  checked
+                                    ? [...prev, genre.id]
+                                    : prev.filter((id) => id !== genre.id)
+                                );
+                              }}
+                            />
+                            {locale === "fr" ? genre.nameFr : genre.nameEn}
+                            {selectedGenreIds.includes(genre.id) && (
+                              <Check className="ml-auto h-4 w-4" />
+                            )}
+                          </label>
+                        ))}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="manual-cast">{t("form.tmdbManualCast")}</Label>

@@ -14,7 +14,7 @@ interface FilmSearchResult {
   title: string;
   posterUrl: string | null;
   backdropUrl: string | null;
-  genres: string[] | null;
+  genres: { nameEn: string; nameFr: string }[];
   releaseYear: number | null;
   directors: string[] | null;
 }

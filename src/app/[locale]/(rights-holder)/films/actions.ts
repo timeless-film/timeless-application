@@ -14,7 +14,12 @@ import {
   listAllFilmsForAccount,
   listFilmsForAccount,
   listFilmsForAccountPaginated,
+  listGenres,
+  matchGenreNamesToIds,
+  resolveTmdbGenreIds,
   syncFilmFromImportById,
+  syncFilmTmdbRelations,
+  syncNormalizedRelationsFromFlatFields,
   setFilmStatus,
   updateFilmById,
 } from "@/lib/services/film-service";
@@ -22,6 +27,7 @@ import { enrichFilmFromTmdb, getFilmDetails, normalizeTmdbData, searchFilms } fr
 
 import type { GroupedFilm } from "@/lib/services/film-import-service";
 import type { CreateFilmInput } from "@/lib/services/film-service";
+import type { NormalizedCompany, NormalizedPerson } from "@/lib/tmdb";
 
 // ─── List ─────────────────────────────────────────────────────────────────────
 
@@ -31,6 +37,12 @@ export async function getFilms() {
 
   const films = await listFilmsForAccount(ctx.accountId);
   return { films };
+}
+
+// ─── Genre Taxonomy ───────────────────────────────────────────────────────────
+
+export async function getGenresAction() {
+  return listGenres();
 }
 
 // ─── List (paginated) ─────────────────────────────────────────────────────────
@@ -91,6 +103,11 @@ export async function createFilmAction(input: CreateFilmActionInput) {
 
   // TMDB enrichment (synchronous if a match was selected)
   let tmdbFields: Partial<CreateFilmInput> = {};
+  let tmdbRelations: {
+    genreIds: number[];
+    people: NormalizedPerson[];
+    companies: NormalizedCompany[];
+  } | null = null;
   if (input.tmdbId) {
     try {
       const details = await getFilmDetails(input.tmdbId);
@@ -102,6 +119,8 @@ export async function createFilmAction(input: CreateFilmActionInput) {
         originalTitle: normalized.originalTitle,
         synopsis: normalized.synopsis,
         synopsisEn: normalized.synopsisEn,
+        tagline: normalized.tagline,
+        taglineEn: normalized.taglineEn,
         duration: normalized.duration,
         releaseYear: normalized.releaseYear,
         genres: normalized.genres,
@@ -111,6 +130,11 @@ export async function createFilmAction(input: CreateFilmActionInput) {
         posterUrl: normalized.posterUrl,
         backdropUrl: normalized.backdropUrl,
         tmdbRating: normalized.tmdbRating,
+      };
+      tmdbRelations = {
+        genreIds: normalized.genreIds,
+        people: normalized.people,
+        companies: normalized.companies,
       };
     } catch {
       // TMDB unavailable — create with pending status
@@ -133,6 +157,15 @@ export async function createFilmAction(input: CreateFilmActionInput) {
     return { error: result.error };
   }
 
+  // Sync normalized TMDB relations (genres, people, companies)
+  if (tmdbRelations && result.film) {
+    try {
+      await syncFilmTmdbRelations(result.film.id, tmdbRelations);
+    } catch (error) {
+      console.error(`[TMDB] Failed to sync relations for film ${result.film.id}:`, error);
+    }
+  }
+
   // Auto-enrich from TMDB when no match was selected manually
   if (!input.tmdbId && result.film) {
     const filmId = result.film.id;
@@ -143,8 +176,19 @@ export async function createFilmAction(input: CreateFilmActionInput) {
         if (enriched) {
           await db
             .update(films)
-            .set({ ...enriched, tmdbMatchStatus: "matched", updatedAt: new Date() })
+            .set({
+              ...enriched,
+              tagline: enriched.tagline,
+              taglineEn: enriched.taglineEn,
+              tmdbMatchStatus: "matched",
+              updatedAt: new Date(),
+            })
             .where(eq(films.id, filmId));
+          await syncFilmTmdbRelations(filmId, {
+            genreIds: enriched.genreIds,
+            people: enriched.people,
+            companies: enriched.companies,
+          });
         } else {
           await db
             .update(films)
@@ -283,6 +327,8 @@ export async function resyncTmdbAction(filmId: string) {
       originalTitle: normalized.originalTitle,
       synopsis: normalized.synopsis,
       synopsisEn: normalized.synopsisEn,
+      tagline: normalized.tagline,
+      taglineEn: normalized.taglineEn,
       duration: normalized.duration,
       releaseYear: normalized.releaseYear,
       genres: normalized.genres,
@@ -293,6 +339,15 @@ export async function resyncTmdbAction(filmId: string) {
       backdropUrl: normalized.backdropUrl,
       tmdbRating: normalized.tmdbRating,
     });
+
+    await syncFilmTmdbRelations(filmId, {
+      genreIds: normalized.genreIds,
+      people: normalized.people,
+      companies: normalized.companies,
+    });
+
+    // Resolve TMDB genre IDs to internal IDs for the client
+    const internalGenreIds = await resolveTmdbGenreIds(normalized.genreIds);
 
     return {
       success: true as const,
@@ -309,6 +364,7 @@ export async function resyncTmdbAction(filmId: string) {
         duration: normalized.duration,
         releaseYear: normalized.releaseYear,
         genres: normalized.genres,
+        genreIds: internalGenreIds,
       },
     };
   } catch {
@@ -338,10 +394,23 @@ export async function disassociateTmdbAction(filmId: string) {
     posterUrl: null,
     backdropUrl: null,
     tmdbRating: null,
+    tagline: null,
+    taglineEn: null,
   });
 
   if ("error" in result) {
     return { error: result.error };
+  }
+
+  // Clear normalized tables (genres, people, companies)
+  try {
+    await syncFilmTmdbRelations(filmId, {
+      genreIds: [],
+      people: [],
+      companies: [],
+    });
+  } catch (error) {
+    console.error(`[Disassociate] Failed to clear normalized relations for film ${filmId}:`, error);
   }
 
   return { success: true as const };
@@ -354,6 +423,7 @@ interface ManualTmdbInput {
   releaseYear?: number | null;
   duration?: number | null;
   directors?: string[] | null;
+  genreIds?: number[] | null;
   genres?: string[] | null;
   cast?: string[] | null;
   posterUrl?: string | null;
@@ -368,6 +438,16 @@ export async function updateTmdbManualAction(filmId: string, input: ManualTmdbIn
     return { error: "FORBIDDEN" as const };
   }
 
+  // Resolve genre names from IDs for the flat text cache
+  let genreNames = input.genres ?? null;
+  const genreIds = input.genreIds ?? null;
+  if (genreIds && genreIds.length > 0 && !genreNames) {
+    const allGenres = await listGenres();
+    genreNames = genreIds
+      .map((id) => allGenres.find((g) => g.id === id)?.nameEn)
+      .filter((name): name is string => Boolean(name));
+  }
+
   const result = await updateFilmById(filmId, ctx.accountId, {
     tmdbMatchStatus: "manual",
     originalTitle: input.originalTitle ?? null,
@@ -376,7 +456,7 @@ export async function updateTmdbManualAction(filmId: string, input: ManualTmdbIn
     releaseYear: input.releaseYear ?? null,
     duration: input.duration ?? null,
     directors: input.directors ?? null,
-    genres: input.genres ?? null,
+    genres: genreNames,
     cast: input.cast ?? null,
     posterUrl: input.posterUrl ?? null,
     backdropUrl: input.backdropUrl ?? null,
@@ -388,7 +468,7 @@ export async function updateTmdbManualAction(filmId: string, input: ManualTmdbIn
       releaseYear: input.releaseYear ?? null,
       duration: input.duration ?? null,
       directors: input.directors ?? null,
-      genres: input.genres ?? null,
+      genres: genreNames,
       cast: input.cast ?? null,
       posterUrl: input.posterUrl ?? null,
       backdropUrl: input.backdropUrl ?? null,
@@ -397,6 +477,17 @@ export async function updateTmdbManualAction(filmId: string, input: ManualTmdbIn
 
   if ("error" in result) {
     return { error: result.error };
+  }
+
+  // Sync normalized tables so manual data is filterable
+  try {
+    await syncNormalizedRelationsFromFlatFields(filmId, {
+      directors: input.directors ?? null,
+      cast: input.cast ?? null,
+      genreIds,
+    });
+  } catch (error) {
+    console.error(`[Manual] Failed to sync normalized relations for film ${filmId}:`, error);
   }
 
   return { success: true as const };
@@ -616,6 +707,26 @@ export async function importFilmsAction(payload: ImportPayload) {
               .update(films)
               .set({ tmdbMatchStatus: "no_match", updatedAt: new Date() })
               .where(eq(films.id, film.filmId));
+
+            // Even without TMDB match, sync flat fields to normalized tables
+            if (
+              film.importedFields.directors ||
+              film.importedFields.cast ||
+              film.importedFields.genres
+            ) {
+              const filmRow = await db.query.films.findFirst({
+                where: eq(films.id, film.filmId),
+                columns: { directors: true, cast: true, genres: true },
+              });
+              if (filmRow) {
+                const genreIds = filmRow.genres ? await matchGenreNamesToIds(filmRow.genres) : [];
+                await syncNormalizedRelationsFromFlatFields(film.filmId, {
+                  directors: filmRow.directors,
+                  cast: filmRow.cast,
+                  genreIds,
+                });
+              }
+            }
             continue;
           }
 
@@ -625,6 +736,8 @@ export async function importFilmsAction(payload: ImportPayload) {
             originalTitle: tmdbData.originalTitle,
             countries: tmdbData.countries,
             tmdbRating: tmdbData.tmdbRating,
+            tagline: tmdbData.tagline,
+            taglineEn: tmdbData.taglineEn,
             updatedAt: new Date(),
           };
 
@@ -642,8 +755,49 @@ export async function importFilmsAction(payload: ImportPayload) {
           }
 
           await db.update(films).set(updatePayload).where(eq(films.id, film.filmId));
+
+          // Sync normalized TMDB relations (genres, people, companies)
+          await syncFilmTmdbRelations(film.filmId, {
+            genreIds: tmdbData.genreIds,
+            people: tmdbData.people,
+            companies: tmdbData.companies,
+          });
         } catch (error) {
           console.error(`[TMDB] Failed to auto-enrich imported film ${film.filmId}:`, error);
+        }
+      }
+    });
+  }
+
+  // When autoEnrich is off, sync flat fields to normalized tables for filtering
+  if (!payload.autoEnrichImportedFilms && filmsToEnrich.length > 0) {
+    after(async () => {
+      for (const film of filmsToEnrich) {
+        try {
+          if (
+            !film.importedFields.directors &&
+            !film.importedFields.cast &&
+            !film.importedFields.genres
+          ) {
+            continue;
+          }
+          const filmRow = await db.query.films.findFirst({
+            where: eq(films.id, film.filmId),
+            columns: { directors: true, cast: true, genres: true },
+          });
+          if (!filmRow) continue;
+
+          const genreIds = filmRow.genres ? await matchGenreNamesToIds(filmRow.genres) : [];
+          await syncNormalizedRelationsFromFlatFields(film.filmId, {
+            directors: filmRow.directors,
+            cast: filmRow.cast,
+            genreIds,
+          });
+        } catch (error) {
+          console.error(
+            `[Import] Failed to sync normalized relations for film ${film.filmId}:`,
+            error
+          );
         }
       }
     });

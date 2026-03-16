@@ -9,3 +9,4 @@ export * from "./editorial";
 export * from "./films";
 export * from "./orders";
 export * from "./settings";
+export * from "./tmdb";

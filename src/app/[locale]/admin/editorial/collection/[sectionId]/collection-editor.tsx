@@ -30,7 +30,7 @@ interface CollectionFilm {
     id: string;
     title: string;
     posterUrl: string | null;
-    genres: string[] | null;
+    genres: { nameEn: string; nameFr: string }[];
     releaseYear: number | null;
   };
 }
@@ -293,7 +293,9 @@ export function CollectionEditor({ sectionId, initialCollection }: CollectionEdi
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium">{cf.film.title}</p>
                     <p className="truncate text-xs text-muted-foreground">
-                      {[cf.film.releaseYear, cf.film.genres?.[0]].filter(Boolean).join(" — ")}
+                      {[cf.film.releaseYear, cf.film.genres?.[0]?.nameEn]
+                        .filter(Boolean)
+                        .join(" — ")}
                     </p>
                   </div>
 

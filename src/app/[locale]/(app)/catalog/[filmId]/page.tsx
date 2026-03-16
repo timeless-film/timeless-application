@@ -1,9 +1,11 @@
+import { eq } from "drizzle-orm";
 import { cookies, headers } from "next/headers";
 import { notFound } from "next/navigation";
 
 import { auth } from "@/lib/auth";
 import { ACTIVE_ACCOUNT_COOKIE, parseActiveAccountCookie } from "@/lib/auth/active-account-cookie";
 import { db } from "@/lib/db";
+import { filmCompanies, filmGenres, filmPeople, genres as genresTable } from "@/lib/db/schema";
 import { getFilmRequestsSummary } from "@/lib/services/booking-service";
 import { getFilmForExhibitor } from "@/lib/services/catalog-service";
 import { listCinemasForAccount } from "@/lib/services/cinema-service";
@@ -98,11 +100,41 @@ export default async function FilmDetailPage({ params }: FilmDetailPageProps) {
   // Track film view (fire-and-forget — don't block rendering)
   trackFilmEvent(filmId, accountId, "view");
 
-  const cinemas = await listCinemasForAccount(accountId);
-  const requestSummary = await getFilmRequestsSummary({
-    exhibitorAccountId: accountId,
-    filmId,
-  });
+  // Fetch normalized TMDB data + cinemas + request summary in parallel
+  const [people, genres, companies, cinemas, requestSummary] = await Promise.all([
+    db
+      .select({
+        name: filmPeople.name,
+        role: filmPeople.role,
+        character: filmPeople.character,
+        profileUrl: filmPeople.profileUrl,
+        displayOrder: filmPeople.displayOrder,
+      })
+      .from(filmPeople)
+      .where(eq(filmPeople.filmId, filmId))
+      .orderBy(filmPeople.displayOrder),
+    db
+      .select({
+        nameEn: genresTable.nameEn,
+        nameFr: genresTable.nameFr,
+      })
+      .from(filmGenres)
+      .innerJoin(genresTable, eq(filmGenres.genreId, genresTable.id))
+      .where(eq(filmGenres.filmId, filmId)),
+    db
+      .select({
+        name: filmCompanies.name,
+        logoUrl: filmCompanies.logoUrl,
+        originCountry: filmCompanies.originCountry,
+      })
+      .from(filmCompanies)
+      .where(eq(filmCompanies.filmId, filmId)),
+    listCinemasForAccount(accountId),
+    getFilmRequestsSummary({
+      exhibitorAccountId: accountId,
+      filmId,
+    }),
+  ]);
   const modalCinemas = cinemas.map((cinema) => ({
     id: cinema.id,
     name: cinema.name,
@@ -126,6 +158,9 @@ export default async function FilmDetailPage({ params }: FilmDetailPageProps) {
         roomName: item.room.name,
       }))}
       preferredCurrency={account?.preferredCurrency ?? "EUR"}
+      people={people}
+      genres={genres}
+      companies={companies}
     />
   );
 }

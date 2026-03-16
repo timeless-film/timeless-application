@@ -49,6 +49,11 @@ describe("Catalog Query Builder (via getCatalogForExhibitor)", () => {
       expect(filters.rightsHolderIds).toHaveLength(2);
     });
 
+    it("accepts companies array filter", () => {
+      const filters: CatalogFilters = { companies: ["Pathé", "Gaumont"] };
+      expect(filters.companies).toHaveLength(2);
+    });
+
     it("handles empty arrays (no filtering)", () => {
       const filters: CatalogFilters = {
         directors: [],
@@ -56,6 +61,7 @@ describe("Catalog Query Builder (via getCatalogForExhibitor)", () => {
         genres: [],
         countries: [],
         rightsHolderIds: [],
+        companies: [],
       };
       expect(filters.directors).toHaveLength(0);
     });
@@ -150,6 +156,7 @@ describe("Catalog Query Builder (via getCatalogForExhibitor)", () => {
         genres: ["Science Fiction"],
         countries: ["DE"],
         rightsHolderIds: ["rh-1"],
+        companies: ["UFA"],
         type: "direct",
         yearMin: 1920,
         yearMax: 1930,

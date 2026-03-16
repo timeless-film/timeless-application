@@ -1,7 +1,7 @@
 "use client";
 
 import { CheckCircle2 } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 
 import { ImageWithFallback } from "@/components/shared/image-with-fallback";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +21,7 @@ interface FilmCardProps {
 
 export function FilmCard({ film, locale }: FilmCardProps) {
   const t = useTranslations("catalog.film.card");
+  const currentLocale = useLocale();
   // Format price in the film's native currency
   const formatPrice = (cents: number | null, currency: string) => {
     if (cents === null) return null;
@@ -107,7 +108,10 @@ export function FilmCard({ film, locale }: FilmCardProps) {
               {/* Genres */}
               {film.genres && film.genres.length > 0 && (
                 <p className="line-clamp-1 text-sm text-muted-foreground">
-                  {film.genres.slice(0, 3).join(" · ")}
+                  {film.genres
+                    .slice(0, 3)
+                    .map((g) => (currentLocale === "fr" ? g.nameFr : g.nameEn))
+                    .join(" · ")}
                 </p>
               )}
             </div>

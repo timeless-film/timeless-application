@@ -3,6 +3,7 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 
+import { FilmBackdropCard } from "@/components/catalog/film-backdrop-card";
 import { FilmPoster } from "@/components/catalog/film-poster";
 import { getCollectionBySlug } from "@/lib/services/editorial-service";
 
@@ -71,16 +72,46 @@ export default async function PlaylistPage({ params }: PlaylistPageProps) {
             <p className="text-muted-foreground">{t("playlist.empty")}</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-            {collection.collectionFilms.map((cf) => (
-              <FilmPoster
-                key={cf.id}
-                filmId={cf.film.id}
-                title={cf.film.title}
-                posterUrl={cf.film.posterUrl}
-                genre={cf.film.genres?.[0]}
-              />
-            ))}
+          <div
+            className={
+              collection.displayMode === "backdrop"
+                ? "grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
+                : "grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6"
+            }
+          >
+            {collection.collectionFilms.map((cf) =>
+              collection.displayMode === "backdrop" ? (
+                <FilmBackdropCard
+                  key={cf.id}
+                  filmId={cf.film.id}
+                  title={cf.film.title}
+                  backdropUrl={cf.film.backdropUrl}
+                  posterUrl={cf.film.posterUrl}
+                  subtitle={
+                    [
+                      cf.film.directors?.[0],
+                      cf.film.releaseYear ? String(cf.film.releaseYear) : null,
+                    ]
+                      .filter(Boolean)
+                      .join(" · ") || undefined
+                  }
+                />
+              ) : (
+                <FilmPoster
+                  key={cf.id}
+                  filmId={cf.film.id}
+                  title={cf.film.title}
+                  posterUrl={cf.film.posterUrl}
+                  genre={
+                    cf.film.genres?.[0]
+                      ? locale === "fr"
+                        ? cf.film.genres[0].nameFr
+                        : cf.film.genres[0].nameEn
+                      : undefined
+                  }
+                />
+              )
+            )}
           </div>
         )}
       </div>

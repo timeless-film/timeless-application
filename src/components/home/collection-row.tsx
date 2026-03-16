@@ -1,12 +1,12 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Film } from "lucide-react";
-import Image from "next/image";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useLocale } from "next-intl";
 import { useRef, useState } from "react";
 
+import { FilmBackdropCard } from "@/components/catalog/film-backdrop-card";
 import { FilmPoster } from "@/components/catalog/film-poster";
 import { Link } from "@/i18n/navigation";
-import { cn } from "@/lib/utils";
 
 import type { CollectionRow } from "@/lib/services/editorial-service";
 
@@ -18,6 +18,7 @@ export function CollectionRowComponent({ collection }: CollectionRowComponentPro
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
+  const locale = useLocale();
 
   function updateScrollState() {
     const el = scrollRef.current;
@@ -77,36 +78,34 @@ export function CollectionRowComponent({ collection }: CollectionRowComponentPro
           {collection.collectionFilms.map((cf) => (
             <div key={cf.id} className="shrink-0" style={{ scrollSnapAlign: "start" }}>
               {collection.displayMode === "backdrop" ? (
-                <Link
-                  href={`/catalog/${cf.film.id}`}
-                  className={cn(
-                    "group flex shrink-0 flex-col gap-1.5",
-                    "w-[220px] md:w-[260px] lg:w-[300px]"
-                  )}
-                >
-                  <div className="relative aspect-[3/2] w-full overflow-hidden rounded-lg shadow-md transition-all duration-300 group-hover:scale-[1.03] group-hover:shadow-xl">
-                    {cf.film.backdropUrl || cf.film.posterUrl ? (
-                      <Image
-                        src={(cf.film.backdropUrl || cf.film.posterUrl)!}
-                        alt={cf.film.title}
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 640px) 60vw, (max-width: 1024px) 35vw, 300px"
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center bg-muted text-muted-foreground">
-                        <Film className="h-10 w-10" aria-hidden="true" />
-                      </div>
-                    )}
-                  </div>
-                  <p className="truncate text-sm font-medium">{cf.film.title}</p>
-                </Link>
+                <FilmBackdropCard
+                  filmId={cf.film.id}
+                  title={cf.film.title}
+                  backdropUrl={cf.film.backdropUrl}
+                  posterUrl={cf.film.posterUrl}
+                  subtitle={
+                    [
+                      cf.film.directors?.[0],
+                      cf.film.releaseYear ? String(cf.film.releaseYear) : null,
+                    ]
+                      .filter(Boolean)
+                      .join(" · ") || undefined
+                  }
+                  className="w-[220px] md:w-[260px] lg:w-[300px]"
+                  sizes="(max-width: 640px) 60vw, (max-width: 1024px) 35vw, 300px"
+                />
               ) : (
                 <FilmPoster
                   filmId={cf.film.id}
                   title={cf.film.title}
                   posterUrl={cf.film.posterUrl}
-                  genre={cf.film.genres?.[0]}
+                  genre={
+                    cf.film.genres?.[0]
+                      ? locale === "fr"
+                        ? cf.film.genres[0].nameFr
+                        : cf.film.genres[0].nameEn
+                      : undefined
+                  }
                   className="w-[140px] md:w-[160px] lg:w-[180px]"
                 />
               )}

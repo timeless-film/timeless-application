@@ -1,10 +1,11 @@
-import { and, count, eq, ilike, ne, or } from "drizzle-orm";
+import { and, count, eq, ilike, inArray, ne, or } from "drizzle-orm";
 
 import { STRIPE_CURRENCY_CODES } from "@/lib/currencies";
 import { db } from "@/lib/db";
-import { filmPrices, films } from "@/lib/db/schema";
+import { filmCompanies, filmGenres, filmPeople, filmPrices, films, genres } from "@/lib/db/schema";
 
 import type { CountryCode } from "@/lib/countries";
+import type { NormalizedCompany, NormalizedPerson } from "@/lib/tmdb";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -36,6 +37,8 @@ export interface CreateFilmInput {
   posterUrl?: string | null;
   backdropUrl?: string | null;
   tmdbRating?: string | null;
+  tagline?: string | null;
+  taglineEn?: string | null;
   // Import source
   importSource?: "manual" | "csv" | "excel";
   importBatchId?: string | null;
@@ -63,6 +66,8 @@ export interface UpdateFilmInput {
   posterUrl?: string | null;
   backdropUrl?: string | null;
   tmdbRating?: string | null;
+  tagline?: string | null;
+  taglineEn?: string | null;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -441,4 +446,291 @@ export async function setFilmStatus(
 
 export async function archiveFilmById(filmId: string, accountId: string) {
   return setFilmStatus(filmId, accountId, "retired");
+}
+
+// ─── TMDB Relations Sync ──────────────────────────────────────────────────────
+
+interface SyncFilmTmdbRelationsInput {
+  genreIds: number[];
+  people: NormalizedPerson[];
+  companies: NormalizedCompany[];
+}
+
+/**
+ * Resolves TMDB genre IDs to internal genre IDs.
+ * Returns only IDs that have a matching tmdbId in the genres table.
+ */
+export async function resolveTmdbGenreIds(tmdbGenreIds: number[]): Promise<number[]> {
+  if (tmdbGenreIds.length === 0) return [];
+
+  const rows = await db
+    .select({ id: genres.id, tmdbId: genres.tmdbId })
+    .from(genres)
+    .where(inArray(genres.tmdbId, tmdbGenreIds));
+
+  return rows.map((r) => r.id);
+}
+
+/**
+ * Syncs normalized TMDB relations for a film (genres, people, companies).
+ * Deletes existing relations and re-inserts from fresh TMDB data.
+ * Genre IDs in input are TMDB IDs — they are resolved to internal IDs automatically.
+ */
+export async function syncFilmTmdbRelations(filmId: string, input: SyncFilmTmdbRelationsInput) {
+  // Resolve TMDB genre IDs to internal genre IDs
+  const internalGenreIds = await resolveTmdbGenreIds(input.genreIds);
+
+  await db.transaction(async (tx) => {
+    // Clear existing relations
+    await tx.delete(filmGenres).where(eq(filmGenres.filmId, filmId));
+    await tx.delete(filmPeople).where(eq(filmPeople.filmId, filmId));
+    await tx.delete(filmCompanies).where(eq(filmCompanies.filmId, filmId));
+
+    // Insert genres (using internal IDs)
+    if (internalGenreIds.length > 0) {
+      await tx.insert(filmGenres).values(
+        internalGenreIds.map((genreId) => ({
+          filmId,
+          genreId,
+        }))
+      );
+    }
+
+    // Insert people
+    if (input.people.length > 0) {
+      await tx.insert(filmPeople).values(
+        input.people.map((person) => ({
+          filmId,
+          tmdbPersonId: person.tmdbPersonId,
+          name: person.name,
+          role: person.role,
+          character: person.character,
+          displayOrder: person.displayOrder,
+          profileUrl: person.profileUrl,
+        }))
+      );
+    }
+
+    // Insert companies
+    if (input.companies.length > 0) {
+      await tx.insert(filmCompanies).values(
+        input.companies.map((company) => ({
+          filmId,
+          tmdbCompanyId: company.tmdbCompanyId,
+          name: company.name,
+          logoUrl: company.logoUrl,
+          originCountry: company.originCountry,
+        }))
+      );
+    }
+  });
+}
+
+// ─── Sync normalized relations from flat fields (manual / CSV data) ───────────
+
+interface SyncNormalizedFromFlatFieldsInput {
+  directors?: string[] | null;
+  cast?: string[] | null;
+  genreIds?: number[] | null;
+}
+
+/**
+ * Syncs normalized relations from manually entered or CSV-imported data.
+ * Unlike syncFilmTmdbRelations, this works with flat text fields and genre IDs
+ * (not TMDB IDs for people). People are inserted with tmdbPersonId=null.
+ *
+ * Genre IDs are validated against the genres table before insertion.
+ */
+export async function syncNormalizedRelationsFromFlatFields(
+  filmId: string,
+  input: SyncNormalizedFromFlatFieldsInput
+) {
+  await db.transaction(async (tx) => {
+    // Clear existing relations (people + genres only, not companies for manual data)
+    await tx.delete(filmPeople).where(eq(filmPeople.filmId, filmId));
+    await tx.delete(filmGenres).where(eq(filmGenres.filmId, filmId));
+
+    // Insert directors
+    const directors = input.directors?.filter(Boolean) ?? [];
+    if (directors.length > 0) {
+      await tx.insert(filmPeople).values(
+        directors.map((name, index) => ({
+          filmId,
+          tmdbPersonId: null,
+          name,
+          role: "director" as const,
+          character: null,
+          displayOrder: index,
+          profileUrl: null,
+        }))
+      );
+    }
+
+    // Insert cast
+    const castMembers = input.cast?.filter(Boolean) ?? [];
+    if (castMembers.length > 0) {
+      await tx.insert(filmPeople).values(
+        castMembers.map((name, index) => ({
+          filmId,
+          tmdbPersonId: null,
+          name,
+          role: "actor" as const,
+          character: null,
+          displayOrder: index,
+          profileUrl: null,
+        }))
+      );
+    }
+
+    // Insert genres (validated against genres table)
+    const genreIds = input.genreIds?.filter((id) => id > 0) ?? [];
+    if (genreIds.length > 0) {
+      // Validate genre IDs exist in the taxonomy
+      const validGenres = await tx
+        .select({ id: genres.id })
+        .from(genres)
+        .where(or(...genreIds.map((id) => eq(genres.id, id)))!);
+      const validIds = new Set(validGenres.map((g) => g.id));
+
+      const toInsert = genreIds.filter((id) => validIds.has(id));
+      if (toInsert.length > 0) {
+        await tx.insert(filmGenres).values(
+          toInsert.map((genreId) => ({
+            filmId,
+            genreId,
+          }))
+        );
+      }
+    }
+  });
+}
+
+// ─── Genre helpers ────────────────────────────────────────────────────────────
+
+/**
+ * Fetches localized genre objects for a batch of film IDs.
+ * Returns a Map from filmId to an array of { nameEn, nameFr } genre objects.
+ */
+export async function getLocalizedGenresForFilms(
+  filmIds: string[]
+): Promise<Map<string, { nameEn: string; nameFr: string }[]>> {
+  if (filmIds.length === 0) return new Map();
+
+  const rows = await db
+    .select({
+      filmId: filmGenres.filmId,
+      nameEn: genres.nameEn,
+      nameFr: genres.nameFr,
+    })
+    .from(filmGenres)
+    .innerJoin(genres, eq(filmGenres.genreId, genres.id))
+    .where(inArray(filmGenres.filmId, filmIds));
+
+  const map = new Map<string, { nameEn: string; nameFr: string }[]>();
+  for (const row of rows) {
+    const existing = map.get(row.filmId) ?? [];
+    existing.push({ nameEn: row.nameEn, nameFr: row.nameFr });
+    map.set(row.filmId, existing);
+  }
+  return map;
+}
+
+// ─── Canonical genre taxonomy ─────────────────────────────────────────────────
+
+const CANONICAL_GENRES = [
+  { tmdbId: 28, nameEn: "Action", nameFr: "Action" },
+  { tmdbId: 12, nameEn: "Adventure", nameFr: "Aventure" },
+  { tmdbId: 16, nameEn: "Animation", nameFr: "Animation" },
+  { tmdbId: 35, nameEn: "Comedy", nameFr: "Comédie" },
+  { tmdbId: 80, nameEn: "Crime", nameFr: "Crime" },
+  { tmdbId: 99, nameEn: "Documentary", nameFr: "Documentaire" },
+  { tmdbId: 18, nameEn: "Drama", nameFr: "Drame" },
+  { tmdbId: 10751, nameEn: "Family", nameFr: "Familial" },
+  { tmdbId: 14, nameEn: "Fantasy", nameFr: "Fantastique" },
+  { tmdbId: 36, nameEn: "History", nameFr: "Histoire" },
+  { tmdbId: 27, nameEn: "Horror", nameFr: "Horreur" },
+  { tmdbId: 10402, nameEn: "Music", nameFr: "Musique" },
+  { tmdbId: 9648, nameEn: "Mystery", nameFr: "Mystère" },
+  { tmdbId: 10749, nameEn: "Romance", nameFr: "Romance" },
+  { tmdbId: 878, nameEn: "Science Fiction", nameFr: "Science-Fiction" },
+  { tmdbId: 10770, nameEn: "TV Movie", nameFr: "Téléfilm" },
+  { tmdbId: 53, nameEn: "Thriller", nameFr: "Thriller" },
+  { tmdbId: 10752, nameEn: "War", nameFr: "Guerre" },
+  { tmdbId: 37, nameEn: "Western", nameFr: "Western" },
+];
+
+/**
+ * Seeds missing genres from the canonical taxonomy.
+ * Uses upsert on tmdbId — existing genres are updated (names), missing ones are inserted.
+ * Returns the number of genres inserted.
+ */
+export async function seedMissingGenres(): Promise<{ inserted: number; total: number }> {
+  const existing = await db.select({ tmdbId: genres.tmdbId }).from(genres);
+  const existingTmdbIds = new Set(existing.map((g) => g.tmdbId));
+
+  const missing = CANONICAL_GENRES.filter((g) => !existingTmdbIds.has(g.tmdbId));
+
+  if (missing.length > 0) {
+    await db.insert(genres).values(missing);
+  }
+
+  const total = await db.select({ id: genres.id }).from(genres);
+
+  return { inserted: missing.length, total: total.length };
+}
+
+/**
+ * Returns all genres for use in selectors.
+ */
+export async function listGenres() {
+  return db
+    .select({ id: genres.id, tmdbId: genres.tmdbId, nameEn: genres.nameEn, nameFr: genres.nameFr })
+    .from(genres)
+    .orderBy(genres.nameEn);
+}
+
+/**
+ * Matches genre strings (from CSV or manual input) to internal genre IDs.
+ *
+ * Each value is tested in order:
+ *   1. Internal genre ID (e.g. "7")
+ *   2. TMDB genre ID (e.g. "18")
+ *   3. English name, case-insensitive (e.g. "Drama")
+ *   4. French name, case-insensitive (e.g. "Drame")
+ *
+ * Returns only the IDs that matched (deduplicated).
+ */
+export async function matchGenreNamesToIds(genreValues: string[]): Promise<number[]> {
+  if (genreValues.length === 0) return [];
+
+  const allGenres = await listGenres();
+  const matched: number[] = [];
+
+  for (const value of genreValues) {
+    const trimmed = value.trim();
+    if (!trimmed) continue;
+
+    const asNumber = Number(trimmed);
+    const isNumeric = Number.isInteger(asNumber) && asNumber > 0;
+
+    let match: (typeof allGenres)[number] | undefined;
+
+    if (isNumeric) {
+      match =
+        allGenres.find((g) => g.id === asNumber) ?? allGenres.find((g) => g.tmdbId === asNumber);
+    }
+
+    if (!match) {
+      const normalized = trimmed.toLowerCase();
+      match = allGenres.find(
+        (g) => g.nameEn.toLowerCase() === normalized || g.nameFr.toLowerCase() === normalized
+      );
+    }
+
+    if (match) {
+      matched.push(match.id);
+    }
+  }
+
+  return [...new Set(matched)];
 }

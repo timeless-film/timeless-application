@@ -141,6 +141,20 @@
       "when": 1773563823109,
       "tag": "0019_productive_spirit",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1773578962457,
+      "tag": "0020_friendly_havok",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1773610668954,
+      "tag": "0021_whole_salo",
+      "breakpoints": true
     }
   ]
 }

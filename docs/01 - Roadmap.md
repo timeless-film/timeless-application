@@ -29,8 +29,9 @@
 | [[E10 - Livraison Opérationnelle - Terminé]] | Notifications ops, suivi DCP/KDM (dépend E11) | P3 | 4 | ✅ Done |
 | [[E12 - Sécurité des Accès]] | MFA UI, codes de récupération, audit log | P2–P3 | 5 | ⬜ A faire |
 | [[E13 - Home Exploitant - Terminé]] | Page d'accueil éditorialisée, collections, posters | P4 | 14 | ✅ Done |
+| [[E14 - Enrichissement TMDB & Données Normalisées]] | Genres i18n, équipe complète, filtres avancés | P4 | 5 | ✅ Done |
 
-**Total** : 92 tickets
+**Total** : 97 tickets
 
 ---
 
@@ -92,6 +93,7 @@
 - Devise de préférence exploitant + taux de change temps réel
 - TVA internationale (hors EU)
 - **Page d'accueil exploitant éditorialisée** (E13) — slideshow, collections, cartes, catalogue par décennie
+- **Enrichissement TMDB normalisé** (E14) — genres i18n, équipe complète, filtres avancés, fiche film enrichie
 - Analytics et reporting
 - Optimisations UX
 

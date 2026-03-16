@@ -15,8 +15,18 @@ import {
 } from "drizzle-orm";
 
 import { db } from "@/lib/db";
-import { accounts, cinemas, filmPrices, films } from "@/lib/db/schema";
+import {
+  accounts,
+  cinemas,
+  filmCompanies,
+  filmGenres,
+  filmPeople,
+  filmPrices,
+  films,
+  genres as genresTable,
+} from "@/lib/db/schema";
 import { calculatePricing, getPlatformPricingSettings, resolveCommissionRate } from "@/lib/pricing";
+import { getLocalizedGenresForFilms } from "@/lib/services/film-service";
 
 import type { CountryCode } from "@/lib/countries";
 
@@ -26,9 +36,10 @@ export interface CatalogFilters {
   search?: string;
   directors?: string[];
   cast?: string[];
-  genres?: string[];
+  genres?: string[]; // Internal genre IDs as strings
   countries?: string[];
   rightsHolderIds?: string[];
+  companies?: string[];
   type?: "direct" | "all";
   yearMin?: number;
   yearMax?: number;
@@ -71,7 +82,7 @@ export interface FilmWithAvailability {
   synopsisEn: string | null;
   duration: number | null;
   releaseYear: number | null;
-  genres: string[] | null;
+  genres: { nameEn: string; nameFr: string }[];
   directors: string[] | null;
   cast: string[] | null;
   countries: string[] | null;
@@ -79,6 +90,8 @@ export interface FilmWithAvailability {
   backdropUrl: string | null;
   type: "direct" | "validation";
   tmdbRating: string | null;
+  tagline: string | null;
+  taglineEn: string | null;
   accountId: string;
   accountName: string | null;
   rightsHolderId: string;
@@ -104,8 +117,17 @@ export interface CatalogResult {
   limit: number;
 }
 
+export interface GenreOption {
+  id: string; // Internal genre ID as string
+  nameEn: string;
+  nameFr: string;
+}
+
 export interface CatalogFilterOptions {
-  genres: string[];
+  genres: GenreOption[];
+  directors: string[];
+  actors: string[];
+  companies: string[];
   totalFilms: number;
   releaseYearRange: CatalogRangeFacet | null;
   durationRange: CatalogRangeFacet | null;
@@ -236,28 +258,68 @@ function buildCatalogQueryConditions(filters: CatalogFilters, accountCountries: 
     );
   }
 
-  // Multi-select: directors
+  // Multi-select: directors (via normalized film_people table)
   if (filters.directors && filters.directors.length > 0) {
-    const directorConditions = filters.directors.map(
-      (director) => sql`${films.directors} @> ARRAY[${director}]::text[]`
+    const directorNames = filters.directors;
+    conditions.push(
+      sql`EXISTS (
+        SELECT 1 FROM ${filmPeople}
+        WHERE ${filmPeople.filmId} = ${films.id}
+        AND ${filmPeople.role} = 'director'
+        AND ${filmPeople.name} IN (${sql.join(
+          directorNames.map((d) => sql`${d}`),
+          sql`, `
+        )})
+      )`
     );
-    conditions.push(or(...directorConditions));
   }
 
-  // Multi-select: cast
+  // Multi-select: cast (via normalized film_people table)
   if (filters.cast && filters.cast.length > 0) {
-    const castConditions = filters.cast.map(
-      (actor) => sql`${films.cast} @> ARRAY[${actor}]::text[]`
+    const actorNames = filters.cast;
+    conditions.push(
+      sql`EXISTS (
+        SELECT 1 FROM ${filmPeople}
+        WHERE ${filmPeople.filmId} = ${films.id}
+        AND ${filmPeople.role} = 'actor'
+        AND ${filmPeople.name} IN (${sql.join(
+          actorNames.map((a) => sql`${a}`),
+          sql`, `
+        )})
+      )`
     );
-    conditions.push(or(...castConditions));
   }
 
-  // Multi-select: genres
+  // Multi-select: genres (via normalized film_genres table, by internal genre ID)
   if (filters.genres && filters.genres.length > 0) {
-    const genreConditions = filters.genres.map(
-      (genre) => sql`${films.genres} @> ARRAY[${genre}]::text[]`
+    const genreIds = filters.genres.map((g) => parseInt(g, 10)).filter((n) => !isNaN(n));
+    if (genreIds.length > 0) {
+      conditions.push(
+        sql`EXISTS (
+          SELECT 1 FROM ${filmGenres}
+          WHERE ${filmGenres.filmId} = ${films.id}
+          AND ${filmGenres.genreId} IN (${sql.join(
+            genreIds.map((id) => sql`${id}`),
+            sql`, `
+          )})
+        )`
+      );
+    }
+  }
+
+  // Multi-select: companies (via normalized film_companies table)
+  if (filters.companies && filters.companies.length > 0) {
+    const companyNames = filters.companies;
+    conditions.push(
+      sql`EXISTS (
+        SELECT 1 FROM ${filmCompanies}
+        WHERE ${filmCompanies.filmId} = ${films.id}
+        AND ${filmCompanies.name} IN (${sql.join(
+          companyNames.map((c) => sql`${c}`),
+          sql`, `
+        )})
+      )`
     );
-    conditions.push(or(...genreConditions));
   }
 
   // Multi-select: countries
@@ -508,16 +570,48 @@ export async function getCatalogFilterOptions(
 ): Promise<CatalogFilterOptions> {
   const [
     genreRows,
+    directorRows,
+    actorRows,
+    companyRows,
     countResult,
     releaseYearRange,
     durationRange,
     unitPriceRange,
     priceCurrencyExcludedCount,
   ] = await Promise.all([
+    // Genres: from normalized genres via film_genres, only for active films
     db
-      .select({ genre: sql<string>`DISTINCT UNNEST(${films.genres})` })
-      .from(films)
-      .where(eq(films.status, "active")),
+      .selectDistinct({
+        id: genresTable.id,
+        nameEn: genresTable.nameEn,
+        nameFr: genresTable.nameFr,
+      })
+      .from(genresTable)
+      .innerJoin(filmGenres, eq(filmGenres.genreId, genresTable.id))
+      .innerJoin(films, eq(filmGenres.filmId, films.id))
+      .where(eq(films.status, "active"))
+      .orderBy(genresTable.nameEn),
+    // Directors: distinct names from film_people
+    db
+      .selectDistinct({ name: filmPeople.name })
+      .from(filmPeople)
+      .innerJoin(films, eq(filmPeople.filmId, films.id))
+      .where(and(eq(films.status, "active"), eq(filmPeople.role, "director")))
+      .orderBy(filmPeople.name),
+    // Actors: distinct names from film_people (limit to keep sidebar snappy)
+    db
+      .selectDistinct({ name: filmPeople.name })
+      .from(filmPeople)
+      .innerJoin(films, eq(filmPeople.filmId, films.id))
+      .where(and(eq(films.status, "active"), eq(filmPeople.role, "actor")))
+      .orderBy(filmPeople.name),
+    // Companies: distinct names from film_companies
+    db
+      .selectDistinct({ name: filmCompanies.name })
+      .from(filmCompanies)
+      .innerJoin(films, eq(filmCompanies.filmId, films.id))
+      .where(eq(films.status, "active"))
+      .orderBy(filmCompanies.name),
     db.select({ count: count() }).from(films).where(eq(films.status, "active")),
     getRangeFacetForField(accountId, filters, "releaseYear"),
     getRangeFacetForField(accountId, filters, "duration"),
@@ -525,14 +619,23 @@ export async function getCatalogFilterOptions(
     getPriceCurrencyExcludedCount(accountId, filters),
   ]);
 
-  const genres = [...new Set(genreRows.map((row) => row.genre?.trim()).filter(Boolean))].sort(
-    (a, b) => a.localeCompare(b)
-  );
+  const genres: GenreOption[] = genreRows.map((row) => ({
+    id: String(row.id),
+    nameEn: row.nameEn,
+    nameFr: row.nameFr,
+  }));
+
+  const directors = directorRows.map((r) => r.name).filter(Boolean);
+  const actors = actorRows.map((r) => r.name).filter(Boolean);
+  const companies = companyRows.map((r) => r.name).filter(Boolean);
 
   const totalFilms = countResult[0]?.count ?? 0;
 
   return {
     genres,
+    directors,
+    actors,
+    companies,
     totalFilms,
     releaseYearRange,
     durationRange,
@@ -587,7 +690,6 @@ export async function getCatalogForExhibitor(
         synopsisEn: films.synopsisEn,
         duration: films.duration,
         releaseYear: films.releaseYear,
-        genres: films.genres,
         directors: films.directors,
         cast: films.cast,
         countries: films.countries,
@@ -609,8 +711,12 @@ export async function getCatalogForExhibitor(
     db.select({ value: count() }).from(films).where(whereCondition),
   ]);
 
-  // Fetch platform pricing settings once for all films
-  const platformSettings = await getPlatformPricingSettings();
+  // Fetch localized genres + platform pricing settings
+  const filmIds = filmsList.map((f) => f.id);
+  const [genresMap, platformSettings] = await Promise.all([
+    getLocalizedGenresForFilms(filmIds),
+    getPlatformPricingSettings(),
+  ]);
 
   // Enrich with availability + matching prices + displayedPrice
   const enrichedFilms: FilmWithAvailability[] = await Promise.all(
@@ -675,7 +781,7 @@ export async function getCatalogForExhibitor(
         synopsisEn: film.synopsisEn,
         duration: film.duration,
         releaseYear: film.releaseYear,
-        genres: film.genres,
+        genres: genresMap.get(film.id) ?? [],
         directors: film.directors,
         cast: film.cast,
         countries: film.countries,
@@ -683,6 +789,8 @@ export async function getCatalogForExhibitor(
         backdropUrl: film.backdropUrl,
         type: film.type as "direct" | "validation",
         tmdbRating: film.tmdbRating,
+        tagline: null,
+        taglineEn: null,
         accountId: film.accountId,
         accountName: film.accountName,
         rightsHolderId: film.accountId,
@@ -739,7 +847,6 @@ export async function getFilmForExhibitor(
       synopsisEn: true,
       duration: true,
       releaseYear: true,
-      genres: true,
       directors: true,
       cast: true,
       countries: true,
@@ -747,6 +854,8 @@ export async function getFilmForExhibitor(
       backdropUrl: true,
       type: true,
       tmdbRating: true,
+      tagline: true,
+      taglineEn: true,
       accountId: true,
       createdAt: true,
       updatedAt: true,
@@ -757,15 +866,18 @@ export async function getFilmForExhibitor(
     return null;
   }
 
-  // Get rights holder name and commission rate
-  const [rightsHolder] = await db
-    .select({
-      companyName: accounts.companyName,
-      commissionRate: accounts.commissionRate,
-    })
-    .from(accounts)
-    .where(eq(accounts.id, film.accountId))
-    .limit(1);
+  // Get rights holder name, commission rate, and localized genres
+  const [[rightsHolder], filmGenresMap] = await Promise.all([
+    db
+      .select({
+        companyName: accounts.companyName,
+        commissionRate: accounts.commissionRate,
+      })
+      .from(accounts)
+      .where(eq(accounts.id, film.accountId))
+      .limit(1),
+    getLocalizedGenresForFilms([filmId]),
+  ]);
 
   const { available, matchingPrices: rawPrices } = await checkFilmAvailability(
     filmId,
@@ -825,7 +937,7 @@ export async function getFilmForExhibitor(
     synopsisEn: film.synopsisEn,
     duration: film.duration,
     releaseYear: film.releaseYear,
-    genres: film.genres,
+    genres: filmGenresMap.get(filmId) ?? [],
     directors: film.directors,
     cast: film.cast,
     countries: film.countries,
@@ -833,6 +945,8 @@ export async function getFilmForExhibitor(
     backdropUrl: film.backdropUrl,
     type: film.type as "direct" | "validation",
     tmdbRating: film.tmdbRating,
+    tagline: film.tagline,
+    taglineEn: film.taglineEn,
     accountId: film.accountId,
     accountName: rightsHolder?.companyName ?? null,
     rightsHolderId: film.accountId,

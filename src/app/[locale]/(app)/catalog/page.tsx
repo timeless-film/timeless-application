@@ -33,6 +33,7 @@ const catalogSearchParamsSchema = z.object({
   genres: z.union([z.string(), z.array(z.string())]).optional(),
   countries: z.union([z.string(), z.array(z.string())]).optional(),
   rightsHolderIds: z.union([z.string(), z.array(z.string())]).optional(),
+  companies: z.union([z.string(), z.array(z.string())]).optional(),
   type: z.enum(["direct", "all"]).optional().default("all"),
   yearMin: z.coerce.number().int().optional(),
   yearMax: z.coerce.number().int().optional(),
@@ -115,6 +116,11 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
       : params.rightsHolderIds
         ? [params.rightsHolderIds]
         : [],
+    companies: Array.isArray(params.companies)
+      ? params.companies
+      : params.companies
+        ? [params.companies]
+        : [],
     type: params.type,
     yearMin: params.yearMin,
     yearMax: params.yearMax,
@@ -142,6 +148,9 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
       initialPage={catalogResult.page}
       initialLimit={catalogResult.limit}
       genreOptions={filterOptions.genres}
+      directorOptions={filterOptions.directors}
+      actorOptions={filterOptions.actors}
+      companyOptions={filterOptions.companies}
       totalPlatformFilms={filterOptions.totalFilms}
       releaseYearRange={filterOptions.releaseYearRange}
       durationRange={filterOptions.durationRange}

@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import { getCurrentMembership } from "@/lib/auth/membership";
 import { db } from "@/lib/db";
 import { platformSettings, platformSettingsHistory } from "@/lib/db/schema";
+import { listGenres, seedMissingGenres } from "@/lib/services/film-service";
 
 import type { PlatformSettingsUpdate } from "@/lib/services/admin-settings-service";
 
@@ -165,6 +166,29 @@ export async function getSettingsHistory() {
     return { data: history };
   } catch (error) {
     console.error("Failed to fetch settings history:", error);
+    return { error: "INTERNAL_ERROR" as const };
+  }
+}
+
+export async function getGenresStatusAction() {
+  const ctx = await getCurrentMembership();
+  if (!ctx) return { error: "UNAUTHORIZED" as const };
+  if (ctx.account.type !== "admin") return { error: "FORBIDDEN" as const };
+
+  const allGenres = await listGenres();
+  return { data: { total: allGenres.length } };
+}
+
+export async function seedGenresAction() {
+  const ctx = await getCurrentMembership();
+  if (!ctx) return { error: "UNAUTHORIZED" as const };
+  if (ctx.account.type !== "admin") return { error: "FORBIDDEN" as const };
+
+  try {
+    const result = await seedMissingGenres();
+    return { success: true as const, data: result };
+  } catch (error) {
+    console.error("Failed to seed genres:", error);
     return { error: "INTERNAL_ERROR" as const };
   }
 }

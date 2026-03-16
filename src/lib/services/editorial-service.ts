@@ -9,6 +9,7 @@ import {
   slideshowItems,
   films,
 } from "@/lib/db/schema";
+import { getLocalizedGenresForFilms } from "@/lib/services/film-service";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -36,7 +37,7 @@ export interface SlideshowItemRow {
     title: string;
     posterUrl: string | null;
     backdropUrl: string | null;
-    genres: string[] | null;
+    genres: { nameEn: string; nameFr: string }[];
     releaseYear: number | null;
     directors: string[] | null;
   };
@@ -59,7 +60,8 @@ export interface CollectionRow {
       title: string;
       posterUrl: string | null;
       backdropUrl: string | null;
-      genres: string[] | null;
+      directors: string[] | null;
+      genres: { nameEn: string; nameFr: string }[];
       releaseYear: number | null;
     };
   }[];
@@ -82,7 +84,7 @@ export interface DecadeGroup {
     id: string;
     title: string;
     posterUrl: string | null;
-    genres: string[] | null;
+    genres: { nameEn: string; nameFr: string }[];
     releaseYear: number | null;
   }[];
 }
@@ -135,7 +137,6 @@ export async function getSlideshowItems(
           title: true,
           posterUrl: true,
           backdropUrl: true,
-          genres: true,
           releaseYear: true,
           directors: true,
           status: true,
@@ -143,17 +144,21 @@ export async function getSlideshowItems(
       },
     },
   });
-  return items
-    .filter((item) => item.film.status === "active")
-    .map((item) => ({
-      id: item.id,
-      sectionId: item.sectionId,
-      filmId: item.filmId,
-      headline: localized(item.headline, item.headlineFr, locale),
-      subtitle: localized(item.subtitle, item.subtitleFr, locale),
-      position: item.position,
-      film: item.film as SlideshowItemRow["film"],
-    }));
+  const activeItems = items.filter((item) => item.film.status === "active");
+  const filmIds = activeItems.map((item) => item.film.id);
+  const genresMap = await getLocalizedGenresForFilms(filmIds);
+  return activeItems.map((item) => ({
+    id: item.id,
+    sectionId: item.sectionId,
+    filmId: item.filmId,
+    headline: localized(item.headline, item.headlineFr, locale),
+    subtitle: localized(item.subtitle, item.subtitleFr, locale),
+    position: item.position,
+    film: {
+      ...item.film,
+      genres: genresMap.get(item.film.id) ?? [],
+    },
+  }));
 }
 
 export async function getCollectionsForSection(
@@ -172,7 +177,7 @@ export async function getCollectionsForSection(
               title: true,
               posterUrl: true,
               backdropUrl: true,
-              genres: true,
+              directors: true,
               releaseYear: true,
               status: true,
             },
@@ -181,6 +186,10 @@ export async function getCollectionsForSection(
       },
     },
   });
+  const allFilmIds = result.flatMap((col) =>
+    col.collectionFilms.filter((cf) => cf.film.status === "active").map((cf) => cf.film.id)
+  );
+  const genresMap = await getLocalizedGenresForFilms(allFilmIds);
   return result.map((col) => ({
     ...col,
     title: localizedRequired(col.title, col.titleFr, locale),
@@ -188,9 +197,12 @@ export async function getCollectionsForSection(
     displayMode: (col.displayMode === "backdrop"
       ? "backdrop"
       : "poster") as CollectionRow["displayMode"],
-    collectionFilms: col.collectionFilms.filter(
-      (cf) => cf.film.status === "active"
-    ) as CollectionRow["collectionFilms"],
+    collectionFilms: col.collectionFilms
+      .filter((cf) => cf.film.status === "active")
+      .map((cf) => ({
+        ...cf,
+        film: { ...cf.film, genres: genresMap.get(cf.film.id) ?? [] },
+      })) as CollectionRow["collectionFilms"],
   }));
 }
 
@@ -206,7 +218,6 @@ export async function getCollectionBySlug(slug: string, locale = "en") {
               id: true,
               title: true,
               posterUrl: true,
-              genres: true,
               releaseYear: true,
               directors: true,
               synopsis: true,
@@ -220,11 +231,17 @@ export async function getCollectionBySlug(slug: string, locale = "en") {
     },
   });
   if (!collection) return null;
+  const activeFilms = collection.collectionFilms.filter((cf) => cf.film.status === "active");
+  const filmIds = activeFilms.map((cf) => cf.film.id);
+  const genresMap = await getLocalizedGenresForFilms(filmIds);
   return {
     ...collection,
     title: localizedRequired(collection.title, collection.titleFr, locale),
     description: localized(collection.description, collection.descriptionFr, locale),
-    collectionFilms: collection.collectionFilms.filter((cf) => cf.film.status === "active"),
+    collectionFilms: activeFilms.map((cf) => ({
+      ...cf,
+      film: { ...cf.film, genres: genresMap.get(cf.film.id) ?? [] },
+    })),
   };
 }
 
@@ -258,7 +275,6 @@ export async function getFilmsByDecade(
       id: true,
       title: true,
       posterUrl: true,
-      genres: true,
       releaseYear: true,
       createdAt: true,
     },
@@ -266,7 +282,10 @@ export async function getFilmsByDecade(
   });
 
   // Group by decade
-  const decadeMap = new Map<number, DecadeGroup["films"]>();
+  const decadeMap = new Map<
+    number,
+    { id: string; title: string; posterUrl: string | null; releaseYear: number | null }[]
+  >();
   for (const film of activeFilms) {
     if (!film.releaseYear) continue;
     const decade = Math.floor(film.releaseYear / 10) * 10;
@@ -276,12 +295,15 @@ export async function getFilmsByDecade(
         id: film.id,
         title: film.title,
         posterUrl: film.posterUrl,
-        genres: film.genres,
         releaseYear: film.releaseYear,
       });
     }
     decadeMap.set(decade, existing);
   }
+
+  // Fetch genres for all films in the result
+  const allFilmIds = Array.from(decadeMap.values()).flatMap((f) => f.map((film) => film.id));
+  const genresMap = await getLocalizedGenresForFilms(allFilmIds);
 
   // Sort decades from most recent to oldest
   const decades = Array.from(decadeMap.entries())
@@ -293,7 +315,10 @@ export async function getFilmsByDecade(
     .map(([decade, decadeFilms]) => ({
       decade,
       label: `${decade}s`,
-      films: decadeFilms,
+      films: decadeFilms.map((f) => ({
+        ...f,
+        genres: genresMap.get(f.id) ?? [],
+      })),
     }));
 
   return decades;
@@ -378,7 +403,7 @@ export async function reorderSections(sectionIds: string[]): Promise<void> {
 // ─── Slideshow admin ──────────────────────────────────────────────────────────
 
 export async function getSlideshowItemsForAdmin(sectionId: string) {
-  return db.query.slideshowItems.findMany({
+  const items = await db.query.slideshowItems.findMany({
     where: eq(slideshowItems.sectionId, sectionId),
     orderBy: asc(slideshowItems.position),
     with: {
@@ -388,13 +413,18 @@ export async function getSlideshowItemsForAdmin(sectionId: string) {
           title: true,
           posterUrl: true,
           backdropUrl: true,
-          genres: true,
           releaseYear: true,
           directors: true,
         },
       },
     },
   });
+  const filmIds = items.map((item) => item.film.id);
+  const genresMap = await getLocalizedGenresForFilms(filmIds);
+  return items.map((item) => ({
+    ...item,
+    film: { ...item.film, genres: genresMap.get(item.film.id) ?? [] },
+  }));
 }
 
 export async function addSlideshowItem(input: {
@@ -455,7 +485,7 @@ export async function reorderSlideshowItems(itemIds: string[]): Promise<void> {
 // ─── Collection admin ─────────────────────────────────────────────────────────
 
 export async function getCollectionForAdmin(sectionId: string) {
-  return db.query.collections.findFirst({
+  const collection = await db.query.collections.findFirst({
     where: eq(collections.sectionId, sectionId),
     with: {
       collectionFilms: {
@@ -466,7 +496,6 @@ export async function getCollectionForAdmin(sectionId: string) {
               id: true,
               title: true,
               posterUrl: true,
-              genres: true,
               releaseYear: true,
             },
           },
@@ -474,6 +503,16 @@ export async function getCollectionForAdmin(sectionId: string) {
       },
     },
   });
+  if (!collection) return undefined;
+  const filmIds = collection.collectionFilms.map((cf) => cf.film.id);
+  const genresMap = await getLocalizedGenresForFilms(filmIds);
+  return {
+    ...collection,
+    collectionFilms: collection.collectionFilms.map((cf) => ({
+      ...cf,
+      film: { ...cf.film, genres: genresMap.get(cf.film.id) ?? [] },
+    })),
+  };
 }
 
 export async function updateCollection(
@@ -601,18 +640,23 @@ export async function reorderEditorialCards(cardIds: string[]): Promise<void> {
 // ─── Film search (for admin pickers) ──────────────────────────────────────────
 
 export async function searchActiveFilms(query: string, limit = 20) {
-  return db.query.films.findMany({
+  const results = await db.query.films.findMany({
     where: and(eq(films.status, "active"), sql`${films.title} ILIKE ${`%${query}%`}`),
     columns: {
       id: true,
       title: true,
       posterUrl: true,
       backdropUrl: true,
-      genres: true,
       releaseYear: true,
       directors: true,
     },
     orderBy: asc(films.title),
     limit,
   });
+  const filmIds = results.map((f) => f.id);
+  const genresMap = await getLocalizedGenresForFilms(filmIds);
+  return results.map((f) => ({
+    ...f,
+    genres: genresMap.get(f.id) ?? [],
+  }));
 }

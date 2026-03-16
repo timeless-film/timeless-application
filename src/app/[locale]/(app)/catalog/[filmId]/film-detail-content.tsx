@@ -1,5 +1,6 @@
 "use client";
 
+import { Star } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 
@@ -14,6 +15,32 @@ import { FilmActionModal } from "./film-action-modal";
 import type { FilmWithAvailability } from "@/lib/services/catalog-service";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
+
+interface FilmPerson {
+  name: string;
+  role:
+    | "director"
+    | "actor"
+    | "producer"
+    | "executive_producer"
+    | "composer"
+    | "cinematographer"
+    | "screenplay";
+  character: string | null;
+  profileUrl: string | null;
+  displayOrder: number;
+}
+
+interface FilmGenre {
+  nameEn: string;
+  nameFr: string;
+}
+
+interface FilmCompany {
+  name: string;
+  logoUrl: string | null;
+  originCountry: string | null;
+}
 
 interface FilmDetailContentProps {
   film: FilmWithAvailability;
@@ -31,6 +58,9 @@ interface FilmDetailContentProps {
     rooms: Array<{ id: string; name: string; capacity: number }>;
   }>;
   preferredCurrency: string;
+  people: FilmPerson[];
+  genres: FilmGenre[];
+  companies: FilmCompany[];
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -41,6 +71,9 @@ export function FilmDetailContent({
   existingRequests,
   cinemas,
   preferredCurrency,
+  people,
+  genres,
+  companies,
 }: FilmDetailContentProps) {
   const t = useTranslations("catalog.film");
   const tStatus = useTranslations("requests.status");
@@ -53,6 +86,42 @@ export function FilmDetailContent({
   const isAvailable = film.availableForAccount;
   const isDirect = film.type === "direct";
   const synopsis = locale === "en" && film.synopsisEn ? film.synopsisEn : film.synopsis;
+  const tagline = locale === "en" && film.taglineEn ? film.taglineEn : film.tagline;
+
+  // Group people by role (fall back to legacy denormalized arrays)
+  const hasNormalizedPeople = people.length > 0;
+  const directors = hasNormalizedPeople
+    ? people.filter((p) => p.role === "director")
+    : (film.directors ?? []).map((name) => ({
+        name,
+        role: "director" as const,
+        character: null,
+        profileUrl: null,
+        displayOrder: 0,
+      }));
+  const actors = hasNormalizedPeople
+    ? people.filter((p) => p.role === "actor")
+    : (film.cast ?? []).map((name) => ({
+        name,
+        role: "actor" as const,
+        character: null,
+        profileUrl: null,
+        displayOrder: 0,
+      }));
+  const producers = hasNormalizedPeople
+    ? people.filter((p) => p.role === "producer" || p.role === "executive_producer")
+    : [];
+  const crew = hasNormalizedPeople
+    ? people.filter(
+        (p) => p.role === "composer" || p.role === "cinematographer" || p.role === "screenplay"
+      )
+    : [];
+
+  // Localized genre names
+  const genreNames = genres.map((g) => (locale === "fr" ? g.nameFr : g.nameEn));
+
+  // TMDB rating
+  const tmdbRating = film.tmdbRating ? parseFloat(film.tmdbRating) : null;
 
   return (
     <>
@@ -81,7 +150,8 @@ export function FilmDetailContent({
                 {film.originalTitle && film.originalTitle !== film.title && (
                   <p className="text-lg text-muted-foreground">{film.originalTitle}</p>
                 )}
-                <div className="flex flex-wrap gap-2">
+                {tagline && <p className="text-base italic text-muted-foreground">{tagline}</p>}
+                <div className="flex flex-wrap items-center gap-2">
                   <Badge variant={isDirect ? "default" : "secondary"}>
                     {isDirect ? t("typeDirect") : t("typeValidation")}
                   </Badge>
@@ -89,6 +159,12 @@ export function FilmDetailContent({
                     <Badge variant="outline" className="border-destructive text-destructive">
                       {t("unavailable")}
                     </Badge>
+                  )}
+                  {tmdbRating !== null && tmdbRating > 0 && (
+                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                      <Star className="size-4 fill-yellow-400 text-yellow-400" />
+                      <span>{tmdbRating.toFixed(1)} / 10</span>
+                    </div>
                   )}
                 </div>
               </div>
@@ -99,16 +175,20 @@ export function FilmDetailContent({
                   <CardTitle>{t("information")}</CardTitle>
                 </CardHeader>
                 <CardContent className="grid gap-4 sm:grid-cols-2">
-                  {film.directors && film.directors.length > 0 && (
+                  {directors.length > 0 && (
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">{t("director")}</p>
-                      <p>{film.directors.join(", ")}</p>
+                      <p>{directors.map((d) => d.name).join(", ")}</p>
                     </div>
                   )}
-                  {film.cast && (
+                  {actors.length > 0 && (
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">{t("cast")}</p>
-                      <p className="line-clamp-2">{film.cast.join(", ")}</p>
+                      <p className="line-clamp-2">
+                        {actors
+                          .map((a) => (a.character ? `${a.name} (${a.character})` : a.name))
+                          .join(", ")}
+                      </p>
                     </div>
                   )}
                   {film.releaseYear && (
@@ -125,10 +205,10 @@ export function FilmDetailContent({
                       <p>{t("duration", { duration: film.duration })}</p>
                     </div>
                   )}
-                  {film.genres && film.genres.length > 0 && (
+                  {genreNames && genreNames.length > 0 && (
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">{t("genres")}</p>
-                      <p>{film.genres.join(", ")}</p>
+                      <p>{genreNames.join(", ")}</p>
                     </div>
                   )}
                   {film.countries && film.countries.length > 0 && (
@@ -137,8 +217,57 @@ export function FilmDetailContent({
                       <p>{film.countries.join(", ")}</p>
                     </div>
                   )}
+                  {film.rightsHolderName && (
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">
+                        {t("rightsHolder")}
+                      </p>
+                      <p>{film.rightsHolderName}</p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
+
+              {/* Crew (producers, DOP, composer, screenplay) */}
+              {(producers.length > 0 || crew.length > 0) && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>{t("crew")}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="grid gap-4 sm:grid-cols-2">
+                    {producers.length > 0 && (
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">
+                          {t("producers")}
+                        </p>
+                        <p>{producers.map((p) => p.name).join(", ")}</p>
+                      </div>
+                    )}
+                    {crew.map((person) => (
+                      <div key={`${person.role}-${person.name}`}>
+                        <p className="text-sm font-medium text-muted-foreground">
+                          {t(`role.${person.role}`)}
+                        </p>
+                        <p>{person.name}</p>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Production Companies */}
+              {companies.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>{t("productionCompanies")}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-muted-foreground">
+                      {companies.map((c) => c.name).join(", ")}
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Synopsis */}
               {synopsis && (

@@ -12,6 +12,7 @@ import {
 } from "drizzle-orm/pg-core";
 
 import { accounts } from "./accounts";
+import { filmCompanies, filmGenres, filmPeople } from "./tmdb";
 
 export const filmStatusEnum = pgEnum("film_status", ["active", "inactive", "retired"]);
 
@@ -59,6 +60,8 @@ export const films = pgTable(
     posterUrl: text("poster_url"),
     backdropUrl: text("backdrop_url"),
     tmdbRating: text("tmdb_rating"), // Stored as string to avoid float issues
+    tagline: text("tagline"), // TMDB tagline (localized)
+    taglineEn: text("tagline_en"), // TMDB tagline in English
 
     // Import source
     importSource: text("import_source").default("manual"), // "manual" | "csv" | "excel"
@@ -109,6 +112,9 @@ export const filmsRelations = relations(films, ({ one, many }) => ({
     references: [accounts.id],
   }),
   prices: many(filmPrices),
+  filmGenres: many(filmGenres),
+  people: many(filmPeople),
+  companies: many(filmCompanies),
 }));
 
 export const filmPricesRelations = relations(filmPrices, ({ one }) => ({

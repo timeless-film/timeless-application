@@ -159,6 +159,8 @@
     "sortPrice": "Price",
     "sortAsc": "Ascending",
     "sortDesc": "Descending",
+    "viewDense": "Dense view",
+    "viewSimple": "Simple view",
     "filters": {
       "title": "Filters",
       "clearAll": "Clear all",
@@ -195,6 +197,16 @@
       "genresSelectPlaceholder": "Select genres",
       "genresSearchPlaceholder": "Search genres...",
       "genresEmpty": "No genres found.",
+      "director": "Director",
+      "directorPlaceholder": "Select directors",
+      "directorSearchPlaceholder": "Search directors...",
+      "actor": "Actor",
+      "actorPlaceholder": "Select actors",
+      "actorSearchPlaceholder": "Search actors...",
+      "company": "Production company",
+      "companyPlaceholder": "Select companies",
+      "companySearchPlaceholder": "Search companies...",
+      "noResults": "No results found.",
       "year": "Year",
       "rightsHolder": "Rights holder",
       "country": "Country",
@@ -229,6 +241,15 @@
       "synopsis": "Synopsis",
       "tmdbRating": "TMDB rating",
       "information": "Information",
+      "enrichedInfo": "TMDB enriched data",
+      "crew": "Crew",
+      "producers": "Producers",
+      "productionCompanies": "Production",
+      "role": {
+        "composer": "Music",
+        "cinematographer": "Cinematography",
+        "screenplay": "Screenplay"
+      },
       "pricing": "Pricing",
       "singleZone": "Single pricing zone",
       "multipleZones": "{count} pricing zones available",
@@ -758,7 +779,8 @@
       "tmdbManualSynopsis": "Synopsis (manual)",
       "tmdbManualSynopsisEn": "Synopsis (English, manual)",
       "tmdbManualDirectors": "Directors (comma-separated)",
-      "tmdbManualGenres": "Genres (comma-separated)",
+      "tmdbManualGenres": "Genres",
+      "genreSelectPlaceholder": "Select genres…",
       "tmdbManualCast": "Cast (comma-separated)",
       "tmdbManualReleaseYear": "Release year (manual)",
       "tmdbManualDuration": "Duration in minutes (manual)",
@@ -1486,6 +1508,20 @@
         "INVALID_EXPIRATION_DAYS": "Expiration must be between 1 and 365 days.",
         "INVALID_URGENCY_DAYS": "Urgency threshold must be between 1 and 90 days.",
         "INVALID_DELIVERY_URGENCY_DAYS": "Delivery urgency threshold must be between 1 and 90 days."
+      },
+      "genres": {
+        "title": "Genre taxonomy",
+        "description": "Manage the genre taxonomy used for film classification. Seed missing genres from the canonical list (19 TMDB genres).",
+        "currentCount": "Genres in database:",
+        "seedButton": "Seed missing genres",
+        "seeding": "Seeding…",
+        "seeded": "{count, plural, one {# genre added} other {# genres added}} successfully.",
+        "alreadyComplete": "All genres are already present.",
+        "error": {
+          "UNAUTHORIZED": "You must be signed in.",
+          "FORBIDDEN": "Only admins can perform this action.",
+          "INTERNAL_ERROR": "An unexpected error occurred."
+        }
       }
     },
     "logs": {

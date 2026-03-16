@@ -159,6 +159,8 @@
     "sortPrice": "Prix",
     "sortAsc": "Croissant",
     "sortDesc": "Décroissant",
+    "viewDense": "Vue dense",
+    "viewSimple": "Vue simple",
     "filters": {
       "title": "Filtres",
       "clearAll": "Tout effacer",
@@ -195,6 +197,16 @@
       "genresSelectPlaceholder": "Sélectionner des genres",
       "genresSearchPlaceholder": "Rechercher des genres...",
       "genresEmpty": "Aucun genre trouvé.",
+      "director": "Réalisateur",
+      "directorPlaceholder": "Sélectionner des réalisateurs",
+      "directorSearchPlaceholder": "Rechercher des réalisateurs...",
+      "actor": "Acteur",
+      "actorPlaceholder": "Sélectionner des acteurs",
+      "actorSearchPlaceholder": "Rechercher des acteurs...",
+      "company": "Société de production",
+      "companyPlaceholder": "Sélectionner des sociétés",
+      "companySearchPlaceholder": "Rechercher des sociétés...",
+      "noResults": "Aucun résultat.",
       "year": "Année",
       "rightsHolder": "Ayant droit",
       "country": "Pays",
@@ -229,6 +241,15 @@
       "synopsis": "Synopsis",
       "tmdbRating": "Note TMDB",
       "information": "Informations",
+      "enrichedInfo": "Données TMDB enrichies",
+      "crew": "Équipe technique",
+      "producers": "Producteurs",
+      "productionCompanies": "Production",
+      "role": {
+        "composer": "Musique",
+        "cinematographer": "Photographie",
+        "screenplay": "Scénario"
+      },
       "pricing": "Tarification",
       "singleZone": "Zone tarifaire unique",
       "multipleZones": "{count} zones tarifaires disponibles",
@@ -758,7 +779,8 @@
       "tmdbManualSynopsis": "Synopsis (manuel)",
       "tmdbManualSynopsisEn": "Synopsis (anglais, manuel)",
       "tmdbManualDirectors": "Realisateurs (separes par des virgules)",
-      "tmdbManualGenres": "Genres (separes par des virgules)",
+      "tmdbManualGenres": "Genres",
+      "genreSelectPlaceholder": "Sélectionner les genres…",
       "tmdbManualCast": "Distribution (separee par des virgules)",
       "tmdbManualReleaseYear": "Annee de sortie (manuel)",
       "tmdbManualDuration": "Duree en minutes (manuel)",
@@ -1485,6 +1507,20 @@
         "INVALID_EXPIRATION_DAYS": "L'expiration doit être entre 1 et 365 jours.",
         "INVALID_URGENCY_DAYS": "Le seuil d'urgence doit être entre 1 et 90 jours.",
         "INVALID_DELIVERY_URGENCY_DAYS": "Le seuil d'urgence livraison doit être entre 1 et 90 jours."
+      },
+      "genres": {
+        "title": "Taxonomie des genres",
+        "description": "Gérer la taxonomie des genres utilisée pour la classification des films. Ajouter les genres manquants depuis la liste canonique (19 genres TMDB).",
+        "currentCount": "Genres en base :",
+        "seedButton": "Ajouter les genres manquants",
+        "seeding": "Ajout en cours…",
+        "seeded": "{count, plural, one {# genre ajouté} other {# genres ajoutés}} avec succès.",
+        "alreadyComplete": "Tous les genres sont déjà présents.",
+        "error": {
+          "UNAUTHORIZED": "Vous devez être connecté.",
+          "FORBIDDEN": "Seuls les admins peuvent effectuer cette action.",
+          "INTERNAL_ERROR": "Une erreur inattendue est survenue."
+        }
       }
     },
     "logs": {

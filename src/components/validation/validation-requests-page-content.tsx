@@ -246,10 +246,7 @@ export function ValidationRequestsPageContent({
             requestsList.map((request) => (
               <TableRow key={request.id} className="border-b border-border/45 hover:bg-muted/25">
                 <TableCell>
-                  <Link
-                    href={`/validation-requests/${request.id}`}
-                    className="flex items-center gap-3 hover:underline"
-                  >
+                  <div className="flex items-center gap-3">
                     {request.film.posterUrl ? (
                       <Image
                         src={request.film.posterUrl}
@@ -263,10 +260,13 @@ export function ValidationRequestsPageContent({
                         <span className="text-muted-foreground text-xs">🎬</span>
                       </div>
                     )}
-                    <span className="font-heading text-base leading-tight">
+                    <Link
+                      href={`/validation-requests/${request.id}`}
+                      className="text-primary font-medium hover:underline"
+                    >
                       {request.film.title}
-                    </span>
-                  </Link>
+                    </Link>
+                  </div>
                 </TableCell>
                 <TableCell>
                   <span className="text-sm">{request.exhibitorAccount.companyName ?? "—"}</span>

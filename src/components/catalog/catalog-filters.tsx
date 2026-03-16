@@ -30,12 +30,15 @@ import { getCurrencyOptions } from "@/lib/currencies";
 import { cn } from "@/lib/utils";
 
 import type { CatalogFiltersState } from "@/hooks/use-catalog-filters";
-import type { CatalogRangeFacet } from "@/lib/services/catalog-service";
+import type { CatalogRangeFacet, GenreOption } from "@/lib/services/catalog-service";
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 interface CatalogFiltersProps {
-  genreOptions: string[];
+  genreOptions: GenreOption[];
+  directorOptions: string[];
+  actorOptions: string[];
+  companyOptions: string[];
   releaseYearRange: CatalogRangeFacet | null;
   durationRange: CatalogRangeFacet | null;
   unitPriceRange: CatalogRangeFacet | null;
@@ -45,6 +48,9 @@ interface CatalogFiltersProps {
 
 export function CatalogFilters({
   genreOptions,
+  directorOptions,
+  actorOptions,
+  companyOptions,
   releaseYearRange,
   durationRange,
   unitPriceRange,
@@ -55,17 +61,27 @@ export function CatalogFilters({
   const locale = useLocale();
   const { filters, setFilters, clearFilters } = useCatalogFilters(defaultPriceCurrency);
   const [isGenrePopoverOpen, setIsGenrePopoverOpen] = useState(false);
+  const [isDirectorPopoverOpen, setIsDirectorPopoverOpen] = useState(false);
+  const [isActorPopoverOpen, setIsActorPopoverOpen] = useState(false);
+  const [isCompanyPopoverOpen, setIsCompanyPopoverOpen] = useState(false);
   const currencyOptions = getCurrencyOptions(locale);
   const isPriceRangeActive = filters.priceMin !== null || filters.priceMax !== null;
 
   const formatPriceInEuros = (valueInCents: number) => Math.round(valueInCents / 100);
 
-  const toggleGenre = async (genre: string) => {
-    const nextGenres = filters.genres.includes(genre)
-      ? filters.genres.filter((item) => item !== genre)
-      : [...filters.genres, genre];
-
+  const toggleGenre = async (genreId: string) => {
+    const nextGenres = filters.genres.includes(genreId)
+      ? filters.genres.filter((item) => item !== genreId)
+      : [...filters.genres, genreId];
     await setFilters({ genres: nextGenres });
+  };
+
+  const toggleArrayFilter = async (key: "directors" | "cast" | "companies", value: string) => {
+    const current = filters[key];
+    const next = current.includes(value)
+      ? current.filter((item) => item !== value)
+      : [...current, value];
+    await setFilters({ [key]: next });
   };
 
   // Count active filters (excluding defaults)
@@ -84,6 +100,7 @@ export function CatalogFilters({
     if (filters.genres.length > 0) count++;
     if (filters.countries.length > 0) count++;
     if (filters.rightsHolderIds.length > 0) count++;
+    if (filters.companies.length > 0) count++;
     if (!filters.availableForTerritory) count++;
     return count;
   };
@@ -183,7 +200,13 @@ export function CatalogFilters({
             >
               <span className="truncate text-left">
                 {filters.genres.length > 0
-                  ? `${filters.genres.slice(0, 2).join(", ")}${filters.genres.length > 2 ? ` +${filters.genres.length - 2}` : ""}`
+                  ? (() => {
+                      const selectedLabels = filters.genres.map((id) => {
+                        const g = genreOptions.find((opt) => opt.id === id);
+                        return g ? (locale === "fr" ? g.nameFr : g.nameEn) : id;
+                      });
+                      return `${selectedLabels.slice(0, 2).join(", ")}${selectedLabels.length > 2 ? ` +${selectedLabels.length - 2}` : ""}`;
+                    })()
                   : t("genresSelectPlaceholder")}
               </span>
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -198,23 +221,26 @@ export function CatalogFilters({
               <CommandList>
                 <CommandEmpty>{t("genresEmpty")}</CommandEmpty>
                 <CommandGroup>
-                  {genreOptions.map((genre) => (
-                    <CommandItem
-                      key={genre}
-                      value={genre}
-                      onSelect={() => {
-                        void toggleGenre(genre);
-                      }}
-                    >
-                      <Check
-                        className={cn(
-                          "mr-2 h-4 w-4",
-                          filters.genres.includes(genre) ? "opacity-100" : "opacity-0"
-                        )}
-                      />
-                      {genre}
-                    </CommandItem>
-                  ))}
+                  {genreOptions.map((genre) => {
+                    const label = locale === "fr" ? genre.nameFr : genre.nameEn;
+                    return (
+                      <CommandItem
+                        key={genre.id}
+                        value={label}
+                        onSelect={() => {
+                          void toggleGenre(genre.id);
+                        }}
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            filters.genres.includes(genre.id) ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        {label}
+                      </CommandItem>
+                    );
+                  })}
                 </CommandGroup>
               </CommandList>
             </Command>
@@ -235,6 +261,166 @@ export function CatalogFilters({
           {t("availableInMyTerritories")}
         </Label>
       </div>
+
+      {/* Directors */}
+      {directorOptions.length > 0 && (
+        <div className="space-y-2">
+          <Label className="text-foreground/85 text-xs tracking-wide uppercase">
+            {t("director")}
+          </Label>
+          <Popover open={isDirectorPopoverOpen} onOpenChange={setIsDirectorPopoverOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                aria-expanded={isDirectorPopoverOpen}
+                className="bg-background w-full justify-between font-normal"
+              >
+                <span className="truncate text-left">
+                  {filters.directors.length > 0
+                    ? `${filters.directors.slice(0, 2).join(", ")}${filters.directors.length > 2 ? ` +${filters.directors.length - 2}` : ""}`
+                    : t("directorPlaceholder")}
+                </span>
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent
+              className="w-(--radix-popover-trigger-width) border-border/70 bg-popover p-0"
+              align="start"
+            >
+              <Command>
+                <CommandInput placeholder={t("directorSearchPlaceholder")} />
+                <CommandList>
+                  <CommandEmpty>{t("noResults")}</CommandEmpty>
+                  <CommandGroup>
+                    {directorOptions.map((name) => (
+                      <CommandItem
+                        key={name}
+                        value={name}
+                        onSelect={() => void toggleArrayFilter("directors", name)}
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            filters.directors.includes(name) ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        {name}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+        </div>
+      )}
+
+      {/* Actors */}
+      {actorOptions.length > 0 && (
+        <div className="space-y-2">
+          <Label className="text-foreground/85 text-xs tracking-wide uppercase">{t("actor")}</Label>
+          <Popover open={isActorPopoverOpen} onOpenChange={setIsActorPopoverOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                aria-expanded={isActorPopoverOpen}
+                className="bg-background w-full justify-between font-normal"
+              >
+                <span className="truncate text-left">
+                  {filters.cast.length > 0
+                    ? `${filters.cast.slice(0, 2).join(", ")}${filters.cast.length > 2 ? ` +${filters.cast.length - 2}` : ""}`
+                    : t("actorPlaceholder")}
+                </span>
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent
+              className="w-(--radix-popover-trigger-width) border-border/70 bg-popover p-0"
+              align="start"
+            >
+              <Command>
+                <CommandInput placeholder={t("actorSearchPlaceholder")} />
+                <CommandList>
+                  <CommandEmpty>{t("noResults")}</CommandEmpty>
+                  <CommandGroup>
+                    {actorOptions.map((name) => (
+                      <CommandItem
+                        key={name}
+                        value={name}
+                        onSelect={() => void toggleArrayFilter("cast", name)}
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            filters.cast.includes(name) ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        {name}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+        </div>
+      )}
+
+      {/* Companies */}
+      {companyOptions.length > 0 && (
+        <div className="space-y-2">
+          <Label className="text-foreground/85 text-xs tracking-wide uppercase">
+            {t("company")}
+          </Label>
+          <Popover open={isCompanyPopoverOpen} onOpenChange={setIsCompanyPopoverOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                aria-expanded={isCompanyPopoverOpen}
+                className="bg-background w-full justify-between font-normal"
+              >
+                <span className="truncate text-left">
+                  {filters.companies.length > 0
+                    ? `${filters.companies.slice(0, 2).join(", ")}${filters.companies.length > 2 ? ` +${filters.companies.length - 2}` : ""}`
+                    : t("companyPlaceholder")}
+                </span>
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent
+              className="w-(--radix-popover-trigger-width) border-border/70 bg-popover p-0"
+              align="start"
+            >
+              <Command>
+                <CommandInput placeholder={t("companySearchPlaceholder")} />
+                <CommandList>
+                  <CommandEmpty>{t("noResults")}</CommandEmpty>
+                  <CommandGroup>
+                    {companyOptions.map((name) => (
+                      <CommandItem
+                        key={name}
+                        value={name}
+                        onSelect={() => void toggleArrayFilter("companies", name)}
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            filters.companies.includes(name) ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        {name}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+        </div>
+      )}
 
       <CatalogRangeFilter
         title={t("releaseYear")}
@@ -317,11 +503,49 @@ export function CatalogFilters({
             )}
             {filters.genres.length > 0 && (
               <Badge variant="outline" className="bg-muted/45 gap-1">
-                {t("genre")}: {filters.genres.slice(0, 2).join(", ")}
+                {t("genre")}:{" "}
+                {filters.genres
+                  .slice(0, 2)
+                  .map((id) => {
+                    const genre = genreOptions.find((g) => g.id === id);
+                    if (!genre) return id;
+                    return locale === "fr" ? genre.nameFr : genre.nameEn;
+                  })
+                  .join(", ")}
                 {filters.genres.length > 2 ? "..." : ""}
                 <X
                   className="h-3 w-3 cursor-pointer"
                   onClick={() => void setFilters({ genres: [] })}
+                />
+              </Badge>
+            )}
+            {filters.directors.length > 0 && (
+              <Badge variant="outline" className="bg-muted/45 gap-1">
+                {t("director")}: {filters.directors.slice(0, 2).join(", ")}
+                {filters.directors.length > 2 ? "..." : ""}
+                <X
+                  className="h-3 w-3 cursor-pointer"
+                  onClick={() => void setFilters({ directors: [] })}
+                />
+              </Badge>
+            )}
+            {filters.cast.length > 0 && (
+              <Badge variant="outline" className="bg-muted/45 gap-1">
+                {t("actor")}: {filters.cast.slice(0, 2).join(", ")}
+                {filters.cast.length > 2 ? "..." : ""}
+                <X
+                  className="h-3 w-3 cursor-pointer"
+                  onClick={() => void setFilters({ cast: [] })}
+                />
+              </Badge>
+            )}
+            {filters.companies.length > 0 && (
+              <Badge variant="outline" className="bg-muted/45 gap-1">
+                {t("company")}: {filters.companies.slice(0, 2).join(", ")}
+                {filters.companies.length > 2 ? "..." : ""}
+                <X
+                  className="h-3 w-3 cursor-pointer"
+                  onClick={() => void setFilters({ companies: [] })}
                 />
               </Badge>
             )}

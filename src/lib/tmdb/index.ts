@@ -1,26 +1,46 @@
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p";
+const TMDB_PROFILE_IMAGE_BASE = `${TMDB_IMAGE_BASE}/w185`;
 
 export interface TmdbMovie {
   id: number;
   title: string;
   original_title: string;
   overview: string;
+  tagline: string;
   release_date: string;
   runtime: number | null;
   genres: { id: number; name: string }[];
   production_countries: { iso_3166_1: string; name: string }[];
+  production_companies: {
+    id: number;
+    name: string;
+    logo_path: string | null;
+    origin_country: string;
+  }[];
   poster_path: string | null;
   backdrop_path: string | null;
   vote_average: number;
   credits?: {
-    cast: { name: string; order: number }[];
-    crew: { name: string; job: string; department: string }[];
+    cast: {
+      id: number;
+      name: string;
+      character: string;
+      order: number;
+      profile_path: string | null;
+    }[];
+    crew: {
+      id: number;
+      name: string;
+      job: string;
+      department: string;
+      profile_path: string | null;
+    }[];
   };
   translations?: {
     translations: {
       iso_639_1: string;
-      data: { overview: string; title: string };
+      data: { overview: string; title: string; tagline: string };
     }[];
   };
 }
@@ -80,6 +100,40 @@ export async function getFilmDetails(tmdbId: number): Promise<TmdbMovie> {
   });
 }
 
+// Crew roles we extract to normalized film_people table
+const EXTRACTED_CREW_ROLES: Record<string, NormalizedPerson["role"]> = {
+  Director: "director",
+  Producer: "producer",
+  "Executive Producer": "executive_producer",
+  "Original Music Composer": "composer",
+  "Director of Photography": "cinematographer",
+  Screenplay: "screenplay",
+  Writer: "screenplay",
+};
+
+export interface NormalizedPerson {
+  tmdbPersonId: number;
+  name: string;
+  role:
+    | "director"
+    | "actor"
+    | "producer"
+    | "executive_producer"
+    | "composer"
+    | "cinematographer"
+    | "screenplay";
+  character: string | null;
+  displayOrder: number;
+  profileUrl: string | null;
+}
+
+export interface NormalizedCompany {
+  tmdbCompanyId: number;
+  name: string;
+  logoUrl: string | null;
+  originCountry: string | null;
+}
+
 /**
  * Normalizes TMDB data into a format suitable for our DB.
  */
@@ -87,7 +141,7 @@ export function normalizeTmdbData(movie: TmdbMovie) {
   const directors =
     movie.credits?.crew.filter((c) => c.job === "Director").map((c) => c.name) ?? [];
 
-  const cast =
+  const castNames =
     movie.credits?.cast
       .sort((a, b) => a.order - b.order)
       .slice(0, 10)
@@ -95,16 +149,69 @@ export function normalizeTmdbData(movie: TmdbMovie) {
 
   const enTranslation = movie.translations?.translations.find((t) => t.iso_639_1 === "en");
 
+  // Normalized people (actors + crew)
+  const people: NormalizedPerson[] = [];
+
+  // Actors (top 20 for normalized table, display names limited to 10 for text cache)
+  if (movie.credits?.cast) {
+    const sortedCast = [...movie.credits.cast].sort((a, b) => a.order - b.order).slice(0, 20);
+    for (const actor of sortedCast) {
+      people.push({
+        tmdbPersonId: actor.id,
+        name: actor.name,
+        role: "actor",
+        character: actor.character || null,
+        displayOrder: actor.order,
+        profileUrl: actor.profile_path ? `${TMDB_PROFILE_IMAGE_BASE}${actor.profile_path}` : null,
+      });
+    }
+  }
+
+  // Crew by role
+  if (movie.credits?.crew) {
+    let crewOrder = 0;
+    const seenCrewKeys = new Set<string>();
+    for (const member of movie.credits.crew) {
+      const role = EXTRACTED_CREW_ROLES[member.job];
+      if (!role) continue;
+      // Deduplicate: same person can appear multiple times with different jobs
+      const key = `${member.id}-${role}`;
+      if (seenCrewKeys.has(key)) continue;
+      seenCrewKeys.add(key);
+      people.push({
+        tmdbPersonId: member.id,
+        name: member.name,
+        role,
+        character: null,
+        displayOrder: crewOrder++,
+        profileUrl: member.profile_path ? `${TMDB_PROFILE_IMAGE_BASE}${member.profile_path}` : null,
+      });
+    }
+  }
+
+  // Production companies
+  const companies: NormalizedCompany[] = movie.production_companies.map((c) => ({
+    tmdbCompanyId: c.id,
+    name: c.name,
+    logoUrl: c.logo_path ? `${TMDB_IMAGE_BASE}/w200${c.logo_path}` : null,
+    originCountry: c.origin_country || null,
+  }));
+
   return {
     tmdbId: movie.id,
     originalTitle: movie.original_title,
     synopsis: movie.overview,
     synopsisEn: enTranslation?.data.overview ?? null,
+    tagline: movie.tagline || null,
+    taglineEn: enTranslation?.data.tagline || null,
     duration: movie.runtime ?? null,
     releaseYear: movie.release_date ? parseInt(movie.release_date.split("-")[0] ?? "", 10) : null,
     genres: movie.genres.map((g) => g.name),
+    genreIds: movie.genres.map((g) => g.id),
     directors,
-    cast,
+    cast: castNames,
+    people,
+    companies,
     countries: movie.production_countries.map((c) => c.iso_3166_1),
     posterUrl: movie.poster_path ? `${TMDB_IMAGE_BASE}/w500${movie.poster_path}` : null,
     backdropUrl: movie.backdrop_path ? `${TMDB_IMAGE_BASE}/w1280${movie.backdrop_path}` : null,

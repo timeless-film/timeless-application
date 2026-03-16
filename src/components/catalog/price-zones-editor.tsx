@@ -2,7 +2,7 @@
 
 import { Plus, Trash2 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -141,15 +141,10 @@ export function PriceZonesEditor({ zones, onChange, disabled }: PriceZonesEditor
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label htmlFor={`price-${index}`}>{t("price")}</Label>
-                <Input
+                <PriceInput
                   id={`price-${index}`}
-                  type="number"
-                  min={0.01}
-                  step={0.01}
-                  value={zone.price ? (zone.price / 100).toFixed(2) : ""}
-                  onChange={(e) =>
-                    updateZone(index, "price", Math.round(parseFloat(e.target.value) * 100) || 0)
-                  }
+                  cents={zone.price}
+                  onCentsChange={(cents) => updateZone(index, "price", cents)}
                   disabled={disabled}
                 />
               </div>
@@ -169,5 +164,62 @@ export function PriceZonesEditor({ zones, onChange, disabled }: PriceZonesEditor
         );
       })}
     </div>
+  );
+}
+
+// ─── Price Input ──────────────────────────────────────────────────────────────
+
+/** Text-based price input that stores cents internally but lets the user type freely in euros/dollars. */
+function centsToDisplay(cents: number): string {
+  return cents ? (cents / 100).toString() : "";
+}
+
+function PriceInput({
+  id,
+  cents,
+  onCentsChange,
+  disabled,
+}: {
+  id: string;
+  cents: number;
+  onCentsChange: (cents: number) => void;
+  disabled?: boolean;
+}) {
+  const [text, setText] = useState(centsToDisplay(cents));
+  const [prevCents, setPrevCents] = useState(cents);
+
+  // React-recommended pattern: adjust state during render when prop changes
+  if (cents !== prevCents) {
+    setPrevCents(cents);
+    setText(centsToDisplay(cents));
+  }
+
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const raw = e.target.value;
+    // Allow empty, digits, and one decimal separator (dot or comma)
+    if (raw !== "" && !/^\d*[.,]?\d{0,2}$/.test(raw)) return;
+    setText(raw);
+  }
+
+  function commitValue() {
+    const normalized = text.replace(",", ".");
+    const parsed = parseFloat(normalized);
+    const newCents = Number.isFinite(parsed) && parsed > 0 ? Math.round(parsed * 100) : 0;
+    setPrevCents(newCents);
+    onCentsChange(newCents);
+    // Re-format on blur for clean display
+    setText(newCents ? (newCents / 100).toFixed(2) : "");
+  }
+
+  return (
+    <Input
+      id={id}
+      type="text"
+      inputMode="decimal"
+      value={text}
+      onChange={handleChange}
+      onBlur={commitValue}
+      disabled={disabled}
+    />
   );
 }

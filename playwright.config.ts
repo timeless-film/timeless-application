@@ -51,6 +51,7 @@ export default defineConfig({
         process.env.BETTER_AUTH_SECRET ??
         "test-e2e-auth-secret-do-not-use-in-production",
       NEXT_PUBLIC_APP_URL: baseURL,
+      NEXT_DIST_DIR: ".next-e2e", // Separate build dir to avoid lock conflict with `pnpm dev`
       RESEND_API_KEY: "", // Disable real email sending during E2E tests
       STRIPE_SECRET_KEY:
         process.env.STRIPE_SECRET_KEY ?? "sk_test_fake_e2e_key",

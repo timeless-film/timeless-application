@@ -32,6 +32,7 @@ export interface CatalogFiltersState {
   genres: string[];
   countries: string[];
   rightsHolderIds: string[];
+  companies: string[];
 
   // Single-select filters
   type: FilmType;
@@ -82,6 +83,7 @@ export function useCatalogFilters(defaultPriceCurrency: string = "EUR") {
       genres: parseAsArrayOf(parseAsString).withDefault([]),
       countries: parseAsArrayOf(parseAsString).withDefault([]),
       rightsHolderIds: parseAsArrayOf(parseAsString).withDefault([]),
+      companies: parseAsArrayOf(parseAsString).withDefault([]),
 
       // Single-select filters
       type: parseAsStringEnum<FilmType>(["direct", "all"]).withDefault("all"),
@@ -155,6 +157,7 @@ export function useCatalogFilters(defaultPriceCurrency: string = "EUR") {
       genres: [],
       countries: [],
       rightsHolderIds: [],
+      companies: [],
       type: "all",
       yearMin: null,
       yearMax: null,

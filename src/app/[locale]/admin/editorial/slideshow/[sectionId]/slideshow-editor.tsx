@@ -40,7 +40,7 @@ interface SlideshowItem {
     title: string;
     posterUrl: string | null;
     backdropUrl: string | null;
-    genres: string[] | null;
+    genres: { nameEn: string; nameFr: string }[];
     releaseYear: number | null;
     directors: string[] | null;
   };
@@ -211,7 +211,7 @@ export function SlideshowEditor({ sectionId, initialItems }: SlideshowEditorProp
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-medium">{item.headline ?? item.film.title}</p>
                   <p className="truncate text-sm text-muted-foreground">
-                    {item.subtitle ?? item.film.genres?.join(", ") ?? ""}
+                    {item.subtitle ?? item.film.genres?.map((g) => g.nameEn).join(", ") ?? ""}
                   </p>
                   {item.headline && (
                     <p className="truncate text-xs text-muted-foreground">

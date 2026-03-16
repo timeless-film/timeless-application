@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useLocale } from "next-intl";
 import { useRef, useState } from "react";
 
 import { FilmPoster } from "@/components/catalog/film-poster";
@@ -43,6 +44,7 @@ function DecadeRow({
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
+  const locale = useLocale();
 
   function updateScrollState() {
     const el = scrollRef.current;
@@ -107,7 +109,13 @@ function DecadeRow({
                 filmId={film.id}
                 title={film.title}
                 posterUrl={film.posterUrl}
-                genre={film.genres?.[0]}
+                genre={
+                  film.genres?.[0]
+                    ? locale === "fr"
+                      ? film.genres[0].nameFr
+                      : film.genres[0].nameEn
+                    : undefined
+                }
                 className="w-[140px] md:w-[160px] lg:w-[180px]"
               />
             </div>
