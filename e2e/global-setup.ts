@@ -24,6 +24,7 @@ const WARMUP_PATHS = [
   "/en/onboarding",
   "/api/v1/cart",
   "/api/v1/cart/items",
+  "/api/v1/requests",
 ];
 
 /**

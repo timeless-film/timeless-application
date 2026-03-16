@@ -3,13 +3,15 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { useLocale } from "next-intl";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
 import type { SlideshowItemRow } from "@/lib/services/editorial-service";
+
+const DRAG_THRESHOLD = 50;
 
 interface HeroSlideshowProps {
   items: SlideshowItemRow[];
@@ -19,7 +21,11 @@ interface HeroSlideshowProps {
 export function HeroSlideshow({ items, viewFilmLabel }: HeroSlideshowProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [dragDelta, setDragDelta] = useState(0);
   const locale = useLocale();
+
+  const dragStartX = useRef<number | null>(null);
+  const isDragging = useRef(false);
 
   const goToNext = useCallback(() => {
     setCurrentIndex((prev) => (prev + 1) % items.length);
@@ -28,6 +34,53 @@ export function HeroSlideshow({ items, viewFilmLabel }: HeroSlideshowProps) {
   const goToPrev = useCallback(() => {
     setCurrentIndex((prev) => (prev - 1 + items.length) % items.length);
   }, [items.length]);
+
+  const handlePointerDown = useCallback(
+    (event: React.PointerEvent) => {
+      if (items.length <= 1) return;
+      dragStartX.current = event.clientX;
+      isDragging.current = false;
+      setIsPaused(true);
+      (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+    },
+    [items.length]
+  );
+
+  const handlePointerMove = useCallback((event: React.PointerEvent) => {
+    if (dragStartX.current === null) return;
+    const delta = event.clientX - dragStartX.current;
+    if (Math.abs(delta) > 5) {
+      isDragging.current = true;
+    }
+    setDragDelta(delta);
+  }, []);
+
+  const handlePointerUp = useCallback(
+    (event: React.PointerEvent) => {
+      if (dragStartX.current === null) return;
+      const delta = event.clientX - dragStartX.current;
+      dragStartX.current = null;
+      setDragDelta(0);
+
+      if (Math.abs(delta) >= DRAG_THRESHOLD) {
+        if (delta < 0) {
+          goToNext();
+        } else {
+          goToPrev();
+        }
+      }
+
+      setIsPaused(false);
+    },
+    [goToNext, goToPrev]
+  );
+
+  const handleClick = useCallback((event: React.MouseEvent) => {
+    if (isDragging.current) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  }, []);
 
   useEffect(() => {
     if (isPaused || items.length <= 1) return;
@@ -46,21 +99,36 @@ export function HeroSlideshow({ items, viewFilmLabel }: HeroSlideshowProps) {
 
   return (
     <section
-      className="relative w-full overflow-hidden"
+      className="relative w-full overflow-hidden select-none touch-pan-y"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
+      onClickCapture={handleClick}
       aria-roledescription="carousel"
       aria-label="Featured films"
+      style={{ cursor: items.length > 1 ? "grab" : undefined }}
     >
       <div className="relative aspect-[21/9] w-full md:aspect-[3.2/1] lg:aspect-[3.8/1]">
         {items.map((item, index) => (
           <div
             key={item.id}
             className={cn(
-              "absolute inset-0 transition-opacity duration-700",
+              "absolute inset-0",
+              dragDelta !== 0 ? "" : "transition-opacity duration-700",
               index === currentIndex ? "opacity-100" : "pointer-events-none opacity-0"
             )}
             aria-hidden={index !== currentIndex}
+            style={
+              index === currentIndex && dragDelta !== 0
+                ? {
+                    transform: `translateX(${dragDelta}px)`,
+                    opacity: 1 - Math.min(Math.abs(dragDelta) / 300, 0.5),
+                  }
+                : undefined
+            }
           >
             {item.film.backdropUrl ? (
               <Image
