@@ -79,6 +79,10 @@ export async function completeOnboarding(page: Page, companyName: string): Promi
   await page.locator("#city").pressSequentially("Paris", { delay: 30 });
   await page.locator("#postalCode").click();
   await page.locator("#postalCode").pressSequentially("75001", { delay: 30 });
+
+  // Accept terms of sale (CGV)
+  await page.locator("#accept-terms-of-sale").check();
+
   await page.getByRole("button", { name: /continue/i }).click();
 
   // Step 2: Add a cinema

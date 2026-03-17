@@ -19,6 +19,9 @@ test.describe("Registration flow", () => {
     await page.fill("#password", "StrongPass123!");
     await page.fill("#password-confirm", "StrongPass123!");
 
+    // Accept terms of service
+    await page.locator("#accept-terms").check();
+
     await page.getByRole("button", { name: /create account/i }).click();
 
     // After successful registration, the success card appears with verification message

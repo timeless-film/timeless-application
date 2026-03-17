@@ -127,6 +127,8 @@ test.describe("Admin Backoffice", () => {
       await expect(page.getByRole("link", { name: "Deliveries" })).toBeVisible();
 
       // Management section
+      await expect(page.getByRole("link", { name: "Editorial" })).toBeVisible();
+      await expect(page.getByRole("link", { name: "Legal documents" })).toBeVisible();
       await expect(page.getByRole("link", { name: "Settings" })).toBeVisible();
       await expect(page.getByRole("link", { name: "Audit logs" })).toBeVisible();
     });
@@ -166,6 +168,14 @@ test.describe("Admin Backoffice", () => {
       // Navigate to Audit logs
       await page.getByRole("link", { name: "Audit logs" }).click();
       await expect(page).toHaveURL(/\/en\/admin\/logs/);
+
+      // Navigate to Editorial
+      await page.getByRole("link", { name: "Editorial" }).click();
+      await expect(page).toHaveURL(/\/en\/admin\/editorial/);
+
+      // Navigate to Legal documents
+      await page.getByRole("link", { name: "Legal documents" }).click();
+      await expect(page).toHaveURL(/\/en\/admin\/legal/);
     });
 
     test("non-admin user is redirected away from admin pages", async ({ page, request }) => {

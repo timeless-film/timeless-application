@@ -20,7 +20,9 @@ test.describe("Auth pages accessibility", () => {
     const emailInput = page.locator("input[type='email']");
     await expect(emailInput).toBeVisible({ timeout: 15000 });
     await expect(page.locator("input[type='password']").first()).toBeVisible();
-    await expect(page.getByRole("button", { name: /create account/i })).toBeVisible();
+    await expect(page.locator("#accept-terms")).toBeVisible();
+    // Submit button is disabled until terms checkbox is checked
+    await expect(page.getByRole("button", { name: /create account/i })).toBeDisabled();
   });
 
   test("forgot password page loads", async ({ page }) => {

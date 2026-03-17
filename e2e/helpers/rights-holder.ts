@@ -107,6 +107,7 @@ export async function loginAsRightsHolder(page: Page, context: RightsHolderConte
   // then to home which will be the authenticated landing page.
   await page.goto("/en/login");
   await expect(page).toHaveURL(/\/en\//, { timeout: 15000 });
+
   await page.goto("/en/home");
   await expect(page).toHaveURL(/\/en\//, { timeout: 15000 });
 }

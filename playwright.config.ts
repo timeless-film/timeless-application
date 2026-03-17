@@ -29,6 +29,18 @@ export default defineConfig({
     baseURL,
     trace: "on-first-retry",
     screenshot: "only-on-failure",
+    // Dismiss cookie consent banner globally so it never overlays page elements
+    storageState: {
+      cookies: [],
+      origins: [
+        {
+          origin: baseURL,
+          localStorage: [
+            { name: "timeless-cookie-consent", value: "accepted" },
+          ],
+        },
+      ],
+    },
   },
   projects: [
     {
