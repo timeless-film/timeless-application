@@ -7,6 +7,7 @@ export * from "./accounts";
 export * from "./cinemas";
 export * from "./editorial";
 export * from "./films";
+export * from "./legal";
 export * from "./orders";
 export * from "./settings";
 export * from "./tmdb";

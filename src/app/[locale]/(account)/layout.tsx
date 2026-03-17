@@ -5,6 +5,7 @@ import { getTranslations } from "next-intl/server";
 
 import { Link } from "@/i18n/navigation";
 import { auth } from "@/lib/auth";
+import { requireTermsAcceptance } from "@/lib/auth/legal-guards";
 import { getActiveAccountCookie, getAllMemberships } from "@/lib/auth/membership";
 
 import type { ReactNode } from "react";
@@ -14,6 +15,14 @@ export default async function AccountLayout({ children }: { children: ReactNode 
 
   if (!session) {
     redirect("/login");
+  }
+
+  // CGU acceptance guard
+  {
+    const headersList = await headers();
+    const pathname = headersList.get("x-pathname") ?? "";
+    const locale = pathname.split("/")[1] ?? "en";
+    await requireTermsAcceptance(session.user.id, locale);
   }
 
   // Onboarding guard — exhibitors must complete onboarding before accessing account pages

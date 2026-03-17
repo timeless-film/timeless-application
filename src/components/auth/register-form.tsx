@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { recordRegistrationAcceptance } from "@/app/[locale]/(auth)/register/actions";
 import { AlreadyConnected } from "@/components/auth/already-connected";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,6 +16,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link } from "@/i18n/navigation";
@@ -28,6 +30,7 @@ export function RegisterForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
+  const [acceptTerms, setAcceptTerms] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -74,6 +77,17 @@ export function RegisterForm() {
           toast.error(t("error.emailTaken"));
         }
         return;
+      }
+
+      // Record CGU + Privacy acceptance (best-effort — don't block registration)
+      if (result.data?.user?.id) {
+        recordRegistrationAcceptance({
+          userId: result.data.user.id,
+          userName: name,
+          userEmail: email,
+        }).catch((err) => {
+          console.error("Failed to record registration acceptance:", err);
+        });
       }
 
       setSuccess(true);
@@ -172,9 +186,39 @@ export function RegisterForm() {
               <p className="text-xs text-destructive">{t("error.passwordMismatch")}</p>
             )}
           </div>
+          <div className="flex items-start gap-2">
+            <Checkbox
+              id="accept-terms"
+              checked={acceptTerms}
+              onCheckedChange={(checked) => setAcceptTerms(checked === true)}
+              required
+            />
+            <Label htmlFor="accept-terms" className="text-sm font-normal leading-snug">
+              {t.rich("terms", {
+                terms: (chunks) => (
+                  <Link
+                    href="/terms"
+                    target="_blank"
+                    className="text-primary underline-offset-4 hover:underline"
+                  >
+                    {chunks}
+                  </Link>
+                ),
+                privacy: (chunks) => (
+                  <Link
+                    href="/privacy"
+                    target="_blank"
+                    className="text-primary underline-offset-4 hover:underline"
+                  >
+                    {chunks}
+                  </Link>
+                ),
+              })}
+            </Label>
+          </div>
         </CardContent>
         <CardFooter className="flex-col gap-4">
-          <Button type="submit" className="w-full" disabled={loading}>
+          <Button type="submit" className="w-full" disabled={loading || !acceptTerms}>
             {loading && <Loader2 className="animate-spin" />}
             {t("submit")}
           </Button>

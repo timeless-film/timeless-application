@@ -5,6 +5,7 @@ import { MarketplaceFooter } from "@/components/marketplace-footer";
 import { MarketplaceHeader } from "@/components/marketplace-header";
 import { AccountProvider } from "@/components/providers/account-provider";
 import { auth } from "@/lib/auth";
+import { requireTermsAcceptance, requireTermsOfSaleAcceptance } from "@/lib/auth/legal-guards";
 import { getActiveAccountCookie, getAllMemberships } from "@/lib/auth/membership";
 
 import type { ReactNode } from "react";
@@ -16,6 +17,14 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
     name: session?.user.name ?? "",
     email: session?.user.email ?? "",
   };
+
+  // CGU acceptance guard
+  if (session) {
+    const headersList = await headers();
+    const pathname = headersList.get("x-pathname") ?? "";
+    const locale = pathname.split("/")[1] ?? "en";
+    await requireTermsAcceptance(session.user.id, locale);
+  }
 
   const [memberships, activeCookie] = await Promise.all([
     session ? getAllMemberships(session.user.id) : [],
@@ -40,6 +49,16 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
         const locale = pathname.split("/")[1] ?? "en";
         redirect(`/${locale}/onboarding`);
       }
+    }
+
+    // CGV acceptance guard (after onboarding)
+    if (activeMembership && activeMembership.account.onboardingCompleted) {
+      const cgvLocale = pathname.split("/")[1] ?? "en";
+      await requireTermsOfSaleAcceptance(
+        activeCookie.accountId,
+        activeMembership.account.country ?? "FR",
+        cgvLocale
+      );
     }
   }
 

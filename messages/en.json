@@ -1,4 +1,9 @@
 {
+  "cookies": {
+    "message": "We use essential cookies to ensure this site works properly. Learn more in our <link>Privacy Policy</link>.",
+    "accept": "Accept",
+    "decline": "Decline"
+  },
   "common": {
     "loading": "Loading...",
     "save": "Save",
@@ -64,9 +69,8 @@
       "submit": "Create account",
       "hasAccount": "Already have an account?",
       "login": "Sign in",
-      "terms": "By creating an account, you agree to our {terms} and {privacy}.",
-      "termsLink": "Terms of Service",
-      "privacyLink": "Privacy Policy",
+      "terms": "By creating an account, you agree to our <terms>Terms of Service</terms> and <privacy>Privacy Policy</privacy>.",
+
       "emailSent": "We sent a verification email to {email}. Please check your inbox.",
       "passwordRules": "Must be at least 8 characters.",
       "error": {
@@ -124,6 +128,7 @@
     "manageAccount": "Manage account",
     "home": "Home",
     "editorial": "Editorial",
+    "legalDocuments": "Legal documents",
     "back": "Back",
     "switchLanguage": "Français",
     "searchPlaceholder": "Search…",
@@ -1776,6 +1781,86 @@
       "sectionTitleLabel": "Section title",
       "sectionTitlePlaceholder": "Optional title displayed above the section",
       "frenchTranslation": "French translation (optional)"
+    },
+    "legal": {
+      "title": "Legal documents",
+      "createTitle": "New legal document",
+      "editTitle": "Edit legal document",
+      "viewTitle": "View legal document",
+      "empty": "No legal documents yet.",
+      "create": "New document",
+      "save": "Save",
+      "created": "Document created",
+      "saved": "Changes saved",
+      "published": "Document published",
+      "archived": "Document archived",
+      "backToList": "Back to list",
+      "documentDetails": "Document details",
+      "worldwide": "Worldwide",
+      "columns": {
+        "title": "Title",
+        "type": "Type",
+        "version": "Version",
+        "status": "Status",
+        "countries": "Countries",
+        "publishedAt": "Published"
+      },
+      "status": {
+        "draft": "Draft",
+        "published": "Published",
+        "archived": "Archived"
+      },
+      "actions": {
+        "edit": "Edit",
+        "view": "View",
+        "publish": "Publish",
+        "archive": "Archive"
+      },
+      "form": {
+        "type": "Document type",
+        "version": "Version",
+        "title": "Title",
+        "content": "Content (Markdown)",
+        "contentHint": "Bilingual content — include both French and English sections in the same document.",
+        "changeSummary": "Change summary",
+        "countries": "Countries",
+        "countriesHint": "Comma-separated ISO country codes, or * for worldwide."
+      },
+      "confirmPublish": {
+        "title": "Publish this document?",
+        "description": "Publishing will make this the active version. Any previously published version of the same type will be automatically archived.",
+        "cancel": "Cancel",
+        "confirm": "Publish"
+      },
+      "confirmArchive": {
+        "title": "Archive this document?",
+        "description": "Archived documents are no longer active but remain accessible for reference.",
+        "cancel": "Cancel",
+        "confirm": "Archive"
+      },
+      "error": {
+        "publishFailed": "Failed to publish document",
+        "archiveFailed": "Failed to archive document",
+        "INVALID_INPUT": "Please fill in all required fields.",
+        "CREATION_FAILED": "Failed to create document. Please try again.",
+        "CANNOT_EDIT_PUBLISHED": "Published documents cannot be edited. Create a new version instead.",
+        "UPDATE_FAILED": "Failed to save changes. Please try again."
+      },
+      "acceptances": {
+        "title": "Acceptances",
+        "description": "Track which users and accounts have accepted each legal document.",
+        "empty": "No acceptances recorded yet.",
+        "columns": {
+          "user": "User",
+          "account": "Account",
+          "document": "Document",
+          "version": "Version",
+          "acceptedAt": "Accepted at",
+          "ipAddress": "IP address"
+        },
+        "filterByDocument": "Filter by document",
+        "allDocuments": "All documents"
+      }
     }
   },
   "onboarding": {
@@ -1809,6 +1894,7 @@
         "cultural_center": "Cultural centre",
         "other": "Other"
       },
+      "termsOfSale": "I have read and accept the <link>Terms of Sale</link>.",
       "continue": "Continue"
     },
     "step2": {
@@ -2040,6 +2126,7 @@
       "rights_holder": "Rights holder",
       "admin": "Admin"
     },
+    "signOut": "Sign out",
     "createError": {
       "UNAUTHORIZED": "You must be signed in.",
       "FORBIDDEN": "You are not allowed to create this type of account.",
@@ -2192,6 +2279,84 @@
     "copyright": "© {year} Timeless Cinema",
     "searchCurrency": "Search currency...",
     "noCurrencyFound": "No currency found.",
-    "currencyUpdated": "Currency updated."
+    "currencyUpdated": "Currency updated.",
+    "termsOfService": "Terms of Service",
+    "termsOfSale": "Terms of Sale",
+    "privacyPolicy": "Privacy Policy",
+    "legalNotices": "Legal Notices"
+  },
+  "legal": {
+    "terms": {
+      "pageTitle": "Terms of Service",
+      "notAvailable": "The terms of service are not available at this time.",
+      "version": "Version {version}",
+      "publishedAt": "Published on {date}"
+    },
+    "sale": {
+      "pageTitle": "Terms of Sale",
+      "notAvailable": "The terms of sale are not available at this time.",
+      "version": "Version {version}",
+      "publishedAt": "Published on {date}"
+    },
+    "privacy": {
+      "pageTitle": "Privacy Policy",
+      "notAvailable": "The privacy policy is not available at this time.",
+      "version": "Version {version}",
+      "publishedAt": "Published on {date}"
+    },
+    "notices": {
+      "pageTitle": "Legal Notices",
+      "publisher": {
+        "title": "Publisher"
+      },
+      "hosting": {
+        "title": "Hosting"
+      },
+      "intellectualProperty": {
+        "title": "Intellectual Property",
+        "content": "All content on this website (texts, images, logos, trademarks, software) is the exclusive property of Timeless SAS or its licensors and is protected by intellectual property laws. Any reproduction, representation, or distribution without prior written consent is prohibited."
+      },
+      "personalData": {
+        "title": "Personal Data",
+        "content": "Timeless collects and processes personal data in accordance with its Privacy Policy and applicable data protection regulations (GDPR). For more information, please consult our Privacy Policy or contact us at legal@timeless.film."
+      }
+    },
+    "dpa": {
+      "pageTitle": "Data Processing Agreement",
+      "description": "This page outlines how Timeless processes personal data on behalf of its users. For a formal Data Processing Agreement (DPA), please contact us.",
+      "contact": {
+        "title": "Request a DPA",
+        "description": "To request a signed Data Processing Agreement, contact us at"
+      },
+      "scope": {
+        "title": "Scope of Data Processing",
+        "content": "Timeless processes personal data necessary for the operation of its B2B marketplace for classic and heritage films. This includes account information, transaction data, and communication records between exhibitors and rights holders."
+      },
+      "subProcessors": {
+        "title": "Sub-Processors",
+        "stripe": "Payment processing and marketplace transactions",
+        "resend": "Transactional email delivery",
+        "scaleway": "Cloud infrastructure and data hosting (EU)"
+      }
+    },
+    "acceptTerms": {
+      "pageTitle": "Updated Terms of Service",
+      "description": "Our Terms of Service have been updated. Please review and accept them to continue using the platform.",
+      "version": "Version {version}",
+      "checkbox": "I have read and accept the updated Terms of Service.",
+      "submit": "Accept and continue",
+      "success": "Terms of Service accepted.",
+      "error": "An error occurred while recording your acceptance. Please try again."
+    },
+    "acceptSale": {
+      "pageTitle": "Updated Terms of Sale",
+      "description": "Our Terms of Sale have been updated. Please review and accept them to continue.",
+      "memberNotice": "Only the account owner or an admin can accept the Terms of Sale. Please contact your organization administrator.",
+      "version": "Version {version}",
+      "checkbox": "I have read and accept the updated Terms of Sale on behalf of my organization.",
+      "submit": "Accept and continue",
+      "success": "Terms of Sale accepted.",
+      "error": "An error occurred while recording your acceptance. Please try again."
+    }
   }
 }

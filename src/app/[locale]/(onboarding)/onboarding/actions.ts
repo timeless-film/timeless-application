@@ -10,6 +10,7 @@ import { getActiveAccountCookie } from "@/lib/auth/membership";
 import { db } from "@/lib/db";
 import { accountMembers, accounts } from "@/lib/db/schema";
 import { createCinemaWithDefaultRoom } from "@/lib/services/cinema-service";
+import { getPublishedDocument, recordAcceptance } from "@/lib/services/legal-service";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -24,6 +25,7 @@ interface Step1Input {
   contactEmail?: string;
   contactPhone?: string;
   cinemaType?: string;
+  acceptTermsOfSale?: boolean;
 }
 
 interface CinemaInput {
@@ -80,6 +82,17 @@ export async function submitOnboardingStep1(input: Step1Input) {
       .where(eq(accounts.id, existingMembership.accountId))
       .returning();
 
+    // Record CGV acceptance (best-effort)
+    if (input.acceptTermsOfSale) {
+      await recordTermsOfSaleAcceptance(
+        updated!.id,
+        input.country,
+        session.user.id,
+        session.user.name,
+        session.user.email
+      );
+    }
+
     return { success: true as const, accountId: updated!.id };
   }
 
@@ -123,6 +136,18 @@ export async function submitOnboardingStep1(input: Step1Input) {
   });
 
   revalidatePath("/", "layout");
+
+  // Record CGV acceptance (best-effort)
+  if (input.acceptTermsOfSale) {
+    await recordTermsOfSaleAcceptance(
+      account.id,
+      input.country,
+      session.user.id,
+      session.user.name,
+      session.user.email
+    );
+  }
+
   return { success: true as const, accountId: account.id };
 }
 
@@ -199,4 +224,29 @@ export async function completeOnboarding() {
   // the onboarding page (triggering its redirect), competing with the client
   // navigation and causing a race condition.
   return { success: true as const };
+}
+
+// ─── Helper: record CGV acceptance ────────────────────────────────────────────
+
+async function recordTermsOfSaleAcceptance(
+  accountId: string,
+  country: string,
+  userId: string,
+  userName: string,
+  userEmail: string
+) {
+  try {
+    const cgv = await getPublishedDocument("terms_of_sale", country);
+    if (!cgv) return;
+
+    await recordAcceptance({
+      documentId: cgv.id,
+      userId,
+      userName,
+      userEmail,
+      accountId,
+    });
+  } catch (error) {
+    console.error("Failed to record CGV acceptance during onboarding:", error);
+  }
 }

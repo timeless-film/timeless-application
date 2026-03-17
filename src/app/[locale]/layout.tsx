@@ -5,6 +5,7 @@ import { getMessages } from "next-intl/server";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 import { QueryProvider } from "@/components/providers/query-provider";
+import { CookieConsent } from "@/components/shared/cookie-consent";
 import { Toaster } from "@/components/ui/sonner";
 import { routing } from "@/i18n/routing";
 
@@ -47,6 +48,7 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
           <QueryProvider>
             <NuqsAdapter>{children}</NuqsAdapter>
           </QueryProvider>
+          <CookieConsent />
         </NextIntlClientProvider>
         <Toaster />
       </body>

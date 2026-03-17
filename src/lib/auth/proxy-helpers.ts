@@ -12,10 +12,14 @@ export const PUBLIC_AUTH_PATHS = [
   "/forgot-password",
   "/reset-password",
   "/request-action",
+  "/terms",
+  "/privacy",
+  "/legal",
+  "/dpa",
 ];
 
 // Paths that require a session but NOT an active account cookie
-export const ACCOUNT_OPTIONAL_PATHS = ["/no-account", "/onboarding", "/accounts"];
+export const ACCOUNT_OPTIONAL_PATHS = ["/no-account", "/onboarding", "/accounts", "/accept-terms"];
 
 // API routes that don't require session-based authentication
 // v1 API routes use Bearer token auth (handled by api-auth.ts), not proxy session

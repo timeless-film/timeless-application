@@ -46,6 +46,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
       label: t("management"),
       items: [
         { title: t("editorial"), href: "/admin/editorial", icon: "layout-dashboard" },
+        { title: t("legalDocuments"), href: "/admin/legal", icon: "scale" },
         { title: t("settings"), href: "/admin/settings", icon: "settings" },
         { title: t("logs"), href: "/admin/logs", icon: "scroll-text" },
       ],

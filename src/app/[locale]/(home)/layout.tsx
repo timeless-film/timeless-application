@@ -10,6 +10,7 @@ import { StripeConnectBanner } from "@/components/shared/stripe-connect-banner";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { auth } from "@/lib/auth";
+import { requireTermsAcceptance, requireTermsOfSaleAcceptance } from "@/lib/auth/legal-guards";
 import { getActiveAccountCookie, getAllMemberships } from "@/lib/auth/membership";
 
 import type { NavSection } from "@/components/app-sidebar";
@@ -21,6 +22,12 @@ export default async function HomeLayout({ children }: { children: ReactNode }) 
   if (!session) {
     redirect("/login");
   }
+
+  // CGU acceptance guard
+  const headersList = await headers();
+  const pathname = headersList.get("x-pathname") ?? "";
+  const locale = pathname.split("/")[1] ?? "en";
+  await requireTermsAcceptance(session.user.id, locale);
 
   const [memberships, activeCookie] = await Promise.all([
     getAllMemberships(session.user.id),
@@ -43,10 +50,16 @@ export default async function HomeLayout({ children }: { children: ReactNode }) 
   if (activeCookie.type === "exhibitor") {
     // Onboarding guard
     if (activeMembership && !activeMembership.account.onboardingCompleted) {
-      const headersList = await headers();
-      const pathname = headersList.get("x-pathname") ?? "";
-      const locale = pathname.split("/")[1] ?? "en";
       redirect(`/${locale}/onboarding`);
+    }
+
+    // CGV acceptance guard (after onboarding)
+    if (activeMembership) {
+      await requireTermsOfSaleAcceptance(
+        activeCookie.accountId,
+        activeMembership.account.country ?? "FR",
+        locale
+      );
     }
 
     return (
@@ -68,6 +81,15 @@ export default async function HomeLayout({ children }: { children: ReactNode }) 
 
   // Rights holder layout — sidebar
   if (activeCookie.type === "rights_holder") {
+    // CGV acceptance guard
+    if (activeMembership) {
+      await requireTermsOfSaleAcceptance(
+        activeCookie.accountId,
+        activeMembership.account.country ?? "",
+        locale
+      );
+    }
+
     const t = await getTranslations("navigation");
     const showBanner = !activeMembership?.account.stripeConnectOnboardingComplete;
 

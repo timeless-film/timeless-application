@@ -7,6 +7,7 @@ import {
   FilmIcon,
   GaugeIcon,
   LayoutDashboardIcon,
+  ScaleIcon,
   ScrollTextIcon,
   SettingsIcon,
   ShieldCheckIcon,
@@ -39,6 +40,7 @@ export type IconName =
   | "film"
   | "gauge"
   | "layout-dashboard"
+  | "scale"
   | "scroll-text"
   | "settings"
   | "shield-check"
@@ -55,6 +57,7 @@ const ICON_MAP: Record<IconName, LucideIcon> = {
   film: FilmIcon,
   gauge: GaugeIcon,
   "layout-dashboard": LayoutDashboardIcon,
+  scale: ScaleIcon,
   "scroll-text": ScrollTextIcon,
   settings: SettingsIcon,
   "shield-check": ShieldCheckIcon,

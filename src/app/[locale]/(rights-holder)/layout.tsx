@@ -7,6 +7,7 @@ import { StripeConnectBanner } from "@/components/shared/stripe-connect-banner";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { auth } from "@/lib/auth";
+import { requireTermsAcceptance, requireTermsOfSaleAcceptance } from "@/lib/auth/legal-guards";
 import { getActiveAccountCookie, getAllMemberships } from "@/lib/auth/membership";
 
 import type { NavSection } from "@/components/app-sidebar";
@@ -23,6 +24,14 @@ export default async function RightsHolderLayout({ children }: { children: React
     email: session?.user.email ?? "",
   };
 
+  // CGU acceptance guard
+  if (session) {
+    const headersList = await headers();
+    const pathname = headersList.get("x-pathname") ?? "";
+    const locale = pathname.split("/")[1] ?? "en";
+    await requireTermsAcceptance(session.user.id, locale);
+  }
+
   const [memberships, activeCookie] = await Promise.all([
     session ? getAllMemberships(session.user.id) : [],
     getActiveAccountCookie(),
@@ -31,6 +40,18 @@ export default async function RightsHolderLayout({ children }: { children: React
   const activeMembership = memberships.find((m) => m.accountId === activeCookie?.accountId);
   const canManageAccount = activeMembership?.role === "owner" || activeMembership?.role === "admin";
   const showBanner = !activeMembership?.account.stripeConnectOnboardingComplete;
+
+  // CGV acceptance guard
+  if (session && activeCookie) {
+    const headersList = await headers();
+    const pathname = headersList.get("x-pathname") ?? "";
+    const locale = pathname.split("/")[1] ?? "en";
+    await requireTermsOfSaleAcceptance(
+      activeCookie.accountId,
+      activeMembership?.account.country ?? "",
+      locale
+    );
+  }
 
   const sections: NavSection[] = [
     {

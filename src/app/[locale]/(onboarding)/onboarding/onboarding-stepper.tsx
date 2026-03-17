@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { InviteSection } from "@/components/account/invite-section";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SearchableSelect } from "@/components/ui/searchable-select";
@@ -18,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useRouter } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import { getCountryOptions } from "@/lib/countries";
 import { getCurrencyOptions } from "@/lib/currencies";
 
@@ -213,6 +214,7 @@ interface Step1FormProps {
     contactEmail?: string;
     contactPhone?: string;
     cinemaType?: string;
+    acceptTermsOfSale?: boolean;
   }) => void;
 }
 
@@ -233,6 +235,7 @@ function Step1Form({ account, locale, loading, onSubmit }: Step1FormProps) {
   const [contactEmail, setContactEmail] = useState(account?.contactEmail ?? "");
   const [contactPhone, setContactPhone] = useState(account?.contactPhone ?? "");
   const [cinemaType, setCinemaType] = useState(account?.cinemaType ?? "");
+  const [acceptTermsOfSale, setAcceptTermsOfSale] = useState(false);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -247,6 +250,7 @@ function Step1Form({ account, locale, loading, onSubmit }: Step1FormProps) {
       contactEmail: contactEmail || undefined,
       contactPhone: contactPhone || undefined,
       cinemaType: cinemaType || undefined,
+      acceptTermsOfSale,
     });
   }
 
@@ -401,6 +405,30 @@ function Step1Form({ account, locale, loading, onSubmit }: Step1FormProps) {
             </div>
           </div>
 
+          {/* Terms of Sale */}
+          <div className="flex items-start gap-2">
+            <Checkbox
+              id="accept-terms-of-sale"
+              checked={acceptTermsOfSale}
+              onCheckedChange={(checked) => setAcceptTermsOfSale(checked === true)}
+              disabled={loading}
+              required
+            />
+            <Label htmlFor="accept-terms-of-sale" className="text-sm font-normal leading-snug">
+              {t.rich("termsOfSale", {
+                link: (chunks) => (
+                  <Link
+                    href="/terms/sale"
+                    target="_blank"
+                    className="text-primary underline-offset-4 hover:underline"
+                  >
+                    {chunks}
+                  </Link>
+                ),
+              })}
+            </Label>
+          </div>
+
           <Button
             type="submit"
             className="w-full"
@@ -409,7 +437,8 @@ function Step1Form({ account, locale, loading, onSubmit }: Step1FormProps) {
               !companyName.trim() ||
               !address.trim() ||
               !city.trim() ||
-              !postalCode.trim()
+              !postalCode.trim() ||
+              !acceptTermsOfSale
             }
           >
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

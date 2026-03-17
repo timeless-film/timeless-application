@@ -1,4 +1,9 @@
 {
+  "cookies": {
+    "message": "Nous utilisons des cookies essentiels pour assurer le bon fonctionnement de ce site. En savoir plus dans notre <link>Politique de Confidentialité</link>.",
+    "accept": "Accepter",
+    "decline": "Refuser"
+  },
   "common": {
     "loading": "Chargement...",
     "save": "Enregistrer",
@@ -64,9 +69,8 @@
       "submit": "Créer le compte",
       "hasAccount": "Déjà un compte ?",
       "login": "Se connecter",
-      "terms": "En créant un compte, vous acceptez nos {terms} et notre {privacy}.",
-      "termsLink": "Conditions d'utilisation",
-      "privacyLink": "Politique de confidentialité",
+      "terms": "En créant un compte, vous acceptez nos <terms>Conditions Générales d'Utilisation</terms> et notre <privacy>Politique de Confidentialité</privacy>.",
+
       "emailSent": "Un email de vérification a été envoyé à {email}. Veuillez vérifier votre boîte mail.",
       "passwordRules": "Doit contenir au moins 8 caractères.",
       "error": {
@@ -124,6 +128,7 @@
     "manageAccount": "Gérer le compte",
     "home": "Accueil",
     "editorial": "Éditorial",
+    "legalDocuments": "Documents légaux",
     "back": "Retour",
     "switchLanguage": "English",
     "searchPlaceholder": "Rechercher…",
@@ -1775,6 +1780,86 @@
       "sectionTitleLabel": "Titre de la section",
       "sectionTitlePlaceholder": "Titre optionnel affiché au-dessus de la section",
       "frenchTranslation": "Traduction française (optionnel)"
+    },
+    "legal": {
+      "title": "Documents légaux",
+      "createTitle": "Nouveau document légal",
+      "editTitle": "Modifier un document légal",
+      "viewTitle": "Consulter un document légal",
+      "empty": "Aucun document légal.",
+      "create": "Nouveau document",
+      "save": "Enregistrer",
+      "created": "Document créé",
+      "saved": "Modifications enregistrées",
+      "published": "Document publié",
+      "archived": "Document archivé",
+      "backToList": "Retour à la liste",
+      "documentDetails": "Détails du document",
+      "worldwide": "Mondial",
+      "columns": {
+        "title": "Titre",
+        "type": "Type",
+        "version": "Version",
+        "status": "Statut",
+        "countries": "Pays",
+        "publishedAt": "Publié le"
+      },
+      "status": {
+        "draft": "Brouillon",
+        "published": "Publié",
+        "archived": "Archivé"
+      },
+      "actions": {
+        "edit": "Modifier",
+        "view": "Consulter",
+        "publish": "Publier",
+        "archive": "Archiver"
+      },
+      "form": {
+        "type": "Type de document",
+        "version": "Version",
+        "title": "Titre",
+        "content": "Contenu (Markdown)",
+        "contentHint": "Contenu bilingue — incluez les sections en français et en anglais dans le même document.",
+        "changeSummary": "Résumé des modifications",
+        "countries": "Pays",
+        "countriesHint": "Codes pays ISO séparés par des virgules, ou * pour mondial."
+      },
+      "confirmPublish": {
+        "title": "Publier ce document ?",
+        "description": "La publication rendra cette version active. Toute version précédemment publiée du même type sera automatiquement archivée.",
+        "cancel": "Annuler",
+        "confirm": "Publier"
+      },
+      "confirmArchive": {
+        "title": "Archiver ce document ?",
+        "description": "Les documents archivés ne sont plus actifs mais restent accessibles pour référence.",
+        "cancel": "Annuler",
+        "confirm": "Archiver"
+      },
+      "error": {
+        "publishFailed": "Échec de la publication du document",
+        "archiveFailed": "Échec de l'archivage du document",
+        "INVALID_INPUT": "Veuillez remplir tous les champs obligatoires.",
+        "CREATION_FAILED": "Échec de la création du document. Veuillez réessayer.",
+        "CANNOT_EDIT_PUBLISHED": "Les documents publiés ne peuvent pas être modifiés. Créez une nouvelle version.",
+        "UPDATE_FAILED": "Échec de l'enregistrement. Veuillez réessayer."
+      },
+      "acceptances": {
+        "title": "Acceptations",
+        "description": "Suivez quels utilisateurs et comptes ont accepté chaque document légal.",
+        "empty": "Aucune acceptation enregistrée.",
+        "columns": {
+          "user": "Utilisateur",
+          "account": "Compte",
+          "document": "Document",
+          "version": "Version",
+          "acceptedAt": "Accepté le",
+          "ipAddress": "Adresse IP"
+        },
+        "filterByDocument": "Filtrer par document",
+        "allDocuments": "Tous les documents"
+      }
     }
   },
   "onboarding": {
@@ -1808,6 +1893,7 @@
         "cultural_center": "Centre culturel",
         "other": "Autre"
       },
+      "termsOfSale": "J'ai lu et j'accepte les <link>Conditions Générales de Vente</link>.",
       "continue": "Continuer"
     },
     "step2": {
@@ -2039,6 +2125,7 @@
       "rights_holder": "Ayant droit",
       "admin": "Admin"
     },
+    "signOut": "Se déconnecter",
     "createError": {
       "UNAUTHORIZED": "Vous devez être connecté.",
       "FORBIDDEN": "Vous n'êtes pas autorisé à créer ce type de compte.",
@@ -2191,6 +2278,84 @@
     "copyright": "© {year} Timeless Cinema",
     "searchCurrency": "Rechercher une devise...",
     "noCurrencyFound": "Aucune devise trouvée.",
-    "currencyUpdated": "Devise mise à jour."
+    "currencyUpdated": "Devise mise à jour.",
+    "termsOfService": "CGU",
+    "termsOfSale": "CGV",
+    "privacyPolicy": "Confidentialité",
+    "legalNotices": "Mentions légales"
+  },
+  "legal": {
+    "terms": {
+      "pageTitle": "Conditions Générales d'Utilisation",
+      "notAvailable": "Les conditions générales d'utilisation ne sont pas disponibles pour le moment.",
+      "version": "Version {version}",
+      "publishedAt": "Publiées le {date}"
+    },
+    "sale": {
+      "pageTitle": "Conditions Générales de Vente",
+      "notAvailable": "Les conditions générales de vente ne sont pas disponibles pour le moment.",
+      "version": "Version {version}",
+      "publishedAt": "Publiées le {date}"
+    },
+    "privacy": {
+      "pageTitle": "Politique de Confidentialité",
+      "notAvailable": "La politique de confidentialité n'est pas disponible pour le moment.",
+      "version": "Version {version}",
+      "publishedAt": "Publiées le {date}"
+    },
+    "notices": {
+      "pageTitle": "Mentions Légales",
+      "publisher": {
+        "title": "Éditeur"
+      },
+      "hosting": {
+        "title": "Hébergement"
+      },
+      "intellectualProperty": {
+        "title": "Propriété Intellectuelle",
+        "content": "L'ensemble du contenu de ce site (textes, images, logos, marques, logiciels) est la propriété exclusive de Timeless SAS ou de ses concédants de licence et est protégé par les lois relatives à la propriété intellectuelle. Toute reproduction, représentation ou diffusion sans autorisation écrite préalable est interdite."
+      },
+      "personalData": {
+        "title": "Données Personnelles",
+        "content": "Timeless collecte et traite des données personnelles conformément à sa Politique de Confidentialité et aux réglementations applicables en matière de protection des données (RGPD). Pour plus d'informations, veuillez consulter notre Politique de Confidentialité ou nous contacter à legal@timeless.film."
+      }
+    },
+    "dpa": {
+      "pageTitle": "Accord de Traitement des Données",
+      "description": "Cette page décrit comment Timeless traite les données personnelles pour le compte de ses utilisateurs. Pour un accord formel de traitement des données (DPA), veuillez nous contacter.",
+      "contact": {
+        "title": "Demander un DPA",
+        "description": "Pour demander un accord de traitement des données signé, contactez-nous à"
+      },
+      "scope": {
+        "title": "Périmètre du Traitement des Données",
+        "content": "Timeless traite les données personnelles nécessaires au fonctionnement de sa place de marché B2B pour les films classiques et de patrimoine. Cela inclut les informations de compte, les données de transaction et les échanges entre exploitants et ayants droit."
+      },
+      "subProcessors": {
+        "title": "Sous-traitants",
+        "stripe": "Traitement des paiements et transactions de la place de marché",
+        "resend": "Envoi d'e-mails transactionnels",
+        "scaleway": "Infrastructure cloud et hébergement des données (UE)"
+      }
+    },
+    "acceptTerms": {
+      "pageTitle": "Conditions Générales d'Utilisation mises à jour",
+      "description": "Nos Conditions Générales d'Utilisation ont été mises à jour. Veuillez les consulter et les accepter pour continuer à utiliser la plateforme.",
+      "version": "Version {version}",
+      "checkbox": "J'ai lu et j'accepte les Conditions Générales d'Utilisation mises à jour.",
+      "submit": "Accepter et continuer",
+      "success": "Conditions Générales d'Utilisation acceptées.",
+      "error": "Une erreur est survenue lors de l'enregistrement de votre acceptation. Veuillez réessayer."
+    },
+    "acceptSale": {
+      "pageTitle": "Conditions Générales de Vente mises à jour",
+      "description": "Nos Conditions Générales de Vente ont été mises à jour. Veuillez les consulter et les accepter pour continuer.",
+      "memberNotice": "Seul le propriétaire ou un administrateur du compte peut accepter les Conditions Générales de Vente. Veuillez contacter l'administrateur de votre organisation.",
+      "version": "Version {version}",
+      "checkbox": "J'ai lu et j'accepte les Conditions Générales de Vente mises à jour au nom de mon organisation.",
+      "submit": "Accepter et continuer",
+      "success": "Conditions Générales de Vente acceptées.",
+      "error": "Une erreur est survenue lors de l'enregistrement de votre acceptation. Veuillez réessayer."
+    }
   }
 }
