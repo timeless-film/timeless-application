@@ -396,12 +396,22 @@ test.describe("E14 — TMDB Enrichment", () => {
         timeout: 15000,
       });
 
+      // Open filter dialog
+      await page.getByRole("button", { name: "Filters" }).click();
+      const dialog = page.getByRole("dialog");
+      await expect(dialog).toBeVisible();
+
       // Open director filter (button shows placeholder text)
-      const directorBtn = page.getByRole("combobox").filter({ hasText: "Select directors" });
+      const directorBtn = dialog.getByRole("combobox").filter({ hasText: "Select directors" });
       await directorBtn.click();
 
       // Select "Carol Reed"
       await page.getByRole("option", { name: "Carol Reed" }).click();
+      // Close popover
+      await page.keyboard.press("Escape");
+
+      // Close filter dialog
+      await dialog.getByRole("button", { name: /show/i }).click();
 
       // Wait for results to update — The Third Man should be visible, Citizen Kane should not
       await expect(page.getByText("The Third Man")).toBeVisible({
@@ -419,12 +429,22 @@ test.describe("E14 — TMDB Enrichment", () => {
         timeout: 15000,
       });
 
+      // Open filter dialog
+      await page.getByRole("button", { name: "Filters" }).click();
+      const dialog = page.getByRole("dialog");
+      await expect(dialog).toBeVisible();
+
       // Open actor filter
-      const actorBtn = page.getByRole("combobox").filter({ hasText: "Select actors" });
+      const actorBtn = dialog.getByRole("combobox").filter({ hasText: "Select actors" });
       await actorBtn.click();
 
       // Select "Joseph Cotten" — both films have him
       await page.getByRole("option", { name: "Joseph Cotten" }).click();
+      // Close popover
+      await page.keyboard.press("Escape");
+
+      // Close filter dialog
+      await dialog.getByRole("button", { name: /show/i }).click();
 
       // Both films should be visible
       await expect(page.getByText("The Third Man")).toBeVisible({
@@ -444,14 +464,24 @@ test.describe("E14 — TMDB Enrichment", () => {
         timeout: 15000,
       });
 
+      // Open filter dialog
+      await page.getByRole("button", { name: "Filters" }).click();
+      const dialog = page.getByRole("dialog");
+      await expect(dialog).toBeVisible();
+
       // Open company filter
-      const companyBtn = page.getByRole("combobox").filter({ hasText: "Select companies" });
+      const companyBtn = dialog.getByRole("combobox").filter({ hasText: "Select companies" });
       await companyBtn.click();
 
       // Select "RKO Radio Pictures" — only Citizen Kane
       await page
         .getByRole("option", { name: "RKO Radio Pictures" })
         .click();
+      // Close popover
+      await page.keyboard.press("Escape");
+
+      // Close filter dialog
+      await dialog.getByRole("button", { name: /show/i }).click();
 
       await expect(page.getByText("Citizen Kane")).toBeVisible({
         timeout: 10000,
@@ -470,17 +500,27 @@ test.describe("E14 — TMDB Enrichment", () => {
         timeout: 15000,
       });
 
+      // Open filter dialog
+      await page.getByRole("button", { name: "Filters" }).click();
+      const dialog = page.getByRole("dialog");
+      await expect(dialog).toBeVisible();
+
       // Filter by director "Orson Welles"
-      const directorBtn = page.getByRole("combobox").filter({ hasText: "Select directors" });
+      const directorBtn = dialog.getByRole("combobox").filter({ hasText: "Select directors" });
       await directorBtn.click();
       await page.getByRole("option", { name: "Orson Welles" }).click();
       // Close popover by pressing Escape
       await page.keyboard.press("Escape");
 
       // Also filter by actor "Orson Welles"
-      const actorBtn = page.getByRole("combobox").filter({ hasText: "Select actors" });
+      const actorBtn = dialog.getByRole("combobox").filter({ hasText: "Select actors" });
       await actorBtn.click();
       await page.getByRole("option", { name: "Orson Welles" }).click();
+      // Close popover
+      await page.keyboard.press("Escape");
+
+      // Close filter dialog
+      await dialog.getByRole("button", { name: /show/i }).click();
 
       // Only Citizen Kane — directed by AND starring Orson Welles
       await expect(page.getByText("Citizen Kane")).toBeVisible({

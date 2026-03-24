@@ -37,7 +37,7 @@ export function FilmBackdropCard({
         className
       )}
     >
-      <div className="relative aspect-[3/2] w-full overflow-hidden rounded-lg shadow-md transition-all duration-300 group-hover:scale-[1.03] group-hover:shadow-xl">
+      <div className="relative aspect-[3/2] w-full overflow-hidden transition-all duration-300 group-hover:scale-[1.03] group-hover:shadow-xl">
         {imageSource && !hasError ? (
           <Image
             src={imageSource}
@@ -53,8 +53,8 @@ export function FilmBackdropCard({
           </div>
         )}
       </div>
-      <p className="mt-1 truncate font-heading text-sm">{title}</p>
-      {subtitle && <p className="truncate text-xs text-muted-foreground">{subtitle}</p>}
+      <p className="mt-1 truncate font-heading text-lg">{title}</p>
+      {subtitle && <p className="truncate text-sm text-muted-foreground">{subtitle}</p>}
     </Link>
   );
 }

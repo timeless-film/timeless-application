@@ -108,7 +108,10 @@ async function EditorialSections({
           const cols = await getCollectionsForSection(section.id, locale);
           if (cols.length === 0) return null;
           return (
-            <div key={section.id} className="mx-auto max-w-7xl space-y-8 px-4 lg:px-6">
+            <div
+              key={section.id}
+              className="mx-auto max-w-7xl space-y-8 px-4 lg:px-6 2xl:max-w-[1440px]"
+            >
               {cols.map((col) => (
                 <CollectionRowComponent key={col.id} collection={col} />
               ))}
@@ -119,7 +122,7 @@ async function EditorialSections({
           const cards = await getEditorialCards(section.id, locale);
           if (cards.length === 0) return null;
           return (
-            <div key={section.id} className="mx-auto max-w-7xl px-4 lg:px-6">
+            <div key={section.id} className="mx-auto max-w-7xl px-4 lg:px-6 2xl:max-w-[1440px]">
               {section.title && (
                 <h2 className="font-heading mb-4 text-2xl tracking-tight md:text-3xl">
                   {section.title}
@@ -135,7 +138,7 @@ async function EditorialSections({
           const decades = await getFilmsByDecade(20, selectedDecades);
           if (decades.length === 0) return null;
           return (
-            <div key={section.id} className="mx-auto max-w-7xl px-4 lg:px-6">
+            <div key={section.id} className="mx-auto max-w-7xl px-4 lg:px-6 2xl:max-w-[1440px]">
               {section.title && (
                 <h2 className="font-heading mb-4 text-2xl tracking-tight md:text-3xl">
                   {section.title}
@@ -160,7 +163,7 @@ async function EditorialSections({
   if (rendered.length === 0) {
     // Fallback when no editorial content is configured
     return (
-      <div className="mx-auto max-w-7xl space-y-6 px-4 py-8 lg:px-6">
+      <div className="mx-auto max-w-7xl space-y-6 px-4 py-8 lg:px-6 2xl:max-w-[1440px]">
         <Suspense fallback={null}>
           <DecadeCatalogFallback decadeLabel={decadeLabel} viewMoreLabel={viewMoreLabel} />
         </Suspense>
@@ -189,7 +192,7 @@ function SlideshowSkeleton() {
   return (
     <div className="space-y-10">
       <Skeleton className="aspect-[21/9] w-full md:aspect-[2.5/1]" />
-      <div className="mx-auto max-w-7xl space-y-4 px-4 lg:px-6">
+      <div className="mx-auto max-w-7xl space-y-4 px-4 lg:px-6 2xl:max-w-[1440px]">
         <Skeleton className="h-6 w-48" />
         <div className="flex gap-4">
           {Array.from({ length: 6 }).map((_, i) => (

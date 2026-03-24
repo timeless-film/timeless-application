@@ -72,7 +72,7 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
   });
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 px-4 py-8 lg:px-6">
+    <div className="mx-auto max-w-7xl space-y-6 px-4 py-8 lg:px-6 2xl:max-w-[1440px]">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" asChild>
           <Link href="/orders">

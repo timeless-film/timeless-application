@@ -140,7 +140,7 @@ export function FilmDetailContent({
         )}
 
         {/* Content */}
-        <div className="container mx-auto max-w-7xl px-4 py-8">
+        <div className="container mx-auto max-w-7xl px-4 py-8 2xl:max-w-[1440px]">
           <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
             {/* Main Content */}
             <div className="space-y-6">

@@ -27,7 +27,7 @@ export default async function RequestsPage({
     "success" in result && result.pagination ? result.pagination : { page: 1, limit: 20, total: 0 };
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 px-4 py-8 lg:px-6">
+    <div className="mx-auto max-w-7xl space-y-6 px-4 py-8 lg:px-6 2xl:max-w-[1440px]">
       <h1 className="font-heading text-3xl">{t("title")}</h1>
       <RequestsPageContent
         initialRequests={requests}

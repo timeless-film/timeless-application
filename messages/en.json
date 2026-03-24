@@ -166,6 +166,8 @@
     "sortDesc": "Descending",
     "viewDense": "Dense view",
     "viewSimple": "Simple view",
+    "filtersDialogDescription": "Refine your search with advanced filters",
+    "showResults": "Show {count, plural, =0 {no films} =1 {1 film} other {# films}}",
     "filters": {
       "title": "Filters",
       "clearAll": "Clear all",

@@ -149,7 +149,7 @@ export function HeroSlideshow({ items, viewFilmLabel }: HeroSlideshowProps) {
 
         {/* Content */}
         <div className="absolute inset-0 flex items-end">
-          <div className="mx-auto w-full max-w-7xl px-4 pb-10 lg:px-6 lg:pb-14">
+          <div className="mx-auto w-full max-w-7xl px-4 pb-10 lg:px-6 lg:pb-14 2xl:max-w-[1440px]">
             <div className="max-w-xl space-y-2">
               {genre && <p className="text-sm font-medium text-white/70">{genre}</p>}
               <h2 className="font-heading text-4xl text-white drop-shadow-lg md:text-6xl">

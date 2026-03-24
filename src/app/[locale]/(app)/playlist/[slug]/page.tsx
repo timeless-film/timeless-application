@@ -55,7 +55,7 @@ export default async function PlaylistPage({ params }: PlaylistPageProps) {
             </div>
           </div>
         ) : (
-          <div className="mx-auto max-w-7xl space-y-2 px-4 py-8 lg:px-6">
+          <div className="mx-auto max-w-7xl space-y-2 px-4 py-8 lg:px-6 2xl:max-w-[1440px]">
             <h1 className="font-heading text-2xl md:text-3xl">{collection.title}</h1>
             {collection.description && (
               <p className="max-w-2xl text-muted-foreground">{collection.description}</p>
@@ -65,7 +65,7 @@ export default async function PlaylistPage({ params }: PlaylistPageProps) {
       </div>
 
       {/* Film grid */}
-      <div className="mx-auto max-w-7xl px-4 lg:px-6">
+      <div className="mx-auto max-w-7xl px-4 lg:px-6 2xl:max-w-[1440px]">
         {collection.collectionFilms.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
             <Film className="mb-4 h-12 w-12 text-muted-foreground" />

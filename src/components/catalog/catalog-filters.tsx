@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, ChevronsUpDown, Filter, RotateCcw, X } from "lucide-react";
+import { Check, ChevronsUpDown, X } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 
@@ -15,7 +15,6 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
@@ -59,7 +58,7 @@ export function CatalogFilters({
 }: CatalogFiltersProps) {
   const t = useTranslations("catalog.filters");
   const locale = useLocale();
-  const { filters, setFilters, clearFilters } = useCatalogFilters(defaultPriceCurrency);
+  const { filters, setFilters } = useCatalogFilters(defaultPriceCurrency);
   const [isGenrePopoverOpen, setIsGenrePopoverOpen] = useState(false);
   const [isDirectorPopoverOpen, setIsDirectorPopoverOpen] = useState(false);
   const [isActorPopoverOpen, setIsActorPopoverOpen] = useState(false);
@@ -118,53 +117,7 @@ export function CatalogFilters({
     : t("priceCurrencyNoFilmsHint", { currency: filters.priceCurrency });
 
   return (
-    <div
-      className="space-y-6 rounded-xl border border-border/70 bg-card/90 p-5 shadow-sm backdrop-blur-sm"
-      suppressHydrationWarning
-    >
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="bg-accent/15 text-accent-foreground flex h-8 w-8 items-center justify-center rounded-full">
-            <Filter className="h-4 w-4" />
-          </div>
-          <h3 className="font-heading text-lg">
-            {t("title")}
-            {activeCount > 0 && (
-              <Badge variant="secondary" className="ml-2 rounded-full px-2.5">
-                {activeCount}
-              </Badge>
-            )}
-          </h3>
-        </div>
-        {activeCount > 0 && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-muted-foreground hover:text-foreground"
-            onClick={() => void clearFilters()}
-          >
-            <RotateCcw className="mr-1 h-4 w-4" />
-            {t("clearAll")}
-          </Button>
-        )}
-      </div>
-
-      {/* Search */}
-      <div className="space-y-2">
-        <Label htmlFor="search" className="text-foreground/85 text-xs tracking-wide uppercase">
-          {t("search")}
-        </Label>
-        <Input
-          id="search"
-          type="text"
-          placeholder={t("searchPlaceholder")}
-          value={filters.search || ""}
-          onChange={(e) => void setFilters({ search: e.target.value || null })}
-          className="bg-background"
-        />
-      </div>
-
+    <div className="space-y-6" suppressHydrationWarning>
       {/* Film Type */}
       <div className="space-y-2">
         <Label htmlFor="type" className="text-foreground/85 text-xs tracking-wide uppercase">

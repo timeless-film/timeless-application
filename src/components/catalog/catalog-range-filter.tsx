@@ -47,7 +47,7 @@ export function CatalogRangeFilter({
           {titleAction}
         </div>
 
-        <div className="mx-auto w-1/2 min-w-[240px] space-y-2">
+        <div className="space-y-2">
           <div className="bg-muted/35 h-18 rounded" />
           <Slider min={0} max={1} value={[0, 1]} disabled aria-label={title} />
         </div>
@@ -229,7 +229,7 @@ function CatalogRangeFilterControl({
         {titleAction}
       </div>
 
-      <div className="mx-auto w-1/2 min-w-[240px]">
+      <div>
         <TooltipProvider delayDuration={0} skipDelayDuration={0}>
           <div className="flex h-18 items-end gap-1.5 px-1">
             {facet.buckets.map((bucket, index) => {

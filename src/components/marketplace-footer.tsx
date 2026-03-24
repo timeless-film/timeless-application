@@ -82,7 +82,7 @@ export function MarketplaceFooter({ initialCurrency }: MarketplaceFooterProps) {
 
   return (
     <footer className="border-t border-white/10 bg-[oklch(0.10_0_0)]">
-      <div className="mx-auto max-w-7xl px-4 py-6 lg:px-6">
+      <div className="mx-auto max-w-7xl px-4 py-6 lg:px-6 2xl:max-w-[1440px]">
         <div className="flex items-center justify-between text-sm text-white/50">
           <p>{t("copyright", { year: new Date().getFullYear() })}</p>
           <div className="flex items-center gap-1">

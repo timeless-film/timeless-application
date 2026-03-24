@@ -129,7 +129,7 @@ export function MarketplaceHeader({ user }: MarketplaceHeaderProps) {
 
   return (
     <header className="sticky top-0 z-50 border-b border-white/10 bg-[oklch(0.10_0_0)]">
-      <div className="mx-auto flex h-14 max-w-7xl items-center px-4 lg:px-6">
+      <div className="mx-auto flex h-14 max-w-7xl items-center px-4 lg:px-6 2xl:max-w-[1440px]">
         {/* Logo */}
         <Link href="/" className="mr-8 flex items-center gap-2">
           <span className="font-heading text-xl tracking-tight text-white">Timeless</span>
