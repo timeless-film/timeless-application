@@ -141,6 +141,7 @@ export function FilmList({ initialFilms, initialTotal }: FilmListProps) {
     setLoadingSource("page");
     setCurrentPage(page);
     fetchFilms(searchInput, page, statusFilter);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   const showSkeleton = loading && loadingSource !== "search";

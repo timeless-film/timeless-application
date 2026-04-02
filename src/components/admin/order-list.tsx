@@ -143,6 +143,7 @@ export function OrderList({ initialOrders, initialTotal }: OrderListProps) {
     setLoadingSource("page");
     setCurrentPage(page);
     fetchOrders(searchInput, page, statusFilter);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function canRefund(order: AdminOrderRow): boolean {

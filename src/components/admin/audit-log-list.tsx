@@ -117,6 +117,7 @@ export function AuditLogList({ initialLogs, initialTotal, availableActions }: Au
     setLoadingSource("page");
     setCurrentPage(page);
     fetchLogs(searchInput, page, actionFilter);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function formatDate(date: Date | string) {

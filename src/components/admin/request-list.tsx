@@ -160,6 +160,7 @@ export function RequestList({ initialRequests, initialTotal }: RequestListProps)
     setLoadingSource("page");
     setCurrentPage(page);
     fetchRequests(searchInput, page, statusFilter);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function openDialog(action: DialogAction, target: AdminRequestRow) {

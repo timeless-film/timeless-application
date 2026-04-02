@@ -64,6 +64,7 @@ export function WalletTransactionsTable({
     // If already cached, just navigate
     if (pages[nextIndex]) {
       setCurrentPageIndex(nextIndex);
+      window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
 
@@ -77,6 +78,7 @@ export function WalletTransactionsTable({
         };
         setPages((prev) => [...prev, newPage]);
         setCurrentPageIndex(nextIndex);
+        window.scrollTo({ top: 0, behavior: "smooth" });
       }
     });
   }, [currentPageIndex, pages, startTransition]);
@@ -84,6 +86,7 @@ export function WalletTransactionsTable({
   const handlePrevious = useCallback(() => {
     if (currentPageIndex > 0) {
       setCurrentPageIndex(currentPageIndex - 1);
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   }, [currentPageIndex]);
 

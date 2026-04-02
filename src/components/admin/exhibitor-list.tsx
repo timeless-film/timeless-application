@@ -128,6 +128,7 @@ export function ExhibitorList({ initialAccounts, initialTotal }: ExhibitorListPr
     setLoadingSource("page");
     setCurrentPage(page);
     fetchAccounts(searchInput, page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   async function handleSuspendToggle() {

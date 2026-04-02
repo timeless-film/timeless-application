@@ -231,6 +231,7 @@ export function CatalogPageContent({
                 onClick={() => {
                   if (initialPage > 1) {
                     void setFilters({ page: initialPage - 1 });
+                    window.scrollTo({ top: 0, behavior: "smooth" });
                   }
                 }}
                 className={initialPage <= 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
@@ -253,7 +254,10 @@ export function CatalogPageContent({
               return (
                 <PaginationItem key={pageNum}>
                   <PaginationLink
-                    onClick={() => void setFilters({ page: pageNum })}
+                    onClick={() => {
+                      void setFilters({ page: pageNum });
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
                     isActive={pageNum === initialPage}
                     className="cursor-pointer"
                   >
@@ -268,6 +272,7 @@ export function CatalogPageContent({
                 onClick={() => {
                   if (initialPage < totalPages) {
                     void setFilters({ page: initialPage + 1 });
+                    window.scrollTo({ top: 0, behavior: "smooth" });
                   }
                 }}
                 className={

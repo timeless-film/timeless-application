@@ -189,6 +189,7 @@ export function RequestsPageContent({
     setLoadingSource("page");
     setCurrentPage(newPage);
     fetchRequests(activeTab, newPage, searchInput);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleCancel = (requestId: string) => {

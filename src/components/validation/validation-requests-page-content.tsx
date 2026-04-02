@@ -140,6 +140,7 @@ export function ValidationRequestsPageContent({
     setLoadingSource("page");
     setCurrentPage(newPage);
     fetchRequests(activeTab, newPage, searchInput);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (

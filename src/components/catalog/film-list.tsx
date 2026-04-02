@@ -141,6 +141,7 @@ export function FilmList({ initialFilms, initialTotal, currentUserRole }: FilmLi
     setLoadingSource("page");
     setCurrentPage(page);
     fetchFilms(searchInput, page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function formatPriceRange(prices: FilmPrice[]): string {

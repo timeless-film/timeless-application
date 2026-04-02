@@ -95,6 +95,35 @@ messages/
 └── fr.json                 # French translations
 ```
 
+## Infrastructure (Scaleway)
+
+TIMELESS runs entirely on **Scaleway** in `fr-par` (Paris). The production domain is `app.timeless.film`.
+
+| Service | Product | Details |
+|---|---|---|
+| **Compute** | Serverless Containers | Scales 0→3 instances, 1 GB RAM / 560 mCPU each, 50 max concurrency |
+| **Database** | Managed PostgreSQL 16 | `db-dev-s` instance, automated backups enabled |
+| **Storage** | Object Storage (S3) | `timeless-uploads` bucket for user-uploaded files |
+| **Registry** | Container Registry | Private registry `rg.fr-par.scw.cloud/timeless` |
+| **DNS** | Scaleway Domains | `timeless.film` zone, `app` CNAME → Serverless Containers |
+| **Email** | Resend (external) | Transactional emails, DKIM configured on `timeless.film` |
+
+### Deployment pipeline
+
+```
+Push to main → CI (typecheck, lint, tests) → Deploy workflow:
+  1. Build Docker image (multi-stage, standalone Next.js)
+  2. Push to Scaleway Container Registry (tagged by commit SHA)
+  3. Run Drizzle migrations against production DB
+  4. Update container image + trigger deploy via Scaleway API
+```
+
+### Key configuration
+
+- **HTTP → HTTPS**: forced via Scaleway (`http-option=redirected`)
+- **Runtime secrets**: injected as Scaleway container environment variables (never baked in the image)
+- **`NEXT_PUBLIC_*` vars**: baked at Docker build time via GitHub Actions secrets
+
 ## Coding conventions
 
 - **All code in English** (variables, functions, comments, JSDoc)

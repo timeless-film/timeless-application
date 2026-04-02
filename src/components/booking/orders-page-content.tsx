@@ -126,6 +126,7 @@ export function OrdersPageContent({
 
   const handlePageChange = (page: number) => {
     fetchOrders(page, activeTab, "page");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const totalPages = Math.ceil(pagination.total / pagination.limit);

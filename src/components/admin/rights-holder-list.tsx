@@ -146,6 +146,7 @@ export function RightsHolderList({
     setLoadingSource("page");
     setCurrentPage(page);
     fetchAccounts(searchInput, page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   async function handleSuspendToggle() {

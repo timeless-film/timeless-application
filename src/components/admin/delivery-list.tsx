@@ -153,6 +153,7 @@ export function DeliveryList({
     setLoadingSource("page");
     setCurrentPage(page);
     fetchDeliveries(searchInput, page, activeTab);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function openDialog(mode: DialogMode, item: AdminDeliveryRow) {
